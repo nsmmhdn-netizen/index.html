@@ -7,85 +7,82 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @font-face { font-family: 'Vazir'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2'); }
-        body { font-family: 'Vazir', sans-serif; background-color: #f3f4f6; }
+        body { font-family: 'Vazir', sans-serif; background-color: #f1f5f9; }
         .english-text { font-family: 'Arial', sans-serif; direction: ltr; text-align: left; }
     </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-slate-100">
 
     <div id="app" class="max-w-md mx-auto bg-white min-h-screen shadow-2xl pb-24 relative">
-        <header class="bg-blue-600 text-white p-6 text-center shadow-lg">
-            <h1 class="text-2xl font-bold italic">PTE ACADEMIC</h1>
-            <p class="text-[10px] opacity-80 mt-1 english-text text-center italic font-bold tracking-widest">VOCABULARY MASTER</p>
+        <!-- Header -->
+        <header class="bg-blue-700 text-white p-6 text-center shadow-lg">
+            <h1 class="text-2xl font-bold tracking-tight">PTE ACADEMIC</h1>
+            <p class="text-[10px] opacity-80 mt-1 english-text text-center italic">Reading & Vocabulary Practice</p>
         </header>
 
         <!-- Navigation Tabs -->
         <div class="flex bg-white sticky top-0 z-30 border-b">
-            <button id="tabVocab" onclick="showTab('vocab')" class="flex-1 py-4 font-bold text-blue-600 border-b-4 border-blue-600">لغات</button>
-            <button id="tabQuiz" onclick="showTab('quiz')" class="flex-1 py-4 font-bold text-gray-400">آزمون</button>
+            <button id="tabVocab" onclick="showTab('vocab')" class="flex-1 py-4 font-bold text-blue-600 border-b-4 border-blue-600 transition-all">لغات</button>
+            <button id="tabQuiz" onclick="showTab('quiz')" class="flex-1 py-4 font-bold text-gray-400 transition-all">آزمون</button>
         </div>
 
         <!-- Search Bar -->
         <div id="searchContainer" class="p-4 bg-white shadow-sm">
-            <input id="searchInput" oninput="searchWords()" type="text" placeholder="جستجوی لغت انگلیسی..." 
-                   class="w-full p-3 border-2 border-gray-100 rounded-2xl outline-none focus:border-blue-500 transition-all shadow-inner">
+            <input id="searchInput" oninput="searchWords()" type="text" placeholder="جستجوی لغت..." 
+                   class="w-full p-3 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500 transition-all">
         </div>
 
-        <!-- Content Area -->
-        <div id="vocabSection" class="p-4 space-y-5">
+        <!-- Vocab Section -->
+        <div id="vocabSection" class="p-4 space-y-6">
             <div id="wordsContainer" class="text-center py-20 text-gray-400 italic">
-                در حال بارگذاری لغات...
+                در حال دریافت لغات...
             </div>
         </div>
 
+        <!-- Quiz Section -->
         <div id="quizSection" class="p-4 hidden">
-            <div id="quizContent" class="bg-white border-2 border-gray-50 rounded-3xl p-6 shadow-md min-h-[350px] flex flex-col justify-center">
-                <p class="text-center text-gray-400 italic">در حال دریافت تست‌ها...</p>
+            <div id="quizContent" class="bg-white border-2 border-slate-50 rounded-3xl p-6 shadow-md min-h-[350px] flex flex-col justify-center">
+                <p class="text-center text-gray-400 italic">در حال دریافت سوالات...</p>
             </div>
         </div>
     </div>
 
     <script>
-        const SHEET_ID = '1GOqwBlOym9WIVKLjHmR9xTJBglcWj7BC92XAJoxuYg';
+        // آیدی انتشار وب (بر اساس اسکرین‌شات شما)
+        const PUB_ID = '2PACX-1vRLfGnIloQoX8NtHa99PvWeZllcHh1s6Asc0jOIKeWDkHq7fjiQ-KsZOB7PVNANcjXtid63Wqih-zjC';
 
         let wordsData = [];
         let quizData = [];
 
-        // تابع ساده برای جدا کردن ستون‌های CSV
-        function parseCSV(text) {
-            const rows = text.split(/\r?\n/).slice(1);
-            return rows.map(row => {
-                const cols = [];
-                let current = '';
-                let inQuotes = false;
-                for (let char of row) {
-                    if (char === '"') inQuotes = !inQuotes;
-                    else if (char === ',' && !inQuotes) {
-                        cols.push(current.trim());
-                        current = '';
-                    } else current += char;
-                }
-                cols.push(current.trim());
-                return cols.map(c => c.replace(/^"|"$/g, ''));
-            }).filter(r => r.length > 1);
+        // تابع تجزیه CSV (هندل کردن جملات پیچیده)
+        function parseCSV(csv) {
+            const lines = csv.split(/\r?\n/);
+            return lines.slice(1).map(line => {
+                const parts = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                return parts ? parts.map(p => p.replace(/^"|"$/g, '').trim()) : [];
+            }).filter(row => row.length > 1);
         }
 
-        async function loadData() {
+        async function loadAllData() {
             try {
-                // دریافت لغات (برگه اول)
-                const resW = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=Words`);
+                // دریافت لغات (GID 0)
+                const resW = await fetch(`https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?gid=0&single=true&output=csv`);
                 const textW = await resW.text();
                 wordsData = parseCSV(textW);
                 renderWords(wordsData);
 
-                // دریافت تست‌ها (برگه دوم)
-                const resQ = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=Quizzes`);
+                // دریافت کوییزها (GID شیت دوم شما)
+                const resQ = await fetch(`https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?gid=1543781223&single=true&output=csv`);
                 const textQ = await resQ.text();
                 quizData = parseCSV(textQ);
                 if(quizData.length > 0) showQuizHome();
 
             } catch (err) {
-                document.getElementById('wordsContainer').innerHTML = "<p class='text-red-500'>خطا در لود دیتا! مرورگر را رفرش کنید.</p>";
+                document.getElementById('wordsContainer').innerHTML = `
+                    <div class="text-red-500 p-4 text-center">
+                        <p class="font-bold">خطا در بارگذاری دیتا!</p>
+                        <p class="text-xs mt-2 italic">لطفاً صفحه را رفرش کنید.</p>
+                    </div>`;
             }
         }
 
@@ -94,19 +91,19 @@
             if (!data || data.length === 0) { container.innerHTML = "دیتایی پیدا نشد."; return; }
             
             container.innerHTML = data.map(w => `
-                <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden mb-6">
+                <div class="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden mb-6 transition-all active:scale-95">
                     ${w[5] && w[5].includes('http') ? `<img src="${w[5]}" class="w-full h-44 object-cover">` : ''}
                     <div class="p-5 text-right">
                         <div class="flex justify-between items-center mb-3">
-                            <span class="bg-blue-50 text-blue-700 text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider">${w[2] || 'Academic'}</span>
-                            <button onclick="speak('${w[0]}')" class="bg-gray-100 p-2 rounded-full shadow-sm active:bg-blue-100 transition-colors">🔊</button>
+                            <span class="bg-blue-50 text-blue-700 text-[10px] px-3 py-1 rounded-full font-black uppercase">${w[2] || 'Academic'}</span>
+                            <button onclick="speak('${w[0]}')" class="bg-slate-50 hover:bg-blue-50 p-2 rounded-full transition-colors shadow-sm">🔊</button>
                         </div>
-                        <h3 class="english-text text-2xl font-black text-gray-800">${w[0]}</h3>
+                        <h3 class="english-text text-2xl font-black text-slate-800 tracking-tight">${w[0]}</h3>
                         <p class="text-blue-600 font-bold text-lg mt-1 mb-3">${w[1]}</p>
-                        <div class="bg-blue-50 p-4 rounded-2xl border-r-4 border-blue-500 mb-3 text-right shadow-inner">
-                            <p class="english-text text-sm text-gray-700 italic leading-relaxed">"${w[3]}"</p>
+                        <div class="bg-slate-50 p-4 rounded-2xl border-r-4 border-blue-500 mb-3 text-right shadow-inner">
+                            <p class="english-text text-sm text-slate-600 italic leading-relaxed">"${w[3]}"</p>
                         </div>
-                        ${w[4] ? `<div class="bg-yellow-50 p-3 rounded-xl text-[11px] text-gray-600 border-r-4 border-yellow-400 text-right leading-relaxed italic"><strong>Grammar:</strong> ${w[4]}</div>` : ''}
+                        ${w[4] ? `<div class="bg-amber-50 p-3 rounded-xl text-[11px] text-slate-600 border-r-4 border-amber-400 text-right leading-relaxed italic"><strong>Grammar:</strong> ${w[4]}</div>` : ''}
                     </div>
                 </div>
             `).join('');
@@ -130,6 +127,7 @@
             document.getElementById('vocabSection').classList.toggle('hidden', tab !== 'vocab');
             document.getElementById('searchContainer').classList.toggle('hidden', tab !== 'vocab');
             document.getElementById('quizSection').classList.toggle('hidden', tab !== 'quiz');
+            
             document.getElementById('tabVocab').className = tab === 'vocab' ? "flex-1 py-4 font-bold text-blue-600 border-b-4 border-blue-600" : "flex-1 py-4 font-bold text-gray-400";
             document.getElementById('tabQuiz').className = tab === 'quiz' ? "flex-1 py-4 font-bold text-blue-600 border-b-4 border-blue-600" : "flex-1 py-4 font-bold text-gray-400";
         }
@@ -137,22 +135,22 @@
         function showQuizHome() {
             document.getElementById('quizContent').innerHTML = `
                 <div class="text-center p-4">
-                    <div class="text-5xl mb-6">📝</div>
-                    <h2 class="text-xl font-bold mb-2">آزمون جامع ریدینگ</h2>
-                    <p class="text-sm text-gray-500 mb-8 leading-relaxed italic">آمادگی ۱۰۰٪ برای آزمون PTE</p>
-                    <button onclick="startQuiz()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-xl hover:bg-blue-700 active:scale-95 transition-all">شروع کوییز تصادفی</button>
+                    <div class="text-6xl mb-6">📝</div>
+                    <h2 class="text-xl font-bold mb-2 text-slate-800">آماده آزمون هستید؟</h2>
+                    <p class="text-sm text-gray-500 mb-8 leading-relaxed">کوییز تصادفی از بین تست‌های طراحی شده توسط استاد</p>
+                    <button onclick="startQuiz()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-xl hover:bg-blue-700 active:scale-95 transition-all">شروع آزمون</button>
                 </div>`;
         }
 
         function startQuiz() {
             const q = quizData[Math.floor(Math.random() * quizData.length)];
             document.getElementById('quizContent').innerHTML = `
-                <div class="text-right flex flex-col h-full">
-                    <div class="english-text bg-gray-50 p-6 rounded-3xl mb-8 text-gray-800 border shadow-inner leading-relaxed text-lg">
-                        ${q[0].replace('_______', '<span class="text-blue-600 font-bold border-b-2 border-blue-600 px-4">________</span>')}
+                <div class="text-right h-full flex flex-col">
+                    <div class="english-text bg-slate-50 p-6 rounded-3xl mb-8 text-slate-800 border shadow-inner leading-relaxed">
+                        ${q[0].replace('_______', '<span class="text-blue-600 font-bold border-b-2 border-blue-600 px-4 mx-1">________</span>')}
                     </div>
                     <div class="grid gap-3">
-                        ${[1,2,3,4].map(i => `<button onclick="checkAns('${q[i]}','${q[5]}','${q[6]}')" class="english-text text-left w-full p-4 border-2 border-gray-100 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition-all italic font-medium">${q[i]}</button>`).join('')}
+                        ${[1,2,3,4].map(i => `<button onclick="checkAns('${q[i]}','${q[5]}','${q[6]}')" class="english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl hover:border-blue-500 hover:bg-blue-50 font-medium transition-all">${q[i]}</button>`).join('')}
                     </div>
                 </div>`;
         }
@@ -160,16 +158,18 @@
         function checkAns(sel, cor, hint) {
             const isCorrect = sel.trim().toLowerCase() === cor.trim().toLowerCase();
             document.getElementById('quizContent').innerHTML = `
-                <div class="py-6 text-center animate-in fade-in duration-500">
+                <div class="py-8 text-center animate-in fade-in duration-500">
                     <div class="text-7xl mb-6">${isCorrect ? '✅' : '❌'}</div>
-                    <p class="text-2xl font-black ${isCorrect ? 'text-green-600' : 'text-red-500'} mb-2">${isCorrect ? 'آفرین! صحیح بود' : 'اشتباه بود'}</p>
-                    <p class="text-gray-600 mb-6 font-bold">Correct: <span class="english-text text-blue-600 underline">${cor}</span></p>
-                    <div class="bg-yellow-50 p-5 rounded-3xl text-sm text-right border-r-4 border-yellow-400 mb-8 leading-relaxed italic"><strong>تحلیل:</strong> ${hint}</div>
-                    <button onclick="startQuiz()" class="w-full mt-6 bg-gray-800 text-white py-4 rounded-2xl font-bold shadow-lg">سوال بعدی</button>
+                    <p class="text-2xl font-black ${isCorrect ? 'text-green-600' : 'text-rose-500'} mb-2">${isCorrect ? 'پاسخ صحیح!' : 'اشتباه بود'}</p>
+                    <p class="text-slate-600 mb-6 font-bold">پاسخ نهایی: <span class="english-text text-blue-600 font-bold underline px-1">${cor}</span></p>
+                    <div class="bg-amber-50 p-5 rounded-3xl text-sm text-right border-r-4 border-amber-400 leading-loose mb-8 shadow-sm text-slate-700">
+                        <strong>تحلیل آموزشی:</strong><br>${hint}
+                    </div>
+                    <button onclick="startQuiz()" class="w-full bg-slate-800 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-black transition-all">سوال بعدی</button>
                 </div>`;
         }
 
-        loadData();
+        loadAllData();
     </script>
 </body>
 </html>
