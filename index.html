@@ -3,96 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PTE Academic Master</title>
+    <title>PTE Master Academic</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @font-face { font-family: 'Vazir'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2'); }
-        body { font-family: 'Vazir', sans-serif; background-color: #f3f4f6; }
+        body { font-family: 'Vazir', sans-serif; background-color: #f3f4f6; overflow-x: hidden; }
         .english-text { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; direction: ltr; text-align: left; }
     </style>
 </head>
-<body>
-    <div id="app" class="max-w-md mx-auto bg-white min-h-screen shadow-2xl pb-20 relative">
-        <header class="bg-blue-600 text-white p-6 text-center shadow-lg">
-            <h1 class="text-2xl font-bold italic">PTE ACADEMIC</h1>
-            <p class="text-xs opacity-90 mt-1">واژگان و گرامر ریدینگ - نسخه استاد</p>
+<body class="bg-gray-100">
+
+    <div id="app" class="max-w-md mx-auto bg-white min-h-screen shadow-2xl pb-24 relative">
+        <!-- Header -->
+        <header class="bg-blue-700 text-white p-6 text-center shadow-lg">
+            <h1 class="text-2xl font-bold tracking-tight">PTE ACADEMIC</h1>
+            <p class="text-xs opacity-80 mt-1 english-text text-center italic">Advanced Reading Vocabulary</p>
         </header>
 
-        <div class="flex bg-white sticky top-0 z-20 border-b">
+        <!-- Tabs -->
+        <div class="flex bg-white sticky top-0 z-30 border-b shadow-sm">
             <button id="tabVocab" onclick="showTab('vocab')" class="flex-1 py-4 font-bold text-blue-600 border-b-4 border-blue-600 transition-all">لغات</button>
-            <button id="tabQuiz" onclick="showTab('quiz')" class="flex-1 py-4 font-bold text-gray-400 transition-all">آزمون جامع</button>
+            <button id="tabQuiz" onclick="showTab('quiz')" class="flex-1 py-4 font-bold text-gray-400 transition-all">آزمون</button>
         </div>
 
-        <div id="searchContainer" class="p-4 bg-white">
+        <!-- Search -->
+        <div id="searchContainer" class="p-4 bg-white shadow-sm">
             <input id="searchInput" oninput="searchWords()" type="text" placeholder="جستجوی لغت انگلیسی..." 
-                   class="w-full p-3 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 transition-all shadow-sm">
+                   class="w-full p-3 border-2 border-gray-100 rounded-2xl outline-none focus:border-blue-500 transition-all">
         </div>
 
-        <div id="vocabSection" class="p-4 space-y-4 text-right">
-            <div id="wordsContainer" class="text-center py-20 text-gray-400 italic">در حال بارگذاری لغات...</div>
+        <!-- Vocab List -->
+        <div id="vocabSection" class="p-4 space-y-5">
+            <div id="wordsContainer" class="text-center py-20 text-gray-400 italic">
+                در حال دریافت اطلاعات از گوگل‌شیت...
+            </div>
         </div>
 
+        <!-- Quiz Section -->
         <div id="quizSection" class="p-4 hidden">
-            <div id="quizContent" class="bg-white border rounded-2xl p-6 shadow-md min-h-[300px] flex flex-col justify-center">
-                <p class="text-center text-gray-500">در حال دریافت سوالات آزمون...</p>
+            <div id="quizContent" class="bg-white border-2 border-gray-50 rounded-3xl p-6 shadow-md min-h-[350px] flex flex-col justify-center text-center">
+                <p class="text-gray-400">سوالات لود نشدند.</p>
             </div>
         </div>
     </div>
 
     <script>
-        // آیدی استخراج شده از تصویر "Publish to web" شما
-        const PUB_ID = '2PACX-1vRLfGnIloQoX8NtHa99PvWeZllcHh1s6Asc0jOIKeWDkHq7fjiQ-KsZOB7PVNANcjXtid63Wqih-zjC';
-        
-        // لینک‌های مستقیم دریافت دیتا به صورت CSV
-        const WORDS_URL = `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?gid=0&single=true&output=csv`;
-        const QUIZ_URL = `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?gid=1543781223&single=true&output=csv`;
+        // آیدی اصلی شیت شما که از اسکرین شات استخراج شد
+        const SHEET_ID = '1GOqwBlOym9WIVKLjHmR9xTJBglcWj7BC92XAJoxuYg';
 
         let wordsData = [];
         let quizData = [];
 
-        async function init() {
-            try {
-                const resW = await fetch(WORDS_URL);
-                const textW = await resW.text();
-                wordsData = parseCSV(textW);
-                renderWords(wordsData);
-
-                const resQ = await fetch(QUIZ_URL);
-                const textQ = await resQ.text();
-                quizData = parseCSV(textQ);
-                if(quizData.length > 0) showQuizHome();
-            } catch (err) {
-                document.getElementById('wordsContainer').innerHTML = "<div class='text-red-500'>خطا در دریافت اطلاعات! مطمئن شوید در گوگل شیت Share را روی Anyone with the link گذاشته‌اید.</div>";
-            }
+        // دریافت اطلاعات به روش جدید و امن Google Visualisation
+        async function loadSheetData(sheetName) {
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+            const response = await fetch(url);
+            const text = await response.text();
+            // پاکسازی پاسخ گوگل برای تبدیل به JSON واقعی
+            const json = JSON.parse(text.substr(47).slice(0, -2));
+            return json.table.rows.map(row => row.c.map(cell => cell ? cell.v : ''));
         }
 
-        function parseCSV(csv) {
-            const lines = csv.split(/\r?\n/);
-            return lines.slice(1).map(line => {
-                // جدا کردن ستون‌ها با رعایت کوتیشن‌ها
-                const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                return parts.map(p => p.replace(/^"|"$/g, '').trim());
-            }).filter(row => row.length > 1);
+        async function init() {
+            try {
+                // دریافت لغات
+                wordsData = await loadSheetData('Words');
+                renderWords(wordsData);
+
+                // دریافت کوییزها
+                quizData = await loadSheetData('Quizzes');
+                if(quizData.length > 0) showQuizHome();
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('wordsContainer').innerHTML = `
+                    <div class="text-red-500 p-4 text-sm bg-red-50 rounded-xl border border-red-200 text-right">
+                        <p class="font-bold">خطا در اتصال به دیتابیس!</p>
+                        <p class="mt-2">۱. مطمئن شوید نام برگه‌ها در پایین شیت Words و Quizzes است.</p>
+                        <p class="mt-1">۲. دکمه Share را بزنید و دسترسی را روی Anyone with link بگذارید.</p>
+                    </div>`;
+            }
         }
 
         function renderWords(data) {
             const container = document.getElementById('wordsContainer');
-            if (data.length === 0) { container.innerHTML = "دیتایی در فایل شما یافت نشد."; return; }
+            if (!data || data.length === 0) { container.innerHTML = "دیتایی پیدا نشد."; return; }
             
             container.innerHTML = data.map(w => `
-                <div class="bg-white border rounded-2xl shadow-sm overflow-hidden mb-6 border-gray-100">
-                    ${w[5] && w[5].startsWith('http') ? `<img src="${w[5]}" class="w-full h-44 object-cover">` : ''}
-                    <div class="p-5">
+                <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden mb-6 transition-transform active:scale-[0.98]">
+                    ${w[5] && w[5].includes('http') ? `<img src="${w[5]}" class="w-full h-44 object-cover">` : ''}
+                    <div class="p-5 text-right">
                         <div class="flex justify-between items-center mb-3">
-                            <span class="bg-blue-100 text-blue-700 text-[10px] px-3 py-1 rounded-full font-bold uppercase">${w[2] || 'Academic'}</span>
-                            <button onclick="speak('${w[0]}')" class="bg-gray-50 p-2 rounded-full shadow-sm hover:bg-blue-50 transition-colors">🔊</button>
+                            <span class="bg-blue-50 text-blue-700 text-[10px] px-3 py-1 rounded-full font-black uppercase tracking-wider">${w[2] || 'Academic'}</span>
+                            <button onclick="speak('${w[0]}')" class="bg-gray-100 hover:bg-blue-100 p-2 rounded-full transition-colors">🔊</button>
                         </div>
-                        <h3 class="english-text text-2xl font-bold text-gray-800">${w[0]}</h3>
+                        <h3 class="english-text text-2xl font-black text-gray-800">${w[0]}</h3>
                         <p class="text-blue-600 font-bold text-lg mt-1 mb-3">${w[1]}</p>
-                        <div class="bg-blue-50 p-4 rounded-xl border-r-4 border-blue-500 mb-3 text-right">
-                            <p class="english-text text-sm text-gray-700 italic">"${w[3]}"</p>
+                        
+                        <div class="bg-gray-50 p-4 rounded-2xl border-r-4 border-blue-500 mb-3 shadow-inner">
+                            <p class="english-text text-sm text-gray-700 leading-relaxed italic">"${w[3]}"</p>
                         </div>
-                        ${w[4] ? `<div class="bg-yellow-50 p-3 rounded-lg text-[11px] text-gray-600 border-r-4 border-yellow-400 text-right leading-relaxed">💡 <strong>Grammar:</strong> ${w[4]}</div>` : ''}
+                        
+                        ${w[4] ? `<div class="bg-yellow-50 p-3 rounded-xl text-[11px] text-gray-600 border-r-4 border-yellow-400 leading-relaxed">💡 <strong>نکته:</strong> ${w[4]}</div>` : ''}
                     </div>
                 </div>
             `).join('');
@@ -100,7 +112,7 @@
 
         function searchWords() {
             const val = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = wordsData.filter(w => w[0].toLowerCase().includes(val));
+            const filtered = wordsData.filter(w => w[0].toString().toLowerCase().includes(val));
             renderWords(filtered);
         }
 
@@ -108,6 +120,7 @@
             window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'en-US';
+            msg.rate = 0.9;
             window.speechSynthesis.speak(msg);
         }
 
@@ -115,26 +128,27 @@
             document.getElementById('vocabSection').classList.toggle('hidden', tab !== 'vocab');
             document.getElementById('searchContainer').classList.toggle('hidden', tab !== 'vocab');
             document.getElementById('quizSection').classList.toggle('hidden', tab !== 'quiz');
+            
             document.getElementById('tabVocab').className = tab === 'vocab' ? "flex-1 py-4 font-bold text-blue-600 border-b-4 border-blue-600 transition-all" : "flex-1 py-4 font-bold text-gray-400 transition-all";
             document.getElementById('tabQuiz').className = tab === 'quiz' ? "flex-1 py-4 font-bold text-blue-600 border-b-4 border-blue-600 transition-all" : "flex-1 py-4 font-bold text-gray-400 transition-all";
         }
 
         function showQuizHome() {
             document.getElementById('quizContent').innerHTML = `
-                <div class="text-center p-4">
-                    <div class="text-5xl mb-6">📝</div>
-                    <h2 class="text-xl font-bold mb-2">آزمون جامع ریدینگ</h2>
-                    <p class="text-sm text-gray-500 mb-8">تمرین تست‌های تالیفی بر اساس ۱۰۰۰ لغت برتر</p>
-                    <button onclick="startQuiz()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-xl hover:bg-blue-700 transition-all">شروع کوییز تصادفی</button>
+                <div class="p-4">
+                    <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl shadow-inner">📝</div>
+                    <h2 class="text-xl font-bold mb-2 text-gray-800">شروع آزمون PTE</h2>
+                    <p class="text-sm text-gray-500 mb-8 leading-relaxed">آماده‌اید دانش گرامری و لغات خود را تست کنید؟</p>
+                    <button onclick="startQuiz()" class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-xl hover:bg-blue-700 active:scale-95 transition-all">شروع کوییز تصادفی</button>
                 </div>`;
         }
 
         function startQuiz() {
             const q = quizData[Math.floor(Math.random() * quizData.length)];
             document.getElementById('quizContent').innerHTML = `
-                <div class="text-right flex flex-col h-full">
-                    <div class="english-text bg-gray-50 p-6 rounded-2xl mb-8 text-gray-800 border shadow-inner">
-                        ${q[0].replace('_______', '<span class="text-blue-600 font-bold border-b-2 border-blue-600 px-4">________</span>')}
+                <div class="text-right h-full flex flex-col">
+                    <div class="english-text bg-gray-50 p-6 rounded-3xl mb-8 text-gray-800 border-2 border-white shadow-inner flex-grow leading-relaxed">
+                        ${q[0].toString().replace('_______', '<span class="text-blue-600 font-bold border-b-2 border-blue-600 px-4 mx-1">________</span>')}
                     </div>
                     <div class="grid gap-3">
                         ${[1,2,3,4].map(i => `<button onclick="checkAns('${q[i]}','${q[5]}','${q[6]}')" class="english-text text-left w-full p-4 border-2 border-gray-100 rounded-2xl hover:border-blue-500 hover:bg-blue-50 font-medium transition-all">${q[i]}</button>`).join('')}
@@ -143,16 +157,16 @@
         }
 
         function checkAns(sel, cor, hint) {
-            const isCorrect = sel.trim().toLowerCase() === cor.trim().toLowerCase();
+            const isCorrect = sel.toString().trim().toLowerCase() === cor.toString().trim().toLowerCase();
             document.getElementById('quizContent').innerHTML = `
-                <div class="py-8 text-center">
+                <div class="py-6 text-center animate-in fade-in duration-500">
                     <div class="text-7xl mb-6">${isCorrect ? '✅' : '❌'}</div>
-                    <p class="text-2xl font-bold ${isCorrect ? 'text-green-600' : 'text-red-500'} mb-2">${isCorrect ? 'صحیح' : 'اشتباه'}</p>
-                    <p class="text-gray-600 mb-6">پاسخ صحیح: <span class="english-text text-blue-600 font-bold underline px-1">${cor}</span></p>
-                    <div class="bg-yellow-50 p-5 rounded-2xl text-sm text-right border-r-4 border-yellow-400 leading-relaxed mb-8 shadow-sm">
-                        <strong>نکته آموزشی:</strong><br>${hint}
+                    <p class="text-2xl font-black ${isCorrect ? 'text-green-600' : 'text-red-500'} mb-2">${isCorrect ? 'پاسخ صحیح!' : 'اشتباه بود'}</p>
+                    <p class="text-gray-600 mb-6">گزینه درست: <span class="english-text text-blue-600 font-bold underline px-1">${cor}</span></p>
+                    <div class="bg-yellow-50 p-5 rounded-3xl text-sm text-right border-r-4 border-yellow-400 leading-loose mb-8 shadow-sm text-gray-700">
+                        <strong>تحلیل سوال:</strong><br>${hint}
                     </div>
-                    <button onclick="startQuiz()" class="w-full bg-gray-800 text-white py-4 rounded-2xl font-bold shadow-lg transition-all">سوال بعدی</button>
+                    <button onclick="startQuiz()" class="w-full bg-gray-800 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-black transition-all">سوال بعدی</button>
                 </div>`;
         }
 
