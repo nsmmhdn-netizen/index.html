@@ -14,94 +14,98 @@
 <body>
 
     <div id="app" class="max-w-md mx-auto bg-white min-h-screen shadow-xl pb-20">
-        <!-- Header -->
         <header class="bg-blue-600 text-white p-6 text-center shadow-lg">
-            <h1 class="text-2xl font-bold">PTE ACADEMIC</h1>
-            <p class="text-xs opacity-90 mt-1">آموزش واژگان و گرامر ریدینگ</p>
+            <h1 class="text-2xl font-bold italic">PTE ACADEMIC</h1>
+            <p class="text-xs opacity-90 mt-1">نسخه استاد - واژگان و گرامر</p>
         </header>
 
-        <!-- Tabs -->
-        <div class="flex bg-white sticky top-0 z-10 border-b">
+        <div class="flex bg-white sticky top-0 z-10 border-b shadow-sm">
             <button id="tabVocab" onclick="showTab('vocab')" class="flex-1 py-4 font-bold text-blue-600 border-b-4 border-blue-600">لغات</button>
             <button id="tabQuiz" onclick="showTab('quiz')" class="flex-1 py-4 font-bold text-gray-400">آزمون جامع</button>
         </div>
 
-        <!-- Search -->
         <div id="searchContainer" class="p-4">
             <input id="searchInput" oninput="searchWords()" type="text" placeholder="جستجوی لغت انگلیسی..." 
-                   class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400">
+                   class="w-full p-3 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-400">
         </div>
 
-        <!-- Content -->
         <div id="vocabSection" class="p-4 space-y-4">
-            <div id="wordsContainer" class="text-center py-10 text-gray-400">در حال دریافت لغات...</div>
+            <div id="wordsContainer" class="text-center py-10 text-gray-400 italic">
+                در حال لود کردن اطلاعات...
+            </div>
         </div>
 
         <div id="quizSection" class="p-4 hidden">
-            <div id="quizContent" class="bg-white border rounded-2xl p-6 shadow-sm">
-                <p class="text-center text-gray-500">در حال بارگذاری سوالات...</p>
+            <div id="quizContent" class="bg-white border rounded-2xl p-6 shadow-sm min-h-[300px] flex flex-col justify-center text-center">
+                <p class="text-gray-500 italic">سوالات لود نشدند.</p>
             </div>
         </div>
     </div>
 
     <script>
-        // ۱. آیدی شیت شما (از روی عکس برداشتم)
         const SHEET_ID = '1GOqwBlOym9WIVKLjHmR9xTJBglcWj7BC92XAJoxuYg';
         
-        // ۲. لینک مستقیم برای دریافت CSV (این روش از روش قبلی مطمئن‌تر است)
-        const WORDS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?output=csv&sheet=Words`;
-        const QUIZ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?output=csv&sheet=Quizzes`;
+        // استفاده از لینک مستقیم API گوگل برای اطمینان بیشتر
+        const WORDS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Words`;
+        const QUIZ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Quizzes`;
 
         let wordsData = [];
         let quizData = [];
 
-        async function loadData() {
+        async function loadAllData() {
             try {
-                // دریافت لغات
+                // لود لغات
                 const wRes = await fetch(WORDS_URL);
+                if (!wRes.ok) throw new Error();
                 const wText = await wRes.text();
                 wordsData = parseCSV(wText);
                 renderWords(wordsData);
 
-                // دریافت تست‌ها
+                // لود تست‌ها
                 const qRes = await fetch(QUIZ_URL);
                 const qText = await qRes.text();
                 quizData = parseCSV(qText);
-                
-                if(quizData.length > 0) {
-                    showQuizHome();
-                }
+                if(quizData.length > 0) showQuizHome();
+
             } catch (e) {
-                document.getElementById('wordsContainer').innerHTML = "خطا! احتمالاً Publish to web انجام نشده است.";
+                document.getElementById('wordsContainer').innerHTML = `
+                    <div class="text-red-500 p-4">
+                        <p class="font-bold">دیتا دریافت نشد!</p>
+                        <p class="text-xs mt-2">مطمئن شوید در گوگل‌شیت گزینه File > Share > Publish to web را زده‌اید.</p>
+                    </div>`;
             }
         }
 
         function parseCSV(csv) {
-            const lines = csv.split('\n');
+            const lines = csv.split(/\r?\n/);
             return lines.slice(1).map(line => {
-                // جدا کردن ستون‌ها با در نظر گرفتن کوتیشن‌ها
-                return line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(item => item.replace(/^"|"$/g, '').trim());
+                // پاک‌سازی دقیق هر ردیف
+                const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                return parts.map(p => p.replace(/^"|"$/g, '').trim());
             }).filter(row => row.length > 1);
         }
 
         function renderWords(data) {
             const container = document.getElementById('wordsContainer');
-            if(data.length === 0) { container.innerHTML = "دیتایی پیدا نشد."; return; }
+            if (data.length === 0) {
+                container.innerHTML = "برگه Words خالی است یا یافت نشد.";
+                return;
+            }
             
             container.innerHTML = data.map(w => `
-                <div class="bg-white border rounded-2xl shadow-sm overflow-hidden mb-4 border-gray-100">
-                    ${w[5] ? `<img src="${w[5]}" class="w-full h-40 object-cover">` : ''}
-                    <div class="p-4">
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="bg-blue-50 text-blue-600 text-xs px-2 py-1 rounded font-bold">${w[2] || 'Academic'}</span>
-                            <button onclick="speak('${w[0]}')" class="text-xl">🔊</button>
+                <div class="bg-white border-2 border-gray-50 rounded-2xl shadow-sm overflow-hidden mb-5">
+                    ${w[5] && w[5].startsWith('http') ? `<img src="${w[5]}" class="w-full h-40 object-cover">` : ''}
+                    <div class="p-4 text-right">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="bg-blue-100 text-blue-600 text-[10px] px-2 py-1 rounded-full font-black uppercase">${w[2] || 'PTE'}</span>
+                            <button onclick="speak('${w[0]}')" class="bg-gray-50 p-2 rounded-full shadow-sm">🔊</button>
                         </div>
                         <h3 class="english-text text-xl font-bold text-gray-800">${w[0]}</h3>
-                        <p class="text-blue-600 font-bold mb-2">${w[1]}</p>
-                        <div class="bg-gray-50 p-3 rounded-lg border-r-4 border-blue-400">
-                            <p class="english-text text-sm italic text-gray-600">${w[3] || ''}</p>
+                        <p class="text-blue-500 font-bold text-lg mb-2">${w[1]}</p>
+                        <div class="bg-blue-50 p-3 rounded-xl border-r-4 border-blue-500">
+                            <p class="english-text text-sm text-gray-600 italic">"${w[3]}"</p>
                         </div>
-                        ${w[4] ? `<p class="text-xs text-gray-400 mt-2">💡 ${w[4]}</p>` : ''}
+                        ${w[4] ? `<p class="text-[10px] text-gray-400 mt-2 bg-gray-50 p-1 inline-block rounded">💡 ${w[4]}</p>` : ''}
                     </div>
                 </div>
             `).join('');
@@ -131,39 +135,39 @@
 
         function showQuizHome() {
             document.getElementById('quizContent').innerHTML = `
-                <div class="text-center">
-                    <p class="mb-4 text-gray-600">آماده‌اید سطح خود را بسنجید؟</p>
-                    <button onclick="startQuiz()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl">شروع آزمون تصادفی</button>
-                </div>
-            `;
+                <div class="p-4">
+                    <h2 class="text-xl font-bold mb-4 text-gray-800">آماده آزمون هستید؟</h2>
+                    <p class="text-sm text-gray-500 mb-6 underline">شامل ۱۰۰۰ تست گرامر و واژگان ریدینگ</p>
+                    <button onclick="startQuiz()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-blue-700 transition-all">شروع کوییز تصادفی</button>
+                </div>`;
         }
 
         function startQuiz() {
             const q = quizData[Math.floor(Math.random() * quizData.length)];
             document.getElementById('quizContent').innerHTML = `
                 <div class="text-right">
-                    <p class="english-text bg-blue-50 p-4 rounded-xl border border-blue-100 mb-6">${q[0].replace('_______', '_____')}</p>
-                    <div class="grid gap-3">
-                        ${[1,2,3,4].map(i => `<button onclick="checkAns('${q[i]}','${q[5]}','${q[6]}')" class="english-text text-left w-full p-3 border rounded-xl hover:bg-blue-50">${q[i]}</button>`).join('')}
+                    <div class="bg-gray-100 english-text p-5 rounded-2xl mb-6 text-gray-800 leading-relaxed border-2 border-white shadow-inner">
+                        ${q[0].replace('_______', '<span class="text-blue-600 font-bold">________</span>')}
                     </div>
-                </div>
-            `;
+                    <div class="grid gap-3">
+                        ${[1,2,3,4].map(i => `<button onclick="checkAns('${q[i]}','${q[5]}','${q[6]}')" class="english-text text-left w-full p-4 border-2 border-gray-100 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition-all font-medium">${q[i]}</button>`).join('')}
+                    </div>
+                </div>`;
         }
 
         function checkAns(sel, cor, hint) {
             const isCorrect = sel.trim().toLowerCase() === cor.trim().toLowerCase();
             document.getElementById('quizContent').innerHTML = `
-                <div class="text-center">
-                    <div class="text-5xl mb-2">${isCorrect ? '✅' : '❌'}</div>
-                    <p class="text-lg font-bold ${isCorrect ? 'text-green-600' : 'text-red-600'}">${isCorrect ? 'درست بود!' : 'اشتباه بود'}</p>
-                    <p class="mt-2 text-gray-600 font-bold">Correct: ${cor}</p>
-                    <div class="bg-yellow-50 p-3 rounded mt-4 text-sm text-right border-r-4 border-yellow-400">${hint}</div>
-                    <button onclick="startQuiz()" class="w-full mt-4 bg-blue-600 text-white py-3 rounded-xl font-bold">سوال بعدی</button>
-                </div>
-            `;
+                <div class="py-4">
+                    <div class="text-6xl mb-4">${isCorrect ? '🌟' : '⚠️'}</div>
+                    <p class="text-2xl font-bold ${isCorrect ? 'text-green-600' : 'text-red-500'}">${isCorrect ? 'عالی بود!' : 'اشتباه شد'}</p>
+                    <p class="mt-2 text-gray-600 font-bold">Correct Answer: <span class="english-text text-blue-600">${cor}</span></p>
+                    <div class="bg-yellow-50 p-4 rounded-2xl mt-5 text-sm text-right border-r-4 border-yellow-400 leading-loose">${hint}</div>
+                    <button onclick="startQuiz()" class="w-full mt-6 bg-gray-800 text-white py-4 rounded-2xl font-bold shadow-md">سوال بعدی</button>
+                </div>`;
         }
 
-        loadData();
+        loadAllData();
     </script>
 </body>
 </html>
