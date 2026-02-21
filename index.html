@@ -7,100 +7,112 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @font-face { font-family: 'Vazir'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2'); }
-        body { font-family: 'Vazir', sans-serif; background-color: #f4f7f9; }
+        body { font-family: 'Vazir', sans-serif; background-color: #f3f4f6; }
         .english-text { font-family: 'Segoe UI', Arial, sans-serif; direction: ltr; text-align: left; }
     </style>
 </head>
 <body class="bg-gray-100">
 
     <div id="app" class="max-w-md mx-auto bg-white min-h-screen shadow-2xl pb-24 relative">
-        <header class="bg-blue-600 text-white p-6 text-center shadow-lg">
-            <h1 class="text-2xl font-bold italic tracking-wider">PTE ACADEMIC</h1>
-            <p class="text-[10px] opacity-80 mt-1">Reading & Vocabulary Practice</p>
+        <!-- Header -->
+        <header class="bg-blue-700 text-white p-6 text-center shadow-lg">
+            <h1 class="text-2xl font-bold tracking-tight">PTE ACADEMIC</h1>
+            <p class="text-[10px] opacity-80 mt-1 english-text text-center italic">Advanced Reading Vocabulary Master</p>
         </header>
 
-        <div class="flex bg-white sticky top-0 z-30 border-b shadow-sm">
-            <button id="tabVocab" onclick="showTab('vocab')" class="flex-1 py-4 font-bold text-blue-600 border-b-4 border-blue-600">لغات</button>
-            <button id="tabQuiz" onclick="showTab('quiz')" class="flex-1 py-4 font-bold text-gray-400">آزمون</button>
+        <!-- Navigation Tabs -->
+        <div class="flex bg-white sticky top-0 z-30 border-b">
+            <button id="tabVocab" onclick="showTab('vocab')" class="flex-1 py-4 font-bold text-blue-600 border-b-4 border-blue-600 transition-all">لغات</button>
+            <button id="tabQuiz" onclick="showTab('quiz')" class="flex-1 py-4 font-bold text-gray-400 transition-all">آزمون</button>
         </div>
 
-        <div id="searchContainer" class="p-4 bg-white">
-            <input id="searchInput" oninput="searchWords()" type="text" placeholder="جستجوی لغت..." 
+        <!-- Search Bar -->
+        <div id="searchContainer" class="p-4 bg-white shadow-sm">
+            <input id="searchInput" oninput="searchWords()" type="text" placeholder="جستجوی لغت انگلیسی..." 
                    class="w-full p-3 border-2 border-gray-100 rounded-2xl outline-none focus:border-blue-500 transition-all">
         </div>
 
+        <!-- Content Area -->
         <div id="vocabSection" class="p-4 space-y-5">
-            <div id="wordsContainer" class="text-center py-20 text-gray-400 italic">در حال بارگذاری لغات...</div>
+            <div id="wordsContainer" class="text-center py-20 text-gray-400 italic">
+                در حال اتصال به دیتابیس استاد...
+            </div>
         </div>
 
         <div id="quizSection" class="p-4 hidden">
-            <div id="quizContent" class="bg-white border-2 border-gray-50 rounded-3xl p-6 shadow-md min-h-[350px] flex flex-col justify-center text-center">
-                <p class="text-gray-400">در حال لود آزمون...</p>
+            <div id="quizContent" class="bg-white border-2 border-gray-50 rounded-3xl p-6 shadow-md min-h-[350px] flex flex-col justify-center">
+                <p class="text-center text-gray-400 italic">در حال دریافت سوالات...</p>
             </div>
         </div>
     </div>
 
     <script>
-        // آیدی اصلی شیت شما
+        // ۱. آیدی شیت شما
         const SHEET_ID = '1GOqwBlOym9WIVKLjHmR9xTJBglcWj7BC92XAJoxuYg';
+        
+        // ۲. آیدی انتشار یافته شما (۲PACX)
+        const PUB_ID = '2PACX-1vRLfGnIloQoX8NtHa99PvWeZllcHh1s6Asc0jOIKeWDkHq7fjiQ-KsZOB7PVNANcjXtid63Wqih-zjC';
 
         let wordsData = [];
         let quizData = [];
 
-        // روش جدید: فراخوانی مستقیم فایل CSV برای دور زدن کدهای جاوااسکریپت گوگل
-        async function fetchSheet(gid) {
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
-            const res = await fetch(url);
-            const text = await res.text();
-            
-            // جلوگیری از لود کدهای سیستمی گوگل
-            if (text.includes("<!DOCTYPE") || text.includes("function n(a)")) {
-                throw new Error("Google blocked the request");
-            }
-            
-            return text.split(/\r?\n/).slice(1).map(row => {
-                // جدا کردن ستون‌ها با در نظر گرفتن کاما داخل جملات
-                return row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim());
+        // تابع برای پاکسازی و خواندن CSV
+        function parseCSV(text) {
+            const rows = text.split(/\r?\n/);
+            return rows.slice(1).map(row => {
+                const matches = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                return matches ? matches.map(m => m.replace(/^"|"$/g, '').trim()) : [];
             }).filter(r => r.length > 1);
         }
 
-        async function init() {
+        async function loadData() {
             try {
-                // لود لغات (GID 0 معمولا برگه اول است)
-                wordsData = await fetchSheet('0');
+                // تلاش اول: دریافت مستقیم CSV از لینک انتشار (مطمئن‌ترین روش)
+                const response = await fetch(`https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?output=csv&gid=0`);
+                if (!response.ok) throw new Error("Fetch failed");
+                const text = await response.text();
+                wordsData = parseCSV(text);
                 renderWords(wordsData);
 
-                // لود آزمون (GID شیت کوییز شما)
-                quizData = await fetchSheet('1543781223');
+                // لود سوالات آزمون (اگر GID برگه Quizzes شما متفاوت است، اینجا جایگزین کنید)
+                // برای اکثر شیت‌ها برگه دوم GID طولانی دارد. اگر سوالات لود نشد، عدد 1543781223 را عوض کنید.
+                const qRes = await fetch(`https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?output=csv&gid=1543781223`);
+                const qText = await qRes.text();
+                quizData = parseCSV(qText);
                 if(quizData.length > 0) showQuizHome();
 
             } catch (err) {
                 document.getElementById('wordsContainer').innerHTML = `
-                    <div class="text-red-500 p-4 text-center">
-                        <p class="font-bold">خطا در بارگذاری دیتا!</p>
-                        <p class="text-xs mt-2">مرورگر را رفرش کنید. اگر درست نشد، در گوگل شیت دکمه Publish to web را مجدد بزنید.</p>
+                    <div class="text-red-500 p-4 border-2 border-red-100 rounded-2xl bg-red-50 text-right">
+                        <p class="font-bold mb-2">⚠️ خطا در بارگذاری اطلاعات!</p>
+                        <ul class="text-xs space-y-1 list-disc pr-4">
+                            <li>مطمئن شوید در گوگل‌شیت دکمه <b>Publish to web</b> را زده‌اید.</li>
+                            <li>دسترسی <b>Share</b> را روی <b>Anyone with the link</b> و حالت <b>Viewer</b> قرار دهید.</li>
+                            <li>نام برگه‌ها باید دقیقاً <b>Words</b> و <b>Quizzes</b> باشد.</li>
+                        </ul>
+                        <button onclick="location.reload()" class="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg text-xs">تلاش مجدد</button>
                     </div>`;
             }
         }
 
         function renderWords(data) {
             const container = document.getElementById('wordsContainer');
-            if (!data || data.length === 0) { container.innerHTML = "دیتایی پیدا نشد."; return; }
+            if (data.length === 0) { container.innerHTML = "دیتایی در برگه Words یافت نشد."; return; }
             
             container.innerHTML = data.map(w => `
-                <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden mb-6">
-                    ${w[5] && w[5].startsWith('http') ? `<img src="${w[5]}" class="w-full h-44 object-cover">` : ''}
+                <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden mb-6 transition-all active:scale-95">
+                    ${w[5] && w[5].includes('http') ? `<img src="${w[5]}" class="w-full h-44 object-cover">` : ''}
                     <div class="p-5 text-right">
                         <div class="flex justify-between items-center mb-3">
-                            <span class="bg-blue-50 text-blue-700 text-[10px] px-3 py-1 rounded-full font-bold uppercase">${w[2] || 'Academic'}</span>
-                            <button onclick="speak('${w[0]}')" class="bg-gray-50 hover:bg-blue-100 p-2 rounded-full shadow-sm">🔊</button>
+                            <span class="bg-blue-50 text-blue-700 text-[10px] px-3 py-1 rounded-full font-black uppercase tracking-wider">${w[2] || 'Academic'}</span>
+                            <button onclick="speak('${w[0]}')" class="bg-gray-50 hover:bg-blue-50 p-2 rounded-full transition shadow-sm">🔊</button>
                         </div>
-                        <h3 class="english-text text-2xl font-black text-gray-800">${w[0]}</h3>
-                        <p class="text-blue-600 font-bold text-lg mb-3">${w[1]}</p>
-                        <div class="bg-blue-50 p-4 rounded-2xl border-r-4 border-blue-500 mb-2">
+                        <h3 class="english-text text-2xl font-black text-gray-800 tracking-tight">${w[0]}</h3>
+                        <p class="text-blue-600 font-bold text-lg mt-1 mb-3">${w[1]}</p>
+                        <div class="bg-blue-50 p-4 rounded-2xl border-r-4 border-blue-500 mb-3 shadow-inner">
                             <p class="english-text text-sm text-gray-700 leading-relaxed italic">"${w[3]}"</p>
                         </div>
-                        ${w[4] ? `<p class="text-[11px] text-gray-500 mt-2 bg-gray-50 p-2 rounded shadow-inner text-right">💡 ${w[4]}</p>` : ''}
+                        ${w[4] ? `<div class="bg-yellow-50 p-3 rounded-xl text-[11px] text-gray-600 border-r-4 border-yellow-400 leading-relaxed">💡 <strong>نکته:</strong> ${w[4]}</div>` : ''}
                     </div>
                 </div>
             `).join('');
@@ -116,6 +128,7 @@
             window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'en-US';
+            msg.rate = 0.9;
             window.speechSynthesis.speak(msg);
         }
 
@@ -129,10 +142,10 @@
 
         function showQuizHome() {
             document.getElementById('quizContent').innerHTML = `
-                <div class="p-4 text-center">
+                <div class="text-center p-4">
                     <div class="text-5xl mb-6">📝</div>
-                    <h2 class="text-xl font-bold mb-2">شروع آزمون</h2>
-                    <p class="text-sm text-gray-500 mb-8 leading-relaxed">تمرین ۱۰۰۰ تست اختصاصی PTE</p>
+                    <h2 class="text-xl font-bold mb-2">آزمون جامع ریدینگ</h2>
+                    <p class="text-sm text-gray-500 mb-8 leading-relaxed">تمرین ۱۰۰۰ تست اختصاصی PTE برای دانشجویان استاد</p>
                     <button onclick="startQuiz()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-xl hover:bg-blue-700 active:scale-95 transition-all">شروع کوییز تصادفی</button>
                 </div>`;
         }
@@ -142,10 +155,10 @@
             document.getElementById('quizContent').innerHTML = `
                 <div class="text-right h-full flex flex-col">
                     <div class="english-text bg-gray-50 p-6 rounded-3xl mb-8 text-gray-800 border shadow-inner leading-relaxed">
-                        ${q[0].replace('_______', '<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>')}
+                        ${q[0].replace('_______', '<span class="text-blue-600 font-bold border-b-2 border-blue-600 px-4 mx-1">________</span>')}
                     </div>
                     <div class="grid gap-3">
-                        ${[1,2,3,4].map(i => `<button onclick="checkAns('${q[i]}','${q[5]}','${q[6]}')" class="english-text text-left w-full p-4 border border-gray-200 rounded-2xl hover:bg-blue-50 transition-all italic">${q[i]}</button>`).join('')}
+                        ${[1,2,3,4].map(i => `<button onclick="checkAns('${q[i]}','${q[5]}','${q[6]}')" class="english-text text-left w-full p-4 border-2 border-gray-100 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition-all font-medium">${q[i]}</button>`).join('')}
                     </div>
                 </div>`;
         }
@@ -153,16 +166,18 @@
         function checkAns(sel, cor, hint) {
             const isCorrect = sel.trim().toLowerCase() === cor.trim().toLowerCase();
             document.getElementById('quizContent').innerHTML = `
-                <div class="py-6 text-center">
+                <div class="py-8 text-center animate-in fade-in duration-500">
                     <div class="text-7xl mb-6">${isCorrect ? '✅' : '❌'}</div>
-                    <p class="text-2xl font-bold ${isCorrect ? 'text-green-600' : 'text-red-500'} mb-2">${isCorrect ? 'صحیح بود!' : 'اشتباه بود'}</p>
-                    <p class="text-gray-600 mb-6 font-bold">Correct: <span class="english-text text-blue-600">${cor}</span></p>
-                    <div class="bg-yellow-50 p-5 rounded-3xl text-sm text-right border-r-4 border-yellow-400 mb-8 leading-relaxed">${hint}</div>
-                    <button onclick="startQuiz()" class="w-full mt-6 bg-gray-800 text-white py-4 rounded-2xl font-bold shadow-lg">سوال بعدی</button>
+                    <p class="text-2xl font-black ${isCorrect ? 'text-green-600' : 'text-red-500'} mb-2">${isCorrect ? 'صحیح بود!' : 'اشتباه بود'}</p>
+                    <p class="text-gray-600 mb-6">پاسخ صحیح: <span class="english-text text-blue-600 font-bold underline px-1">${cor}</span></p>
+                    <div class="bg-yellow-50 p-5 rounded-3xl text-sm text-right border-r-4 border-yellow-400 leading-loose mb-8 shadow-sm text-gray-700 italic">
+                        <strong>تحلیل سوال:</strong><br>${hint}
+                    </div>
+                    <button onclick="startQuiz()" class="w-full bg-gray-800 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-black transition-all">سوال بعدی</button>
                 </div>`;
         }
 
-        init();
+        loadData();
     </script>
 </body>
 </html>
