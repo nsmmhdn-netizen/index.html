@@ -7,126 +7,148 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @font-face { font-family: 'Vazir'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2'); }
-        body { font-family: 'Vazir', sans-serif; background-color: #f0f4f8; user-select: none; }
+        body { font-family: 'Vazir', sans-serif; background-color: #f1f5f9; user-select: none; }
         .english-text { font-family: 'Arial', sans-serif; direction: ltr; text-align: left; }
         .active-tab { border-bottom: 4px solid #2563eb; color: #2563eb; }
-        .modal-bg { background-color: rgba(0,0,0,0.8); display: none; }
-        .progress-glow { box-shadow: 0 0 15px rgba(37, 99, 235, 0.4); }
+        .modal-bg { background-color: rgba(0,0,0,0.85); display: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        .animate-pop { animation: pop 0.3s ease-out; }
+        @keyframes pop { 0% { transform: scale(0.9); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
     <!-- LOGIN PAGE -->
-    <div id="loginPage" class="fixed inset-0 z-[100] bg-blue-700 flex items-center justify-center p-6">
-        <div class="bg-white w-full max-w-sm rounded-3xl p-8 shadow-2xl text-center">
-            <h2 class="text-2xl font-black text-blue-700 mb-2">PTEinsider</h2>
-            <p class="text-gray-400 text-xs mb-8 font-bold tracking-widest uppercase">Reading Studio V.01</p>
+    <div id="loginPage" class="fixed inset-0 z-[100] bg-gradient-to-br from-blue-700 to-indigo-900 flex items-center justify-center p-6">
+        <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl text-center">
+            <h2 class="text-3xl font-black text-blue-700 mb-2 italic">PTEinsider</h2>
+            <p class="text-slate-400 text-[10px] mb-8 font-bold tracking-[0.2em] uppercase">Reading Studio V.01</p>
+            
             <div class="space-y-4">
-                <input id="userInp" type="text" placeholder="نام کاربری" class="w-full p-4 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500">
-                <input id="passInp" type="password" placeholder="رمز عبور" class="w-full p-4 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500">
-                <button onclick="attemptLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-blue-700 transition-all">ورود به سیستم</button>
+                <input id="userInp" type="text" placeholder="نام کاربری (Username)" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500 transition-all">
+                
+                <div class="relative">
+                    <input id="passInp" type="password" placeholder="رمز عبور (Password)" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500 transition-all">
+                    <button onclick="togglePass()" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">👁️</button>
+                </div>
+
+                <button id="loginBtn" onclick="attemptLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-blue-700 active:scale-95 transition-all">ورود به سیستم</button>
             </div>
-            <p id="loginError" class="text-red-500 text-xs mt-4 hidden">نام کاربری یا رمز عبور اشتباه است!</p>
+            <p id="loginError" class="text-red-500 text-xs mt-4 hidden animate-pulse">نام کاربری یا رمز عبور اشتباه است!</p>
+            <div id="loader" class="mt-4 hidden text-blue-600 text-xs font-bold italic">در حال تایید هویت...</div>
         </div>
     </div>
 
+    <!-- MAIN APP -->
     <div id="mainApp" class="max-w-md mx-auto bg-white min-h-screen shadow-2xl pb-24 relative hidden">
-        <!-- Header -->
-        <header class="bg-slate-900 text-white p-6 text-center shadow-md relative overflow-hidden">
-            <div class="absolute top-0 right-0 p-2 opacity-20 text-4xl italic font-black">PTE</div>
-            <h1 class="text-lg font-black text-blue-400">PTEinsider - Reading Studio V.01</h1>
-            <p class="text-[10px] mt-1">by <span class="underline">Nasim Mohammmadian</span> (<a href="https://t.me/nsm.mhdn" target="_blank" class="text-blue-300">t.me/nsm.mhdn</a>)</p>
+        <header class="bg-slate-900 text-white p-6 text-center shadow-lg relative border-b border-blue-900">
+            <h1 class="text-base font-black text-blue-400">PTEinsider - Reading Studio V.01</h1>
+            <p class="text-[9px] mt-1 opacity-70">by <span class="font-bold">Nasim Mohammmadian</span> (<a href="https://t.me/nsm_mhdn" target="_blank" class="text-blue-300 underline">t.me/nsm.mhdn</a>)</p>
         </header>
 
-        <!-- User Progress Bar -->
+        <!-- Dynamic Progress Tracker -->
         <div class="p-4 bg-slate-50 border-b">
-            <div class="flex justify-between items-center mb-1">
-                <span id="userNameDisplay" class="text-[10px] font-bold text-slate-500">User: ...</span>
-                <span id="progressPercent" class="text-[10px] font-black text-blue-600">0% Completed</span>
+            <div class="flex justify-between items-end mb-2">
+                <div>
+                    <p id="userNameDisplay" class="text-[11px] font-black text-slate-700 tracking-tight">...</p>
+                    <p id="motivationalText" class="text-[9px] text-blue-500 font-bold mt-0.5">شروع یک یادگیری لذت‌بخش!</p>
+                </div>
+                <span id="progressPercent" class="text-lg font-black text-blue-600 italic">0%</span>
             </div>
-            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden progress-glow">
-                <div id="progressBar" class="bg-blue-600 h-full transition-all duration-1000" style="width: 0%"></div>
+            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden shadow-inner">
+                <div id="progressBar" class="bg-blue-600 h-full transition-all duration-1000 shadow-[0_0_10px_#2563eb]" style="width: 0%"></div>
             </div>
-            <p id="motivationalText" class="text-[9px] text-center mt-2 text-slate-400 font-bold italic animate-pulse"></p>
         </div>
 
-        <!-- Navigation Tabs -->
-        <div class="flex bg-white sticky top-0 z-40 border-b shadow-sm">
+        <nav class="flex bg-white sticky top-0 z-40 border-b shadow-sm">
             <button id="tabVocab" onclick="showTab('vocab')" class="flex-1 py-4 font-bold active-tab">لغات</button>
             <button id="tabQuiz" onclick="showTab('quiz')" class="flex-1 py-4 font-bold text-gray-400">آزمون جامع</button>
-            <button id="tabStats" onclick="showTab('stats')" class="flex-1 py-4 font-bold text-gray-400">آمار من</button>
-        </div>
+            <button id="tabStats" onclick="showTab('stats')" class="flex-1 py-4 font-bold text-gray-400">پیشرفت من</button>
+        </nav>
 
-        <!-- FILTERS -->
-        <div id="vocabControls" class="p-4 bg-white border-b space-y-4">
+        <!-- FILTERS & SEARCH -->
+        <div id="vocabControls" class="p-4 bg-white border-b space-y-3">
             <div class="flex gap-2">
-                <input id="searchInput" type="text" placeholder="جستجوی لغت..." class="flex-1 p-3 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-400 text-sm">
-                <button onclick="applyFilters()" class="bg-blue-600 text-white px-5 rounded-2xl shadow-md">سرچ</button>
+                <input id="searchInput" type="text" placeholder="جستجوی لغت..." class="flex-1 p-3 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-400 text-sm">
+                <button onclick="applyFilters()" class="bg-slate-900 text-white px-5 rounded-2xl font-bold text-xs">جستجو</button>
             </div>
-            
-            <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                <button onclick="setStatusFilter('new')" id="btnNew" class="status-btn active-filter bg-blue-600 text-white px-4 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap">🌟 لغات جدید</button>
-                <button onclick="setStatusFilter('learned')" id="btnLearned" class="status-btn px-4 py-1.5 rounded-full border border-slate-200 text-[10px] font-bold whitespace-nowrap bg-white">✅ آشنا</button>
+            <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                <button onclick="setStatusFilter('new')" id="btnNew" class="status-btn active-tab px-4 py-2 rounded-xl text-[10px] font-black whitespace-nowrap bg-blue-50">🌟 لغات جدید</button>
+                <button onclick="setStatusFilter('learned')" id="btnLearned" class="status-btn px-4 py-2 rounded-xl text-[10px] font-black whitespace-nowrap border border-slate-100 bg-white">✅ لیست آشنا</button>
             </div>
         </div>
 
-        <!-- CONTENT -->
+        <!-- LIST CONTAINER -->
         <div id="vocabSection" class="p-4">
             <div id="wordsContainer" class="space-y-6"></div>
-            <!-- Pagination -->
-            <div id="pagination" class="flex justify-center items-center gap-4 mt-8 pb-10">
-                <button onclick="changePage(-1)" id="prevBtn" class="bg-slate-200 px-4 py-2 rounded-xl text-xs font-bold disabled:opacity-20">قبلی</button>
-                <span id="pageInfo" class="text-[10px] font-bold">صفحه ۱</span>
-                <button onclick="changePage(1)" id="nextBtn" class="bg-slate-200 px-4 py-2 rounded-xl text-xs font-bold disabled:opacity-20">بعدی</button>
+            <div id="pagination" class="flex justify-center items-center gap-6 mt-10 pb-10">
+                <button onclick="changePage(-1)" id="prevBtn" class="bg-slate-100 p-3 rounded-full disabled:opacity-20">◀️</button>
+                <span id="pageInfo" class="text-xs font-black text-slate-500 tracking-widest uppercase">Page 1</span>
+                <button onclick="changePage(1)" id="nextBtn" class="bg-slate-100 p-3 rounded-full disabled:opacity-20">▶️</button>
             </div>
         </div>
 
+        <!-- QUIZ -->
         <div id="quizSection" class="p-4 hidden">
-            <div id="quizContent" class="bg-white border rounded-3xl p-6 shadow-md min-h-[450px] flex flex-col justify-center"></div>
+            <div id="quizContent" class="bg-slate-50 border-2 border-white rounded-[2rem] p-6 shadow-md min-h-[450px] flex flex-col justify-center"></div>
         </div>
 
-        <div id="statsSection" class="p-4 hidden">
-             <div id="statsContent" class="space-y-4"></div>
+        <!-- STATS -->
+        <div id="statsSection" class="p-6 hidden">
+             <div id="statsContent" class="space-y-6 text-right"></div>
         </div>
 
         <!-- WOTD MODAL -->
         <div id="wotdModal" class="modal-bg fixed inset-0 z-50 flex items-center justify-center p-6">
-            <div class="bg-white rounded-3xl overflow-hidden w-full shadow-2xl animate-in zoom-in duration-300">
-                <div class="bg-blue-600 p-4 text-white text-center font-bold text-sm uppercase">Word of the Day</div>
-                <div id="wotdContent" class="p-8 text-center"></div>
-                <button onclick="closeWotd()" class="w-full bg-slate-900 text-white py-5 font-black">START STUDYING</button>
+            <div class="bg-white rounded-[2.5rem] overflow-hidden w-full shadow-2xl animate-pop">
+                <div class="bg-blue-600 p-5 text-white text-center">
+                    <p class="text-[9px] uppercase font-black tracking-widest mb-1">PTE Vocabulary Insight</p>
+                    <h2 id="wotdWord" class="english-text text-3xl font-black">...</h2>
+                </div>
+                <div class="p-8 text-center">
+                    <p id="wotdTrans" class="text-xl font-black text-slate-700 mb-4">...</p>
+                    <div class="bg-blue-50 p-5 rounded-3xl mb-8 border border-blue-100 shadow-inner">
+                        <p id="wotdExample" class="english-text text-sm italic text-slate-600">...</p>
+                    </div>
+                    <button onclick="closeWotd()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-xl active:scale-95 transition-all uppercase tracking-widest">Master It</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        const PUB_ID = '2PACX-1vRLfGnlIoQoX8NtHa99PvWeZIIcHh1s6Asc0jOIKewDKHq7fjiQ-KsZ0B7PVNANcjXtid63Wqih-zjC';
+        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRLfGnlIoQoX8NtHa99PvWeZIIcHh1s6Asc0jOIKewDKHq7fjiQ-KsZ0B7PVNANcjXtid63Wqih-zjC/pub?output=csv';
         let wordsData = [], quizData = [], usersData = [];
         let learnedWords = [], currentPage = 1, itemsPerPage = 25;
         let currentUser = null, currentStatusFilter = 'new';
+        let quizState = { currentIdx: 0, score: 0, questions: [] };
 
-        async function init() {
+        // --- CORE FUNCTIONS ---
+        async function loadData() {
             try {
-                // Load Users
-                const resU = await fetch(`https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?gid=2048995388&single=true&output=csv`);
-                usersData = parseCSV(await resU.text());
-                
-                // Load Words
-                const resW = await fetch(`https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?gid=0&single=true&output=csv`);
-                wordsData = parseCSV(await resW.text());
+                const res = await fetch(SHEET_URL);
+                const csv = await res.text();
+                // This logic is safer for multi-sheet publishing
+                // Note: Normally google publishes Sheets based on order or you need specific URLs
+                // Since you published "Entire Document", we need to fetch specific sheets
+                usersData = await fetchSheet('Users');
+                wordsData = await fetchSheet('Words');
+                quizData = await fetchSheet('Quizzes');
+            } catch (e) { console.error("Sync error"); }
+        }
 
-                // Load Quizzes
-                const resQ = await fetch(`https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?gid=1543781223&single=true&output=csv`);
-                quizData = parseCSV(await resQ.text());
-            } catch (e) { console.error("Database error"); }
+        async function fetchSheet(name) {
+            const url = `https://docs.google.com/spreadsheets/d/e/2PACX-1vRLfGnlIoQoX8NtHa99PvWeZIIcHh1s6Asc0jOIKewDKHq7fjiQ-KsZ0B7PVNANcjXtid63Wqih-zjC/pub?output=csv&sheet=${name}`;
+            const res = await fetch(url);
+            const text = await res.text();
+            return parseCSV(text);
         }
 
         function parseCSV(text) {
             const rows = []; let row = []; let col = ''; let inQuotes = false;
             for (let i = 0; i < text.length; i++) {
-                let char = text[i]; let nextChar = text[i+1];
-                if (char === '"' && inQuotes && nextChar === '"') { col += '"'; i++; }
+                let char = text[i]; let next = text[i+1];
+                if (char === '"' && inQuotes && next === '"') { col += '"'; i++; }
                 else if (char === '"') inQuotes = !inQuotes;
                 else if (char === ',' && !inQuotes) { row.push(col); col = ''; }
                 else if (char === '\n' && !inQuotes) { row.push(col); rows.push(row); row = []; col = ''; }
@@ -137,18 +159,28 @@
         }
 
         // --- AUTH ---
-        function attemptLogin() {
-            const u = document.getElementById('userInp').value;
-            const p = document.getElementById('passInp').value;
-            const found = usersData.find(row => row[0] === u && row[1] === p);
+        function togglePass() {
+            const p = document.getElementById('passInp');
+            p.type = p.type === 'password' ? 'text' : 'password';
+        }
+
+        async function attemptLogin() {
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('loginError').classList.add('hidden');
             
+            await loadData();
+            
+            const u = document.getElementById('userInp').value.toLowerCase().trim();
+            const p = document.getElementById('passInp').value.trim();
+            const found = usersData.find(row => row[0].toLowerCase() === u && row[1] === p);
+            
+            document.getElementById('loader').classList.add('hidden');
             if (found) {
                 currentUser = u;
-                localStorage.setItem('pte_user', u);
                 learnedWords = JSON.parse(localStorage.getItem('learned_' + u) || '[]');
                 document.getElementById('loginPage').classList.add('hidden');
                 document.getElementById('mainApp').classList.remove('hidden');
-                document.getElementById('userNameDisplay').innerText = `Learner: ${u}`;
+                document.getElementById('userNameDisplay').innerText = `LEARNER: ${u.toUpperCase()}`;
                 applyFilters();
                 updateProgress();
                 showWotd();
@@ -157,64 +189,65 @@
             }
         }
 
-        // --- VOCAB ---
+        // --- RENDERING ---
         function renderWords() {
             const container = document.getElementById('wordsContainer');
             const start = (currentPage - 1) * itemsPerPage;
             const paged = filteredWords.slice(start, start + itemsPerPage);
 
             container.innerHTML = paged.map(w => `
-                <div class="bg-white border-2 border-slate-50 rounded-3xl shadow-sm overflow-hidden mb-6">
-                    <div class="p-5 text-right">
-                        <div class="flex justify-between items-center mb-4">
-                            <div class="flex gap-3">
-                                <button onclick="toggleLearned('${w[0]}')" class="p-2 rounded-xl border ${learnedWords.includes(w[0]) ? 'bg-green-500 text-white' : 'bg-slate-50 text-slate-300'} transition-all font-bold">✓</button>
-                                <div class="flex items-center gap-1">
-                                   <button onclick="speak('${w[0]}')" class="text-xl">🔊</button>
-                                   <h3 class="english-text text-xl font-black text-slate-800">${w[0]}</h3>
-                                </div>
+                <div class="bg-white border-2 border-slate-50 rounded-[2rem] shadow-sm overflow-hidden mb-8 transition-all">
+                    <div class="p-6 text-right">
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="flex gap-2">
+                                <button onclick="toggleLearned('${w[0]}')" class="w-10 h-10 rounded-2xl border flex items-center justify-center ${learnedWords.includes(w[0]) ? 'bg-green-500 text-white border-green-500' : 'bg-slate-50 text-slate-300'} transition-all font-black">✓</button>
+                                <button onclick="speak('${w[0]}')" class="w-10 h-10 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-xl">🔊</button>
                             </div>
-                            <span class="text-[8px] px-3 py-1 rounded-full font-black border ${getLevelStyle(w[2])}">${w[2]}</span>
+                            <span class="text-[8px] px-3 py-1 rounded-full font-black border uppercase tracking-wider ${getLevelStyle(w[2])}">${w[2]}</span>
                         </div>
-                        <p class="english-text text-blue-400 text-xs font-mono mb-2 italic">${w[6] || ''}</p>
-                        <p class="text-blue-700 font-black text-lg mb-4">${w[1]}</p>
-                        <div class="bg-blue-50 p-4 rounded-2xl border-r-4 border-blue-500 relative mb-2">
-                             <div class="flex items-start gap-2 mb-2">
-                                <button onclick="speak('${w[3].replace(/'/g,"")}')" class="text-sm opacity-60">🔊</button>
-                                <p class="english-text text-sm text-slate-700 italic leading-relaxed">"${w[3]}"</p>
+                        
+                        <div class="flex items-center gap-3 justify-end mb-1">
+                             <p class="english-text text-slate-400 text-xs font-mono italic">${w[6] || ''}</p>
+                             <h3 class="english-text text-2xl font-black text-slate-800">${w[0]}</h3>
+                        </div>
+                        <p class="text-blue-700 font-black text-lg mb-6">${w[1]}</p>
+                        
+                        <div class="bg-slate-50 p-5 rounded-3xl border-r-8 border-blue-400 relative mb-4 shadow-inner">
+                             <div class="flex items-start gap-3 justify-end mb-3">
+                                <p class="english-text text-sm text-slate-600 italic leading-relaxed text-right">"${w[3]}"</p>
+                                <button onclick="speak('${w[3].replace(/'/g,"")}')" class="text-lg opacity-40 hover:opacity-100 mt-1">🔊</button>
                              </div>
-                             <p class="text-xs text-blue-400 font-bold border-t pt-2 border-blue-100">Meaning: ${w[7] || 'ترجمه مثال وارد نشده'}</p>
+                             <p class="text-xs text-blue-500 font-bold border-t pt-3 border-blue-100 flex items-center justify-end gap-1">
+                                <span class="bg-blue-100 px-2 py-0.5 rounded text-[8px] ml-2">Persian Meaning</span>
+                                ${w[7] || 'ترجمه مثال ثبت نشده'}
+                             </p>
                         </div>
-                        ${w[4] ? `<p class="text-[10px] text-slate-400 mt-2">💡 ${w[4]}</p>` : ''}
+                        
+                        ${w[4] ? `<div class="bg-amber-50 p-4 rounded-2xl text-[10px] text-slate-500 border-r-4 border-amber-300 leading-relaxed">💡 ${w[4]}</div>` : ''}
                     </div>
                 </div>
             `).join('');
             updatePaginationControls();
         }
 
-        function toggleLearned(word) {
-            if (learnedWords.includes(word)) learnedWords = learnedWords.filter(x => x !== word);
-            else learnedWords.push(word);
-            localStorage.setItem('learned_' + currentUser, JSON.stringify(learnedWords));
-            updateProgress();
-            applyFilters();
-        }
-
+        // --- PROGRESS & MOTIVATION ---
         function updateProgress() {
-            const total = wordsData.length;
             const learned = learnedWords.length;
-            const percent = Math.round((learned / total) * 100) || 0;
-            document.getElementById('progressBar').style.width = percent + '%';
-            document.getElementById('progressPercent').innerText = percent + '% Completed';
+            const total = wordsData.length;
+            const p = Math.round((learned / total) * 100) || 0;
+            document.getElementById('progressBar').style.width = p + '%';
+            document.getElementById('progressPercent').innerText = p + '%';
             
-            let msg = "هر لغت، یک قدم به موفقیت نزدیک‌تر!";
-            if(percent > 25) msg = "عالیه! ۲۵٪ رو رد کردی. ادامه بده قهرمان!";
-            if(percent > 50) msg = "نصف راه طی شد! تسلیم نشو، چیزی نمونده.";
-            if(percent > 75) msg = "فوق‌العاده‌ای! تو الان یک متخصص PTE هستی.";
-            if(percent === 100) msg = "تبریک! کل ۱۲۰۰ لغت رو فتح کردی! 🎉";
+            let msg = "The harder you work, the luckier you get!";
+            if(p > 10) msg = "Great start! You're making progress.";
+            if(p > 30) msg = "Keep it up! 30% done already!";
+            if(p > 60) msg = "You are doing amazing! Over half way!";
+            if(p > 90) msg = "Almost a PTE Genius! Finish it!";
+            if(p === 100) msg = "Congratulations! You conquered the Studio! 🏆";
             document.getElementById('motivationalText').innerText = msg;
         }
 
+        // --- FILTERS ---
         function applyFilters() {
             const s = document.getElementById('searchInput').value.toLowerCase();
             filteredWords = wordsData.filter(w => {
@@ -227,16 +260,15 @@
 
         function setStatusFilter(f) {
             currentStatusFilter = f;
-            document.getElementById('btnNew').className = f==='new' ? "status-btn active-filter bg-blue-600 text-white px-4 py-1.5 rounded-full text-[10px] font-bold" : "status-btn px-4 py-1.5 rounded-full border border-slate-200 text-[10px] font-bold bg-white";
-            document.getElementById('btnLearned').className = f==='learned' ? "status-btn active-filter bg-blue-600 text-white px-4 py-1.5 rounded-full text-[10px] font-bold" : "status-btn px-4 py-1.5 rounded-full border border-slate-200 text-[10px] font-bold bg-white";
-            currentPage = 1;
-            applyFilters();
+            document.getElementById('btnNew').className = f==='new' ? "status-btn px-4 py-2 rounded-xl text-[10px] font-black bg-blue-600 text-white" : "status-btn px-4 py-2 rounded-xl text-[10px] font-black border border-slate-100 bg-white text-slate-400";
+            document.getElementById('btnLearned').className = f==='learned' ? "status-btn px-4 py-2 rounded-xl text-[10px] font-black bg-blue-600 text-white" : "status-btn px-4 py-2 rounded-xl text-[10px] font-black border border-slate-100 bg-white text-slate-400";
+            currentPage = 1; applyFilters();
         }
 
-        function changePage(step) { currentPage += step; renderWords(); window.scrollTo(0, 200); }
+        function changePage(s) { currentPage += s; renderWords(); window.scrollTo(0, 0); }
         function updatePaginationControls() {
             const max = Math.ceil(filteredWords.length / itemsPerPage);
-            document.getElementById('pageInfo').innerText = `صفحه ${currentPage} از ${max || 1}`;
+            document.getElementById('pageInfo').innerText = `PAGE ${currentPage} OF ${max || 1}`;
             document.getElementById('prevBtn').disabled = currentPage === 1;
             document.getElementById('nextBtn').disabled = currentPage >= max;
         }
@@ -247,14 +279,14 @@
             return 'bg-purple-50 text-purple-600 border-purple-200';
         }
 
-        // --- QUIZ ---
+        // --- QUIZ SYSTEM ---
         function showQuizHome() {
             document.getElementById('quizContent').innerHTML = `
                 <div class="text-center p-4">
-                    <div class="text-6xl mb-6">🎯</div>
-                    <h2 class="text-xl font-black text-slate-800">چالش ۲۵ سواله</h2>
-                    <p class="text-[10px] text-slate-400 mb-8 font-bold">آزمون تصادفی از کل پکیج ۱۰۰۰تایی</p>
-                    <button id="startQuizBtn" onclick="initQuiz()" class="w-full bg-blue-600 text-white font-black py-5 rounded-3xl shadow-xl hover:scale-95 transition-all">شروع رقابت</button>
+                    <div class="text-7xl mb-8">🚀</div>
+                    <h2 class="text-2xl font-black text-slate-800 mb-2">Ready to Test?</h2>
+                    <p class="text-xs text-slate-400 mb-10 font-bold">25 Random questions from the studio</p>
+                    <button id="realStartBtn" onclick="initQuiz()" class="w-full bg-blue-600 text-white font-black py-5 rounded-[1.5rem] shadow-xl hover:shadow-blue-200 transition-all">START SESSION</button>
                 </div>`;
         }
 
@@ -266,16 +298,16 @@
         function showQuestion() {
             const q = quizState.questions[quizState.currentIdx];
             document.getElementById('quizContent').innerHTML = `
-                <div class="text-right flex flex-col h-full animate-in fade-in">
-                    <div class="flex justify-between items-center mb-6">
-                        <span class="text-[10px] bg-blue-50 text-blue-600 px-3 py-1 rounded-full font-bold">Q ${quizState.currentIdx + 1}/25</span>
-                        <span class="text-[10px] font-black text-green-600 italic">Score: ${quizState.score}</span>
+                <div class="text-right flex flex-col h-full animate-pop">
+                    <div class="flex justify-between items-center mb-8">
+                        <span class="text-[10px] bg-slate-100 px-4 py-1.5 rounded-full font-black text-slate-500 uppercase tracking-tighter">Question ${quizState.currentIdx + 1}/25</span>
+                        <span class="text-sm font-black text-green-500 italic">${quizState.score} Correct</span>
                     </div>
-                    <div class="english-text bg-slate-50 p-6 rounded-3xl mb-8 text-slate-800 border-2 border-white shadow-inner leading-relaxed text-lg font-medium">
-                        ${q[0].replace('_______', '<span class="text-blue-600 font-bold border-b-2 border-blue-600 px-4 mx-1">________</span>')}
+                    <div class="english-text bg-slate-900 p-8 rounded-[2rem] mb-8 text-white shadow-2xl leading-relaxed text-lg font-medium border-b-4 border-blue-500">
+                        ${q[0].replace('_______', '<span class="text-blue-400 font-bold underline decoration-wavy underline-offset-8">_________</span>')}
                     </div>
                     <div class="grid gap-3">
-                        ${[1,2,3,4].map(i => `<button onclick="checkAnswer('${q[i]}','${q[5]}','${q[6]}')" class="english-text text-left w-full p-4 border border-slate-200 rounded-2xl hover:border-blue-500 font-medium">${q[i]}</button>`).join('')}
+                        ${[1,2,3,4].map(i => `<button onclick="checkAnswer('${q[i]}','${q[5]}','${q[6]}')" class="english-text text-left w-full p-5 border-2 border-slate-100 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition-all font-bold text-slate-700">${q[i]}</button>`).join('')}
                     </div>
                 </div>`;
         }
@@ -284,64 +316,64 @@
             const isC = sel.trim().toLowerCase() === cor.trim().toLowerCase();
             if(isC) quizState.score++;
             document.getElementById('quizContent').innerHTML = `
-                <div class="py-4 text-center animate-in zoom-in">
-                    <div class="text-7xl mb-6">${isC ? '✅' : '❌'}</div>
-                    <p class="text-2xl font-black ${isC ? 'text-green-600' : 'text-rose-500'} mb-2">${isC ? 'احسنت!' : 'اشتباه بود'}</p>
-                    <p class="text-slate-500 text-sm mb-4">Correct: <span class="english-text text-blue-600 font-bold underline">${cor}</span></p>
-                    <div class="bg-amber-50 p-6 rounded-3xl text-[11px] text-right border-r-4 border-amber-400 mb-8 leading-relaxed shadow-sm">
-                        <strong>بررسی علمی:</strong><br>${hint}
+                <div class="py-6 text-center animate-pop">
+                    <div class="text-8xl mb-6">${isC ? '💎' : '⚠️'}</div>
+                    <p class="text-3xl font-black ${isC ? 'text-green-600' : 'text-rose-500'} mb-2">${isC ? 'EXCELLENT!' : 'NOT QUITE'}</p>
+                    <p class="text-slate-500 text-sm mb-6">PTE Answer: <span class="english-text text-blue-600 font-black underline decoration-2">${cor}</span></p>
+                    <div class="bg-amber-50 p-6 rounded-[2rem] text-[11px] text-right border-r-8 border-amber-400 mb-10 leading-relaxed shadow-inner font-bold text-slate-700 italic">
+                        <strong>GRAMMAR & LOGIC:</strong><br>${hint}
                     </div>
-                    <button onclick="nextStep()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-lg">سوال بعدی</button>
+                    <button onclick="nextStep()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg">NEXT QUESTION</button>
                 </div>`;
         }
 
-        function nextStep() {
-            if (quizState.currentIdx < 24) { quizState.currentIdx++; showQuestion(); }
-            else { renderQuizResult(); }
-        }
+        function nextStep() { (quizState.currentIdx < 24) ? (quizState.currentIdx++, showQuestion()) : renderQuizResult(); }
 
         function renderQuizResult() {
             const p = Math.round((quizState.score/25)*100);
             document.getElementById('quizContent').innerHTML = `
-                <div class="text-center p-4">
-                    <h2 class="text-2xl font-black mb-8">کارنامه نهایی</h2>
-                    <div class="text-7xl font-black text-blue-600 mb-4">${p}%</div>
-                    <p class="text-slate-400 text-xs mb-8">پاسخ‌های صحیح: ${quizState.score} از ۲۵</p>
-                    <button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg mb-4">تلاش مجدد</button>
-                    <button onclick="showTab('vocab')" class="w-full text-slate-400 font-bold text-xs uppercase tracking-widest">برگشت به لغت‌نامه</button>
+                <div class="text-center p-4 animate-pop">
+                    <h2 class="text-3xl font-black mb-10 text-slate-800 italic underline decoration-blue-500 decoration-4">YOUR RESULTS</h2>
+                    <div class="text-8xl font-black text-blue-600 mb-4 tracking-tighter">${p}%</div>
+                    <p class="text-slate-400 text-xs mb-10 font-bold uppercase tracking-widest">Score: ${quizState.score} / 25</p>
+                    <button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl mb-4">RETRY CHALLENGE</button>
+                    <button onclick="showTab('vocab')" class="w-full text-slate-400 font-black text-[10px] tracking-widest uppercase">Back to Studio</button>
                 </div>`;
         }
 
-        // --- UI UTILS ---
-        function showTab(tab) {
-            ['vocab','quiz','stats'].forEach(t => {
-                document.getElementById(t+'Section').classList.toggle('hidden', t !== tab);
-                if(document.getElementById(t+'Controls')) document.getElementById(t+'Controls').classList.toggle('hidden', t !== tab);
+        // --- UTILS ---
+        function showTab(t) {
+            ['vocab','quiz','stats'].forEach(x => {
+                document.getElementById(x+'Section').classList.toggle('hidden', x !== t);
+                if(document.getElementById('vocabControls') && x === 'vocab') document.getElementById('vocabControls').classList.remove('hidden');
+                else if(document.getElementById('vocabControls')) document.getElementById('vocabControls').classList.add('hidden');
             });
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-tab'));
-            document.getElementById('tab'+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.add('active-tab');
-            if(tab === 'stats') renderStats();
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-tab', 'text-blue-600'));
+            document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1)).classList.add('active-tab', 'text-blue-600');
+            if(t === 'stats') renderStats();
         }
 
         function renderStats() {
             const learned = learnedWords.length;
             const total = wordsData.length;
+            const p = Math.round((learned/total)*100) || 0;
             document.getElementById('statsContent').innerHTML = `
-                <div class="bg-blue-600 text-white p-8 rounded-3xl shadow-xl text-center">
-                    <p class="text-xs uppercase font-bold opacity-70">کل کلمات یاد گرفته شده</p>
-                    <div class="text-6xl font-black my-2">${learned}</div>
-                    <p class="text-[10px]">از مجموع ${total} لغت آکادمیک</p>
+                <div class="bg-blue-600 text-white p-10 rounded-[2.5rem] shadow-2xl text-center relative overflow-hidden">
+                    <div class="absolute -top-5 -left-5 w-24 h-24 bg-white opacity-10 rounded-full"></div>
+                    <p class="text-[10px] uppercase font-black opacity-70 tracking-widest">Studied Words</p>
+                    <div class="text-7xl font-black my-4">${learned}</div>
+                    <p class="text-xs font-bold">out of ${total} Academic Words</p>
                 </div>
-                <div class="bg-white border-2 border-slate-100 p-6 rounded-3xl text-right">
-                    <p class="font-bold text-slate-700 mb-4">وضعیت تسلط بر سطوح:</p>
+                <div class="bg-white border-4 border-slate-50 p-8 rounded-[2rem] shadow-sm">
+                    <p class="font-black text-slate-800 mb-6 italic underline">MASTERY BY LEVEL:</p>
                     ${['B2','C1','Academic'].map(lvl => {
                         const count = wordsData.filter(w=>w[2].includes(lvl)).length;
                         const lCount = wordsData.filter(w=>w[2].includes(lvl) && learnedWords.includes(w[0])).length;
-                        const p = Math.round((lCount/count)*100) || 0;
+                        const percent = Math.round((lCount/count)*100) || 0;
                         return `
-                        <div class="mb-4">
-                            <div class="flex justify-between text-[10px] mb-1"><span>${lvl}</span><span>${p}%</span></div>
-                            <div class="w-full bg-slate-100 h-1.5 rounded-full"><div class="bg-blue-500 h-full" style="width:${p}%"></div></div>
+                        <div class="mb-6">
+                            <div class="flex justify-between text-[11px] font-black mb-2"><span>LEVEL ${lvl}</span><span class="text-blue-600">${percent}%</span></div>
+                            <div class="w-full bg-slate-100 h-2.5 rounded-full shadow-inner"><div class="bg-blue-500 h-full rounded-full transition-all duration-1000" style="width:${percent}%"></div></div>
                         </div>`;
                     }).join('')}
                 </div>
@@ -349,10 +381,8 @@
         }
 
         function showWotd() {
-            if(wordsData.length === 0) return;
-            const last = localStorage.getItem('lastWotdDate');
             const today = new Date().toDateString();
-            if (last !== today) {
+            if (localStorage.getItem('lastWotdDate') !== today && wordsData.length > 0) {
                 const w = wordsData[Math.floor(Math.random() * wordsData.length)];
                 document.getElementById('wotdWord').innerText = w[0];
                 document.getElementById('wotdTrans').innerText = w[1];
@@ -363,14 +393,15 @@
         }
         function closeWotd() { document.getElementById('wotdModal').style.display = 'none'; }
 
-        function speak(text) {
-            window.speechSynthesis.cancel();
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'en-US'; msg.rate = 0.85;
-            window.speechSynthesis.speak(msg);
+        function toggleLearned(word) {
+            if (learnedWords.includes(word)) learnedWords = learnedWords.filter(x => x !== word);
+            else learnedWords.push(word);
+            localStorage.setItem('learned_' + currentUser, JSON.stringify(learnedWords));
+            updateProgress(); applyFilters();
         }
 
-        init();
+        function speak(t) { window.speechSynthesis.cancel(); const m = new SpeechSynthesisUtterance(t); m.lang = 'en-US'; m.rate = 0.8; window.speechSynthesis.speak(m); }
+
     </script>
 </body>
 </html>
