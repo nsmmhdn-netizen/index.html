@@ -173,7 +173,7 @@
                     document.getElementById('mainApp').classList.remove('hidden');
                     document.getElementById('userNameDisplay').innerText = `${u.toUpperCase()} 😊🌻`;
                     applyFilters(); updateProgress(); showQuizHome();
-                    setTimeout(showWotd, 1500);
+                    setTimeout(showWotd, 1000);
                 } else { document.getElementById('loginError').classList.remove('hidden'); }
             } catch (e) { alert("اتصال برقرار نشد."); }
             finally { document.getElementById('loader').classList.add('hidden'); }
@@ -273,13 +273,15 @@
         }
 
         function showWotd() {
-            if (wordsData.length === 0 || localStorage.getItem('lastWotdDate') === new Date().toDateString()) return;
-            const obj = wordsData[Math.floor(Math.random() * wordsData.length)];
-            document.getElementById('wotdWord').innerText = obj[0];
-            document.getElementById('wotdTrans').innerText = obj[1];
-            document.getElementById('wotdExample').innerText = obj[3];
-            document.getElementById('wotdModal').style.display = 'flex';
-            localStorage.setItem('lastWotdDate', new Date().toDateString());
+            const today = new Date().toDateString();
+            if (localStorage.getItem('lastWotdDate') !== today && wordsData.length > 0) {
+                const w = wordsData[Math.floor(Math.random() * wordsData.length)];
+                document.getElementById('wotdWord').innerText = w[0];
+                document.getElementById('wotdTrans').innerText = w[1];
+                document.getElementById('wotdExample').innerText = `"${w[3]}"`;
+                document.getElementById('wotdModal').style.display = 'flex';
+                localStorage.setItem('lastWotdDate', today);
+            }
         }
 
         function showQuizHome() { document.getElementById('quizContent').innerHTML = `<div class="text-center p-4"><div class="text-8xl mb-8 animate-bounce">🚀</div><h2 class="text-2xl font-black text-slate-800 mb-8 uppercase tracking-widest">Start Test</h2><button onclick="initQuiz()" class="w-full bg-blue-600 text-white font-black py-5 rounded-[1.5rem] shadow-xl hover:scale-95 transition-all">START 25 Q</button></div>`; }
