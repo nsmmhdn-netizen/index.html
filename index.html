@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PTEinsider Reading Studio</title>
+    <title>PTEinsider Studio Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @font-face { font-family: 'Vazir'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2'); }
@@ -30,25 +30,25 @@
                     <input id="passInp" type="password" placeholder="Password" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500 text-center english-text font-bold">
                     <button onclick="togglePass()" class="absolute left-4 top-1/2 -translate-y-1/2 text-xl">👁️</button>
                 </div>
-                <button onclick="attemptLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg">Login</button>
+                <button onclick="attemptLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-blue-700 active:scale-95 transition-all">LOGIN</button>
             </div>
-            <p id="loginError" class="text-red-500 text-[10px] mt-4 hidden font-bold">اطلاعات ورود اشتباه است!</p>
-            <div id="loader" class="mt-4 hidden text-blue-600 text-[10px] font-black animate-pulse italic text-left english-text">...Connecting to PTEinsider</div>
+            <p id="loginError" class="text-red-500 text-[10px] mt-4 hidden font-bold">نام کاربری یا رمز عبور اشتباه است!</p>
+            <div id="loader" class="mt-4 hidden text-blue-600 text-[10px] font-black animate-pulse italic english-text text-left pl-2">...Connecting to PTEinsider</div>
         </div>
     </div>
 
     <!-- MAIN APP -->
     <div id="mainApp" class="max-w-md mx-auto bg-white min-h-screen shadow-2xl pb-24 relative hidden overflow-hidden">
-        <header class="bg-slate-900 text-white p-5 text-center shadow-lg">
-            <h1 class="text-sm font-black text-blue-400">PTEinsider - Reading Studio V.01</h1>
-            <p class="text-[9px] mt-1 opacity-80 italic">by Nasim Mohammmadian (<a href="https://t.me/nsmmhdn" target="_blank" class="text-blue-300 underline font-bold">t.me/nsmmhdn</a>)</p>
+        <header class="bg-slate-900 text-white p-5 text-center shadow-lg border-b border-blue-900">
+            <h1 class="text-sm font-black text-blue-400 uppercase tracking-widest">PTEinsider - Reading Studio V.01</h1>
+            <p class="text-[9px] mt-1 opacity-80 italic">by Nasim Mohammmadian (t.me/nsm_mhdn)</p>
         </header>
 
         <div class="p-5 bg-white border-b shadow-sm">
             <div class="flex justify-between items-start mb-3">
                 <div class="text-right">
                     <p id="userNameDisplay" class="text-xl font-black text-slate-800 uppercase tracking-tight">... 😊🌻</p>
-                    <p id="motivationalText" class="text-[10px] text-blue-500 font-black mt-1 italic"></p>
+                    <p id="motivationalText" class="text-[10px] text-blue-600 font-black mt-1 italic"></p>
                 </div>
                 <span id="progressPercent" class="text-3xl font-black text-blue-600 italic">0%</span>
             </div>
@@ -63,34 +63,30 @@
             <button id="tabStats" onclick="showTab('stats')" class="flex-1 py-4 font-bold text-gray-400">آمار من</button>
         </nav>
 
-        <div id="vocabControls" class="p-4 bg-white border-b space-y-3">
+        <div id="vocabControls" class="p-4 bg-white border-b space-y-3 shadow-sm">
             <div class="relative">
                 <div class="flex gap-2">
                     <input id="searchInput" oninput="handleSearchSuggestions()" type="text" placeholder="Search..." class="flex-1 p-3 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500 text-sm english-text">
                     <button onclick="applyFilters()" class="bg-blue-600 text-white px-5 rounded-2xl font-bold text-xs shadow-md">جستجو</button>
-                    <button onclick="resetFilters()" class="bg-slate-100 px-3 rounded-2xl font-bold text-xs border">🔄</button>
+                    <button onclick="resetFilters()" class="bg-slate-100 text-slate-600 px-3 rounded-2xl font-bold text-xs border">🔄</button>
                 </div>
                 <div id="searchSuggestions" class="absolute left-0 right-12 bg-white border-2 border-slate-100 rounded-2xl mt-1 shadow-xl z-50 max-h-48 overflow-y-auto hidden no-scrollbar"></div>
             </div>
-            <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar items-center">
-                <button onclick="setStatusFilter('new')" id="btnNew" class="px-3 py-2 rounded-xl text-[9px] font-black bg-blue-600 text-white shadow-md whitespace-nowrap">🌟 جدید</button>
+            <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar items-center text-right">
+                <button onclick="setStatusFilter('new')" id="btnNew" class="px-3 py-2 rounded-xl text-[9px] font-black bg-blue-600 text-white shadow-sm whitespace-nowrap">🌟 جدید</button>
                 <button onclick="setStatusFilter('learned')" id="btnLearned" class="px-3 py-2 rounded-xl text-[9px] font-black border bg-white text-slate-400 whitespace-nowrap">✅ آشنا</button>
                 <button onclick="setStatusFilter('hard')" id="btnHard" class="px-3 py-2 rounded-xl text-[9px] font-black border bg-white text-slate-400 whitespace-nowrap">🔥 سخت</button>
-                <select id="levelFilter" onchange="applyFilters()" class="px-3 py-2 rounded-xl text-[9px] font-black border bg-slate-50 outline-none">
-                    <option value="All">سطح</option><option value="A1">A1</option><option value="A2">A2</option><option value="B1">B1</option><option value="B2">B2</option><option value="C1">C1</option><option value="C2">C2</option><option value="Academic">Academic</option>
-                </select>
-                <select id="grammarFilter" onchange="applyFilters()" class="px-3 py-2 rounded-xl text-[9px] font-black border bg-slate-50 outline-none">
-                    <option value="All">گرامر</option><option value="Noun">اسم</option><option value="Verb">فعل</option><option value="Adjective">صفت</option><option value="Adverb">قید</option><option value="Conjunction">حرف ربط</option><option value="کالوکیشن">کالوکیشن</option><option value="حرف اضافه">حرف اضافه</option><option value="Other">سایر</option>
-                </select>
+                <select id="levelFilter" onchange="applyFilters()" class="px-3 py-2 rounded-xl text-[9px] font-black border bg-slate-50 outline-none"><option value="All">سطح</option><option value="A1">A1</option><option value="A2">A2</option><option value="B1">B1</option><option value="B2">B2</option><option value="C1">C1</option><option value="C2">C2</option><option value="Academic">Academic</option></select>
+                <select id="grammarFilter" onchange="applyFilters()" class="px-3 py-2 rounded-xl text-[9px] font-black border bg-slate-50 outline-none"><option value="All">گرامر</option><option value="Noun">اسم</option><option value="Verb">فعل</option><option value="Adjective">صفت</option><option value="Adverb">قید</option><option value="Conjunction">حرف ربط</option><option value="کالوکیشن">کالوکیشن</option><option value="حرف اضافه">حرف اضافه</option><option value="Other">سایر</option></select>
             </div>
-            <p id="itemsCount" class="text-[10px] text-slate-400 font-bold text-left px-1"></p>
+            <p id="itemsCount" class="text-[10px] text-slate-400 font-black text-left px-1"></p>
         </div>
 
         <div id="vocabSection" class="p-4">
             <div id="wordsContainer" class="space-y-6"></div>
             <div id="pagination" class="flex justify-center items-center gap-6 mt-10 pb-10">
                 <button onclick="changePage(-1)" id="prevBtn" class="bg-slate-100 p-3 rounded-full shadow-sm disabled:opacity-20">◀️</button>
-                <span id="pageInfo" class="text-[10px] font-black text-slate-500 uppercase">...</span>
+                <span id="pageInfo" class="text-[10px] font-black text-slate-500 tracking-widest uppercase">Page 1</span>
                 <button onclick="changePage(1)" id="nextBtn" class="bg-slate-100 p-3 rounded-full shadow-sm disabled:opacity-20">▶️</button>
             </div>
         </div>
@@ -102,7 +98,7 @@
         <div id="wotdModal" class="modal-bg fixed inset-0 z-50 flex items-center justify-center p-6">
             <div class="bg-white rounded-[2.5rem] overflow-hidden w-full shadow-2xl animate-pop max-w-sm">
                 <div class="bg-blue-600 p-5 text-white text-center">
-                    <p class="text-[9px] uppercase font-black mb-1 opacity-70 italic font-sans">Recommendation</p>
+                    <p class="text-[9px] uppercase font-black tracking-widest mb-1 opacity-70">Daily Recommendation</p>
                     <h2 id="wotdWord" class="english-text text-4xl font-black italic">...</h2>
                 </div>
                 <div class="p-8 text-center">
@@ -110,40 +106,30 @@
                     <div class="bg-blue-50 p-5 rounded-3xl mb-8 border border-blue-100 shadow-inner">
                         <p id="wotdExample" class="english-text text-sm italic text-slate-600 leading-relaxed text-center">...</p>
                     </div>
-                    <button onclick="closeWotd()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-xl uppercase italic text-xs tracking-widest">CONTINUE</button>
+                    <button onclick="closeWotd()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-xl active:scale-95 transition-all">بستن</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // ۱. آیدی اصلی شیت (از نوار آدرس مرورگر)
+        const PUB_ID = '2PACX-1vRLfGnlIoQoX8NtHa99PvWeZIIcHh1s6Asc0jOIKewDKHq7fjiQ-KsZ0B7PVNANcjXtid63Wqih-zjC';
         const SHEET_ID = '1GOqwBlOym9WIVKLjHmR9xTJBgkICWj7bC92XAJoxuYg';
-        
-        // ۲. لینک وب‌اپ گوگل اسکریپت (برای سینک شدن)
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby7RidM-u3avrNpK0eSLvkO1fD-oNNsuLvlwfokq01d6bpXuDG_-HwkCzIO1ljeynkqxA/exec'; 
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVfkhE8Cc5L2htsTO4WNvPTQykTYMtNTG7wsceftJEXF6Yjc4UVXIPvpGbVufkwPIw/exec'; 
 
         let wordsData = [], quizData = [], usersData = [], learnedWords = [], hardWords = [], quizHistory = [], filteredWords = [];
-        let currentPage = 1, itemsPerPage = 25, currentUser = null, currentStatusFilter = 'new', currentWotdObj = null;
-        
+        let currentPage = 1, itemsPerPage = 25, currentUser = null, currentStatusFilter = 'new';
+        let quizState = { currentIdx: 0, score: 0, questions: [], currentSelection: null };
         const deviceId = localStorage.getItem('pte_device_id') || Math.random().toString(36).substr(2, 9);
         localStorage.setItem('pte_device_id', deviceId);
 
-        // --- توابع کمکی ---
-        function togglePass() {
-            const p = document.getElementById('passInp');
-            p.type = p.type === 'password' ? 'text' : 'password';
-        }
-
         async function fetchCSV(gid) {
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
-            const res = await fetch(url);
+            const res = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`);
             const text = await res.text();
-            
             const rows = []; let row = []; let col = ''; let inQuotes = false;
             for (let i = 0; i < text.length; i++) {
-                let char = text[i]; let next = text[i+1];
-                if (char === '"' && inQuotes && next === '"') { col += '"'; i++; }
+                let char = text[i]; let nextChar = text[i+1];
+                if (char === '"' && inQuotes && nextChar === '"') { col += '"'; i++; }
                 else if (char === '"') inQuotes = !inQuotes;
                 else if (char === ',' && !inQuotes) { row.push(col); col = ''; }
                 else if (char === '\n' && !inQuotes) { row.push(col); rows.push(row); row = []; col = ''; }
@@ -153,85 +139,51 @@
             return rows.slice(1).filter(r => r.length > 1);
         }
 
-        // --- بخش اصلی لاگین ---
         async function attemptLogin() {
             const u = document.getElementById('userInp').value.toLowerCase().trim();
             const p = document.getElementById('passInp').value.trim();
-            
-            if(!u || !p) {
-                alert("لطفاً نام کاربری و رمز عبور را وارد کنید.");
-                return;
-            }
-
+            if(!u || !p) return;
             document.getElementById('loader').classList.remove('hidden');
             document.getElementById('loginError').classList.add('hidden');
 
             try {
-                // دریافت دیتای کاربران (GID برگه Users شما: 1914745392)
                 usersData = await fetchCSV('1914745392');
-                
-                const match = usersData.find(r => 
-                    r[0].toString().toLowerCase().trim() === u && 
-                    r[1].toString().trim() === p
-                );
-
+                const match = usersData.find(r => r[0].toString().toLowerCase().trim() === u && r[1].toString().trim() === p);
                 if (match) {
-                    // بررسی محدودیت ۳ دستگاه
-                    const checkRes = await fetch(APPS_SCRIPT_URL, { 
-                        method: 'POST', 
-                        body: JSON.stringify({ action: 'checkDevice', username: u, deviceId: deviceId }) 
-                    });
-                    const deviceStatus = await checkRes.text();
-                    
-                    if (deviceStatus === "LimitReached") {
-                        alert("خطا: ظرفیت استفاده از ۳ دستگاه برای این کاربری پر شده است.");
-                        document.getElementById('loader').classList.add('hidden');
-                        return;
-                    }
+                    const checkRes = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'checkDevice', username: u, deviceId: deviceId }) });
+                    if ((await checkRes.text()) === "LimitReached") { alert("خطا: حد ۳ دستگاه پر شده است!"); return; }
 
                     currentUser = u;
-                    // لود کردن بقیه اطلاعات
                     wordsData = (await fetchCSV('0')).sort(() => 0.5 - Math.random());
                     quizData = await fetchCSV('1776379547');
                     
-                    // همگام‌سازی از سرور
                     try {
                         const syncRes = await fetch(APPS_SCRIPT_URL);
-                        const allP = await syncRes.json();
-                        const myP = allP.find(x => x.username.toLowerCase() === currentUser);
+                        const myP = (await syncRes.json()).find(x => x.username.toLowerCase() === currentUser);
                         if (myP) {
                             learnedWords = myP.learned ? myP.learned.split('|') : [];
                             hardWords = myP.hard ? myP.hard.split('|') : [];
                             quizHistory = myP.quizHistory ? JSON.parse(myP.quizHistory) : [];
                         }
-                    } catch(e) { console.log("Sync error"); }
+                    } catch(e) {}
 
                     document.getElementById('loginPage').classList.add('hidden');
                     document.getElementById('mainApp').classList.remove('hidden');
                     document.getElementById('userNameDisplay').innerText = `${u.toUpperCase()} 😊🌻`;
-                    
-                    applyFilters(); 
-                    updateProgress(); 
-                    showQuizHome();
-                    
-                    // نمایش پاپ‌آپ با ۴ ثانیه تاخیر طبق خواسته شما
+                    applyFilters(); updateProgress(); showQuizHome();
                     setTimeout(showWotd, 4000);
-
-                } else {
-                    document.getElementById('loginError').classList.remove('hidden');
-                }
-            } catch (e) {
-                alert("خطا در اتصال به سرور گوگل. لطفاً فیلترشکن خود را چک کنید.");
-                console.error(e);
-            } finally {
-                document.getElementById('loader').classList.add('hidden');
-            }
+                } else { document.getElementById('loginError').classList.remove('hidden'); }
+            } catch (e) { alert("خطا در بارگذاری اطلاعات."); }
+            finally { document.getElementById('loader').classList.add('hidden'); }
         }
 
-        function highlightWord(s, w) {
-            if (!w) return s;
-            const regex = new RegExp(`(${w})`, 'gi');
-            return s.replace(regex, '<b class="text-blue-600 underline font-black">$1</b>');
+        function handleSearchSuggestions() {
+            const v = document.getElementById('searchInput').value.toLowerCase();
+            const b = document.getElementById('searchSuggestions');
+            if(v.length < 2) { b.classList.add('hidden'); return; }
+            const m = wordsData.filter(w => w[0].toLowerCase().includes(v)).slice(0,10);
+            b.innerHTML = m.map(x => `<div onclick="document.getElementById('searchInput').value='${x[0]}';applyFilters();document.getElementById('searchSuggestions').classList.add('hidden')" class="p-3 border-b text-sm english-text hover:bg-blue-50">${x[0]}</div>`).join('');
+            b.classList.remove('hidden');
         }
 
         function renderWords() {
@@ -243,25 +195,25 @@
                     <div class="p-6 text-right">
                         <div class="flex justify-between items-center mb-6">
                             <div class="flex gap-2">
-                                <button onclick="toggleStatus('${w[0]}','hard')" class="w-10 h-10 rounded-2xl border flex items-center justify-center ${hardWords.includes(w[0]) ? 'bg-red-500 text-white border-red-500' : 'bg-slate-50 text-slate-300'} font-black shadow-sm">🔥</button>
-                                <button onclick="toggleStatus('${w[0]}','learned')" class="w-10 h-10 rounded-2xl border flex items-center justify-center ${learnedWords.includes(w[0]) ? 'bg-green-500 text-white border-green-500' : 'bg-slate-50 text-slate-300'} font-black shadow-sm">✓</button>
+                                <button onclick="toggleStatus('${w[0]}','hard')" class="w-10 h-10 rounded-2xl border ${hardWords.includes(w[0]) ? 'bg-red-500 text-white border-red-500' : 'bg-slate-50 text-slate-300'} font-black shadow-sm">🔥</button>
+                                <button onclick="toggleStatus('${w[0]}','learned')" class="w-10 h-10 rounded-2xl border ${learnedWords.includes(w[0]) ? 'bg-green-500 text-white border-green-500' : 'bg-slate-50 text-slate-300'} font-black shadow-sm">✓</button>
                             </div>
                             <span class="text-[8px] px-3 py-1 rounded-full font-black border uppercase tracking-widest ${getLevelStyle(w[2])}">${w[2]}</span>
                         </div>
                         <div class="flex items-center gap-3 justify-end mb-2">
                              <p class="english-text text-slate-400 text-[10px] font-mono italic">${w[6] || ''}</p>
                              <h3 class="english-text text-2xl font-black text-slate-800">${w[0]} <span class="text-xl">${w[5] || ''}</span></h3>
-                             <button onclick="speak('${w[0]}')" class="text-xl">🔊</button>
+                             <button onclick="speak('${w[0]}')" class="text-xl active:scale-75 transition-all">🔊</button>
                         </div>
                         <p class="text-blue-700 font-black text-lg mb-6">${w[1]}</p>
                         <div class="bg-slate-50 p-5 rounded-3xl border-r-8 border-blue-400 relative mb-4 shadow-inner">
                              <div class="flex items-start gap-3 english-text mb-4">
                                 <button onclick="speak('${w[3].replace(/'/g,"")}')" class="text-lg opacity-40">🔊</button>
-                                <p class="text-sm text-slate-600 italic leading-relaxed text-left">${highlightWord(w[3], w[0])}</p>
+                                <p class="text-sm text-slate-600 italic leading-relaxed text-left">${w[3].replace(new RegExp(w[0], 'gi'), '<b>$&</b>')}</p>
                              </div>
-                             <p class="text-[11px] text-blue-500 font-black border-t pt-4 border-blue-100 persian-text uppercase italic font-sans"><span class="bg-blue-600 text-white px-2 py-0.5 rounded text-[7px] ml-2 not-italic">Meaning</span>${w[7] || ''}</p>
+                             <p class="text-[11px] text-blue-500 font-black border-t pt-4 border-blue-100">${w[7] || ''}</p>
                         </div>
-                        ${w[4] ? `<div class="bg-amber-50 p-4 rounded-2xl text-[10px] text-slate-500 border-r-4 border-amber-300 leading-relaxed persian-text italic shadow-sm">💡 ${w[4]}</div>` : ''}
+                        ${w[4] ? `<div class="bg-amber-50 p-4 rounded-2xl text-[10px] text-slate-500 border-r-4 border-amber-300 leading-relaxed italic shadow-sm">💡 ${w[4]}</div>` : ''}
                     </div>
                 </div>`).join('');
             document.getElementById('pageInfo').innerText = `PAGE ${currentPage} / ${Math.ceil(filteredWords.length / itemsPerPage) || 1}`;
@@ -292,130 +244,69 @@
             const p = Math.round((learnedWords.length / wordsData.length) * 100) || 0;
             document.getElementById('progressBar').style.width = p + '%';
             document.getElementById('progressPercent').innerText = p + '%';
-            const msgs = [
-                {p: 0, m: "آماده برای شروع یک یادگیری حرفه‌ای!"},
-                {p: 5, m: "تبریک! اولین ۵ درصد طی شد. 🚀"},
-                {p: 10, m: "۱۰ درصد لغات تو مشتته! 💎"},
-                {p: 15, m: "۱۵ درصد! اعتماد به نفست باید بالاتر بره. ✨"},
-                {p: 20, m: "۲۰ درصد! شروع عالی، ادامه بده قهرمان! 🔥"},
-                {p: 25, m: "یک چهارم مسیر فتح شد! تو الان یک پله بالاتری. 🌟"},
-                {p: 50, m: "نیمی از راه طی شد! 🏆"},
+            const msgs = [{p: 0, m: "یادگیری را شروع کنید!"},
+                {p: 5, m: "۵٪ مسیر طی شد. عالیه! 🚀"},
+                {p: 10, m: "۱۰٪ لغات تو مشتته. تسلیم نشو! 💎"},
+                {p: 15, m: "۱۵٪! داری به لغات آکادمیک مسلط میشی. ✨"},
+                {p: 20, m: "۲۰٪! شروع عالی، ادامه بده قهرمان! 🔥"},
+                {p: 25, m: "یک چهارم مسیر فتح شد! تو یک پله بالاتری. 🌟"},
+                {p: 50, m: "نیمی از راه طی شد! تو الان یک متخصص PTE هستی. 🏆"},
                 {p: 60, m: "۶۰٪! سرعتت عالیه، توقف ناپذیر شدی! 🏔️"},
                 {p: 70, m: "۷۰٪! داری به تسلط کامل نزدیک میشی. فوق‌العاده است! ⚡"},
                 {p: 75, m: "سه چهارم مسیر! فقط ۲۵٪ تا پیروزی نهایی مونده. 🎖️"},
                 {p: 80, m: "۸۰٪! تو الان به اکثر کالوکیشن‌ها مسلطی. حیرت‌انگیزه! 💥"},
                 {p: 90, m: "۹۰٪! بوی موفقیت میاد! فقط یک قدم تا خط پایان. 🏁"},
                 {p: 95, m: "۹۵٪! استادیِ کامل در یک قدمی توست. تمومش کن قهرمان! 💪"},
-                {p: 100, m: "تبریک نهایی! 🎉"}
-            ];
-            const msg = msgs.reverse().find(m => p >= m.p).m;
-            document.getElementById('motivationalText').innerText = msg;
-        }
-
-        function handleSearchSuggestions() {
-            const v = document.getElementById('searchInput').value.toLowerCase();
-            const b = document.getElementById('searchSuggestions');
-            if(v.length < 2) { b.classList.add('hidden'); return; }
-            const m = wordsData.filter(w => w[0].toLowerCase().includes(v)).slice(0,10);
-            b.innerHTML = m.map(x => `<div onclick="document.getElementById('searchInput').value='${x[0]}';applyFilters();document.getElementById('searchSuggestions').classList.add('hidden')" class="p-3 border-b text-sm english-text hover:bg-blue-50">${x[0]}</div>`).join('');
-            b.classList.remove('hidden');
+                {p: 100, m: "تبریک نهایی! کل لغات یاد گرفته شد. 🎉"}
+];
+            const found = msgs.reverse().find(m => p >= m.p);
+            document.getElementById('motivationalText').innerText = found ? found.m : "";
         }
 
         function showWotd() {
-            const today = new Date().toDateString();
-            if (localStorage.getItem('lastWotdDate') !== today && wordsData.length > 0) {
-                const w = wordsData[Math.floor(Math.random() * wordsData.length)];
-                document.getElementById('wotdWord').innerText = w[0];
-                document.getElementById('wotdTrans').innerText = w[1];
-                document.getElementById('wotdExample').innerText = `"${w[3]}"`;
-                document.getElementById('wotdModal').style.display = 'flex';
-                localStorage.setItem('lastWotdDate', today);
-            }
+            if (wordsData.length === 0 || localStorage.getItem('lastWotdDate') === new Date().toDateString()) return;
+            const obj = wordsData[Math.floor(Math.random() * wordsData.length)];
+            document.getElementById('wotdWord').innerText = obj[0];
+            document.getElementById('wotdTrans').innerText = obj[1];
+            document.getElementById('wotdExample').innerText = obj[3];
+            document.getElementById('wotdModal').style.display = 'flex';
+            localStorage.setItem('lastWotdDate', new Date().toDateString());
         }
 
         function showQuizHome() { document.getElementById('quizContent').innerHTML = `<div class="text-center p-4"><div class="text-8xl mb-8 animate-bounce">🚀</div><h2 class="text-2xl font-black text-slate-800 mb-8 uppercase tracking-widest">Start Test</h2><button onclick="initQuiz()" class="w-full bg-blue-600 text-white font-black py-5 rounded-[1.5rem] shadow-xl hover:scale-95 transition-all">START 25 Q</button></div>`; }
         function initQuiz() { quizState = { currentIdx: 0, score: 0, questions: [...quizData].sort(()=>0.5-Math.random()).slice(0, 25), currentSelection: null }; showQuestion(); }
         function showQuestion() {
             const q = quizState.questions[quizState.currentIdx];
-            quizState.currentSelection = null; // ریست کردن انتخاب قبلی
-            
             document.getElementById('quizContent').innerHTML = `
                 <div class="text-right flex flex-col h-full animate-pop">
-                    <div class="flex justify-between items-center mb-8">
-                        <span class="text-[10px] bg-slate-200 px-4 py-1.5 rounded-full font-black">Q ${quizState.currentIdx + 1}/25</span>
-                        <span class="text-green-600 font-bold text-xs">${quizState.score} Correct</span>
-                    </div>
-                    <div class="english-text bg-slate-900 p-8 rounded-[2rem] mb-6 text-white shadow-xl text-lg font-medium border-b-4 border-blue-500">
-                        ${q[0].toString().replace('_______', '<span class="text-blue-400 font-bold border-b-2">_________</span>')}
-                    </div>
-                    <div class="grid gap-3 mb-6">
-                        ${[1, 2, 3, 4].map(i => `
-                            <button id="opt${i}" onclick="selectOption('${q[i]}', ${i})" class="english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-700 transition-all">
-                                ${q[i]}
-                            </button>
-                        `).join('')}
-                    </div>
-                    <button onclick="confirmAnswer()" class="bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all">
-                        ثبت پاسخ و مشاهده تحلیل
-                    </button>
+                    <div class="flex justify-between items-center mb-8"><span class="text-[10px] bg-slate-200 px-4 py-1.5 rounded-full font-black">Q ${quizState.currentIdx + 1}/25</span><span class="text-green-600 font-bold text-xs">${quizState.score} Correct</span></div>
+                    <div class="english-text bg-slate-900 p-8 rounded-[2rem] mb-6 text-white shadow-xl text-lg font-medium border-b-4 border-blue-500">${q[0].toString().replace('_______', '<span class="text-blue-400 font-bold border-b-2">_________</span>')}</div>
+                    <div class="grid gap-3 mb-6">${[1,2,3,4].map(i => `<button id="opt${i}" onclick="quizState.currentSelection='${q[i]}';[1,2,3,4].forEach(j=>document.getElementById('opt'+j).className='english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-700');document.getElementById('opt${i}').className='english-text text-left w-full p-4 border-2 border-blue-500 bg-blue-50 rounded-2xl font-black text-blue-700'" class="english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-700 transition-all">${q[i]}</button>`).join('')}</div>
+                    <button onclick="confirmAnswer()" class="bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg">ثبت پاسخ</button>
                 </div>`;
-        }
-
-        function selectOption(val, idx) {
-            quizState.currentSelection = val;
-            // ریست استایل بقیه دکمه‌ها
-            for (let i = 1; i <= 4; i++) {
-                const btn = document.getElementById('opt' + i);
-                if (btn) btn.className = "english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-700";
-            }
-            // هایلایت دکمه انتخاب شده
-            document.getElementById('opt' + idx).className = "english-text text-left w-full p-4 border-2 border-blue-500 bg-blue-50 rounded-2xl font-black text-blue-700 shadow-inner";
         }
 
         function confirmAnswer() {
-            if (!quizState.currentSelection) return alert("لطفاً یک گزینه را انتخاب کنید.");
-            
+            if(!quizState.currentSelection) return alert("لطفاً یک گزینه انتخاب کنید.");
             const q = quizState.questions[quizState.currentIdx];
             const isC = quizState.currentSelection.trim().toLowerCase() === q[5].toString().trim().toLowerCase();
-            
-            if (isC) quizState.score++;
-            
-            // ساختن جمله کامل با جواب بولد شده
-            const sentenceWithAnswer = q[0].replace('_______', `<b class="text-blue-600 underline decoration-2">${q[5]}</b>`);
-            const translation = q[7] || "ترجمه این سوال در شیت Quizzes ستون H وارد نشده است.";
-
+            if(isC) quizState.score++;
+            const sentence = q[0].replace('_______', '<b>' + q[5] + '</b>');
             document.getElementById('quizContent').innerHTML = `
                 <div class="py-6 text-center animate-pop">
                     <div class="text-8xl mb-4">${isC ? '✅' : '❌'}</div>
-                    
-                    <!-- جمله کامل انگلیسی -->
-                    <div class="english-text bg-white p-5 rounded-3xl mb-4 text-sm border-2 border-slate-100 italic text-slate-700 leading-relaxed shadow-sm">
-                        ${sentenceWithAnswer}
-                    </div>
-                    
-                    <!-- ترجمه فارسی جمله -->
-                    <p class="persian-text text-blue-600 font-bold text-[11px] mb-4 p-4 bg-blue-50 rounded-2xl border-r-4 border-blue-500 shadow-inner leading-relaxed">
-                        ${translation}
-                    </p>
-                    
-                    <!-- تحلیل گرامری -->
-                    <div class="bg-amber-50 p-6 rounded-3xl text-[11px] text-right border-r-8 border-amber-400 mb-8 font-bold leading-relaxed text-slate-600">
-                        ${q[6]}
-                    </div>
-                    
-                    <button onclick="if(quizState.currentIdx < 24){ quizState.currentIdx++; showQuestion(); } else { renderQuizResult(); }" 
-                            class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg active:scale-95 transition-all">
-                        NEXT QUESTION
-                    </button>
+                    <div class="english-text bg-white p-5 rounded-3xl mb-4 text-sm border italic text-slate-700">${sentence}</div>
+                    <p class="text-blue-600 font-bold text-[11px] mb-4 p-3 bg-blue-50 rounded-xl">${q[7] || ""}</p>
+                    <div class="bg-amber-50 p-6 rounded-3xl text-[11px] text-right border-r-8 border-amber-400 mb-8 font-bold leading-relaxed">${q[6]}</div>
+                    <button onclick="if(quizState.currentIdx<24){quizState.currentIdx++;showQuestion()}else{renderQuizResult()}" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg">NEXT QUESTION</button>
                 </div>`;
         }
-        }
-        function renderQuizResult() { const p = Math.round((quizState.score/25)*100); document.getElementById('quizContent').innerHTML = `<div class="text-center p-4 animate-pop"><h2 class="text-4xl font-black text-blue-600 mb-2 underline">${p}%</h2><p class="mb-10 text-slate-400 font-bold uppercase tracking-widest italic">Result Generated</p><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">RETRY</button></div>`; }
 
+        function renderQuizResult() { const p = Math.round((quizState.score/25)*100); document.getElementById('quizContent').innerHTML = `<div class="text-center p-4 animate-pop"><h2 class="text-4xl font-black text-blue-600 mb-2 underline">${p}% SCORE</h2><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">RETRY</button></div>`; }
         function showTab(t) { ['vocabSection','quizSection','statsSection','vocabControls'].forEach(id => document.getElementById(id).classList.add('hidden')); document.getElementById(t+'Section').classList.remove('hidden'); if(t==='vocab') document.getElementById('vocabControls').classList.remove('hidden'); document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-tab', 'text-blue-600')); document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1)).classList.add('active-tab', 'text-blue-600'); if(t === 'stats') renderStats(); }
         function renderStats() {
             const l = learnedWords.length, t = wordsData.length, s = quizHistory.length ? quizHistory[quizHistory.length-1].score : 0;
-            document.getElementById('statsContent').innerHTML = `<div class="bg-blue-600 text-white p-10 rounded-[2.5rem] shadow-2xl text-center"><p class="text-[10px] uppercase font-bold opacity-70 tracking-widest mb-2">Mastered Words</p><div class="text-7xl font-black my-2 tracking-tighter">${l} / ${t}</div><p class="text-xs font-bold italic uppercase opacity-80">Last Quiz: ${s} / 25</p></div><div class="bg-white border-2 border-slate-100 p-8 rounded-3xl shadow-sm text-right"><p class="font-black text-slate-800 mb-4 italic underline uppercase">Quiz History:</p>${quizHistory.reverse().slice(0,5).map(h=>`<div class="flex justify-between border-b py-2 text-xs font-bold text-slate-600 tracking-tight"><span>${h.date}</span><span>Score: ${h.score}/25</span></div>`).join('') || 'No records.'}</div>`;
+            document.getElementById('statsContent').innerHTML = `<div class="bg-blue-600 text-white p-10 rounded-[2.5rem] shadow-2xl text-center"><p class="text-[10px] uppercase font-bold opacity-70 tracking-widest mb-2">Mastered Words</p><div class="text-7xl font-black my-2 tracking-tighter">${l} / ${t}</div><p class="text-xs font-bold italic uppercase">Last Quiz: ${s} / 25</p></div><div class="bg-white border-2 border-slate-100 p-8 rounded-3xl shadow-sm text-right"><p class="font-black text-slate-800 mb-4 italic underline uppercase">Quiz History:</p>${quizHistory.reverse().slice(0,5).map(h=>`<div class="flex justify-between border-b py-2 text-xs font-bold"><span>${h.date}</span><span>Score: ${h.score}/25</span></div>`).join('') || 'No records.'}</div>`;
         }
         function togglePass() { const p = document.getElementById('passInp'); p.type = p.type === 'password' ? 'text' : 'password'; }
         function closeWotd() { document.getElementById('wotdModal').style.display = 'none'; }
