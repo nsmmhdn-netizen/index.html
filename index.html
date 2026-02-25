@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PTEinsider Studio</title>
+    <title>PTEinsider Reading Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @font-face { font-family: 'Vazir'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2'); }
@@ -117,20 +117,29 @@
     </div>
 
     <script>
-        const PUB_ID = '2PACX-1vRLfGnlIoQoX8NtHa99PvWeZIIcHh1s6Asc0jOIKewDKHq7fjiQ-KsZ0B7PVNANcjXtid63Wqih-zjC';
+        // ۱. آیدی اصلی شیت (از نوار آدرس مرورگر)
         const SHEET_ID = '1GOqwBlOym9WIVKLjHmR9xTJBgkICWj7bC92XAJoxuYg';
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVfkhE8Cc5L2htsTO4WNvPTQykTYMtNTG7wsceftJEXF6Yjc4UVXIPvpGbVufkwPIw/exec'; 
+        
+        // ۲. لینک وب‌اپ گوگل اسکریپت (برای سینک شدن)
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby7RidM-u3avrNpK0eSLvkO1fD-oNNsuLvlwfokq01d6bpXuDG_-HwkCzIO1ljeynkqxA/exec'; 
 
         let wordsData = [], quizData = [], usersData = [], learnedWords = [], hardWords = [], quizHistory = [], filteredWords = [];
-        let currentPage = 1, itemsPerPage = 25, currentUser = null, currentStatusFilter = 'new';
-        let quizState = { currentIdx: 0, score: 0, questions: [] };
-
+        let currentPage = 1, itemsPerPage = 25, currentUser = null, currentStatusFilter = 'new', currentWotdObj = null;
+        
         const deviceId = localStorage.getItem('pte_device_id') || Math.random().toString(36).substr(2, 9);
         localStorage.setItem('pte_device_id', deviceId);
 
+        // --- توابع کمکی ---
+        function togglePass() {
+            const p = document.getElementById('passInp');
+            p.type = p.type === 'password' ? 'text' : 'password';
+        }
+
         async function fetchCSV(gid) {
-            const res = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`);
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
+            const res = await fetch(url);
             const text = await res.text();
+            
             const rows = []; let row = []; let col = ''; let inQuotes = false;
             for (let i = 0; i < text.length; i++) {
                 let char = text[i]; let next = text[i+1];
@@ -144,21 +153,49 @@
             return rows.slice(1).filter(r => r.length > 1);
         }
 
+        // --- بخش اصلی لاگین ---
         async function attemptLogin() {
             const u = document.getElementById('userInp').value.toLowerCase().trim();
             const p = document.getElementById('passInp').value.trim();
-            if(!u || !p) return;
+            
+            if(!u || !p) {
+                alert("لطفاً نام کاربری و رمز عبور را وارد کنید.");
+                return;
+            }
+
             document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('loginError').classList.add('hidden');
 
             try {
+                // دریافت دیتای کاربران (GID برگه Users شما: 1914745392)
                 usersData = await fetchCSV('1914745392');
-                const match = usersData.find(r => r[0].toString().toLowerCase().trim() === u && r[1].toString().trim() === p);
+                
+                const match = usersData.find(r => 
+                    r[0].toString().toLowerCase().trim() === u && 
+                    r[1].toString().trim() === p
+                );
+
                 if (match) {
+                    // بررسی محدودیت ۳ دستگاه
+                    const checkRes = await fetch(APPS_SCRIPT_URL, { 
+                        method: 'POST', 
+                        body: JSON.stringify({ action: 'checkDevice', username: u, deviceId: deviceId }) 
+                    });
+                    const deviceStatus = await checkRes.text();
+                    
+                    if (deviceStatus === "LimitReached") {
+                        alert("خطا: ظرفیت استفاده از ۳ دستگاه برای این کاربری پر شده است.");
+                        document.getElementById('loader').classList.add('hidden');
+                        return;
+                    }
+
                     currentUser = u;
+                    // لود کردن بقیه اطلاعات
                     wordsData = (await fetchCSV('0')).sort(() => 0.5 - Math.random());
                     quizData = await fetchCSV('1776379547');
                     
-                    if (APPS_SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbyVfkhE8Cc5L2htsTO4WNvPTQykTYMtNTG7wsceftJEXF6Yjc4UVXIPvpGbVufkwPIw/exec') {
+                    // همگام‌سازی از سرور
+                    try {
                         const syncRes = await fetch(APPS_SCRIPT_URL);
                         const allP = await syncRes.json();
                         const myP = allP.find(x => x.username.toLowerCase() === currentUser);
@@ -167,16 +204,28 @@
                             hardWords = myP.hard ? myP.hard.split('|') : [];
                             quizHistory = myP.quizHistory ? JSON.parse(myP.quizHistory) : [];
                         }
-                    }
+                    } catch(e) { console.log("Sync error"); }
 
                     document.getElementById('loginPage').classList.add('hidden');
                     document.getElementById('mainApp').classList.remove('hidden');
                     document.getElementById('userNameDisplay').innerText = `${u.toUpperCase()} 😊🌻`;
-                    applyFilters(); updateProgress(); showQuizHome();
-                    setTimeout(showWotd, 1000);
-                } else { document.getElementById('loginError').classList.remove('hidden'); }
-            } catch (e) { alert("اتصال برقرار نشد."); }
-            finally { document.getElementById('loader').classList.add('hidden'); }
+                    
+                    applyFilters(); 
+                    updateProgress(); 
+                    showQuizHome();
+                    
+                    // نمایش پاپ‌آپ با ۴ ثانیه تاخیر طبق خواسته شما
+                    setTimeout(showWotd, 4000);
+
+                } else {
+                    document.getElementById('loginError').classList.remove('hidden');
+                }
+            } catch (e) {
+                alert("خطا در اتصال به سرور گوگل. لطفاً فیلترشکن خود را چک کنید.");
+                console.error(e);
+            } finally {
+                document.getElementById('loader').classList.add('hidden');
+            }
         }
 
         function highlightWord(s, w) {
