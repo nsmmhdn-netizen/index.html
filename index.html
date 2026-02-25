@@ -3,14 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PTEinsider Studio Pro</title>
+    <title>PTEinsider - Reading Studio Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @font-face { font-family: 'Vazir'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2'); }
         body { font-family: 'Vazir', sans-serif; background-color: #f1f5f9; user-select: none; touch-action: manipulation; }
         .english-text { font-family: 'Arial', sans-serif; direction: ltr; text-align: left; }
         .persian-text { direction: rtl; text-align: right; }
-        .active-tab { border-bottom: 4px solid #2563eb; color: #2563eb; }
+        /* استایل تب فعال اصلی */
+        .tab-active { border-bottom: 4px solid #2563eb !important; color: #2563eb !important; font-weight: 900 !important; }
+        .tab-inactive { border-bottom: 4px solid transparent; color: #94a3b8; font-weight: 600; }
+        /* استایل فیلترهای وضعیت فعال */
+        .filter-active { background-color: #2563eb !important; color: white !important; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
         .modal-bg { background-color: rgba(0,0,0,0.85); display: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .animate-pop { animation: pop 0.3s ease-out; }
@@ -32,7 +36,7 @@
                 </div>
                 <button onclick="attemptLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-blue-700 active:scale-95 transition-all">LOGIN</button>
             </div>
-            <p id="loginError" class="text-red-500 text-[10px] mt-4 hidden font-bold">نام کاربری یا رمز عبور اشتباه است!</p>
+            <p id="loginError" class="text-red-500 text-[10px] mt-4 hidden font-bold italic">اطلاعات ورود اشتباه است!</p>
             <div id="loader" class="mt-4 hidden text-blue-600 text-[10px] font-black animate-pulse italic english-text text-left pl-2">...Connecting to PTEinsider</div>
         </div>
     </div>
@@ -40,15 +44,15 @@
     <!-- MAIN APP -->
     <div id="mainApp" class="max-w-md mx-auto bg-white min-h-screen shadow-2xl pb-24 relative hidden overflow-hidden">
         <header class="bg-slate-900 text-white p-5 text-center shadow-lg border-b border-blue-900">
-            <h1 class="text-sm font-black text-blue-400 uppercase tracking-widest">PTEinsider - Reading Studio V.01</h1>
-            <p class="text-[9px] mt-1 opacity-80 italic">by Nasim Mohammmadian (t.me/nsm_mhdn)</p>
+            <h1 class="text-sm font-black text-blue-400 uppercase tracking-widest italic">PTEinsider - Reading Studio</h1>
+            <p class="text-[9px] mt-1 opacity-70 italic">by Nasim Mohammmadian (t.me/nsm_mhdn)</p>
         </header>
 
         <div class="p-5 bg-white border-b shadow-sm">
             <div class="flex justify-between items-start mb-3">
                 <div class="text-right">
                     <p id="userNameDisplay" class="text-xl font-black text-slate-800 uppercase tracking-tight">... 😊🌻</p>
-                    <p id="motivationalText" class="text-[10px] text-blue-600 font-black mt-1 italic"></p>
+                    <p id="motivationalText" class="text-[10px] text-blue-500 font-black mt-1 italic"></p>
                 </div>
                 <span id="progressPercent" class="text-3xl font-black text-blue-600 italic">0%</span>
             </div>
@@ -58,28 +62,28 @@
         </div>
 
         <nav class="flex bg-white sticky top-0 z-40 border-b shadow-sm">
-            <button id="tabVocab" onclick="showTab('vocab')" class="flex-1 py-4 font-bold active-tab">لغات</button>
-            <button id="tabQuiz" onclick="showTab('quiz')" class="flex-1 py-4 font-bold text-gray-400">آزمون جامع</button>
-            <button id="tabStats" onclick="showTab('stats')" class="flex-1 py-4 font-bold text-gray-400">آمار من</button>
+            <button id="tabVocab" onclick="showTab('vocab')" class="flex-1 py-4 tab-active transition-all">لغات</button>
+            <button id="tabQuiz" onclick="showTab('quiz')" class="flex-1 py-4 tab-inactive transition-all">آزمون جامع</button>
+            <button id="tabStats" onclick="showTab('stats')" class="flex-1 py-4 tab-inactive transition-all">آمار من</button>
         </nav>
 
         <div id="vocabControls" class="p-4 bg-white border-b space-y-3 shadow-sm">
             <div class="relative">
                 <div class="flex gap-2">
-                    <input id="searchInput" oninput="handleSearchSuggestions()" type="text" placeholder="Search..." class="flex-1 p-3 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500 text-sm english-text">
+                    <input id="searchInput" oninput="handleSearchSuggestions()" type="text" placeholder="Search word..." class="flex-1 p-3 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-400 text-sm english-text">
                     <button onclick="applyFilters()" class="bg-blue-600 text-white px-5 rounded-2xl font-bold text-xs shadow-md">جستجو</button>
                     <button onclick="resetFilters()" class="bg-slate-100 text-slate-600 px-3 rounded-2xl font-bold text-xs border">🔄</button>
                 </div>
                 <div id="searchSuggestions" class="absolute left-0 right-12 bg-white border-2 border-slate-100 rounded-2xl mt-1 shadow-xl z-50 max-h-48 overflow-y-auto hidden no-scrollbar"></div>
             </div>
-            <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar items-center text-right">
-                <button onclick="setStatusFilter('new')" id="btnNew" class="px-3 py-2 rounded-xl text-[9px] font-black bg-blue-600 text-white shadow-sm whitespace-nowrap">🌟 جدید</button>
-                <button onclick="setStatusFilter('learned')" id="btnLearned" class="px-3 py-2 rounded-xl text-[9px] font-black border bg-white text-slate-400 whitespace-nowrap">✅ آشنا</button>
-                <button onclick="setStatusFilter('hard')" id="btnHard" class="px-3 py-2 rounded-xl text-[9px] font-black border bg-white text-slate-400 whitespace-nowrap">🔥 سخت</button>
+            <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar items-center">
+                <button onclick="setStatusFilter('new')" id="btnNew" class="px-3 py-2 rounded-xl text-[9px] font-black filter-active whitespace-nowrap transition-all">🌟 جدید</button>
+                <button onclick="setStatusFilter('learned')" id="btnLearned" class="px-3 py-2 rounded-xl text-[9px] font-black border bg-white text-slate-400 whitespace-nowrap transition-all">✅ آشنا</button>
+                <button onclick="setStatusFilter('hard')" id="btnHard" class="px-3 py-2 rounded-xl text-[9px] font-black border bg-white text-slate-400 whitespace-nowrap transition-all">🔥 سخت</button>
                 <select id="levelFilter" onchange="applyFilters()" class="px-3 py-2 rounded-xl text-[9px] font-black border bg-slate-50 outline-none"><option value="All">سطح</option><option value="A1">A1</option><option value="A2">A2</option><option value="B1">B1</option><option value="B2">B2</option><option value="C1">C1</option><option value="C2">C2</option><option value="Academic">Academic</option></select>
                 <select id="grammarFilter" onchange="applyFilters()" class="px-3 py-2 rounded-xl text-[9px] font-black border bg-slate-50 outline-none"><option value="All">گرامر</option><option value="Noun">اسم</option><option value="Verb">فعل</option><option value="Adjective">صفت</option><option value="Adverb">قید</option><option value="Conjunction">حرف ربط</option><option value="کالوکیشن">کالوکیشن</option><option value="حرف اضافه">حرف اضافه</option><option value="Other">سایر</option></select>
             </div>
-            <p id="itemsCount" class="text-[10px] text-slate-400 font-black text-left px-1"></p>
+            <p id="itemsCount" class="text-[9px] text-slate-400 font-bold mr-1"></p>
         </div>
 
         <div id="vocabSection" class="p-4">
@@ -94,27 +98,29 @@
         <div id="quizSection" class="p-4 hidden"><div id="quizContent" class="bg-slate-50 border-2 border-white rounded-[2rem] p-6 shadow-lg min-h-[450px] flex flex-col justify-center"></div></div>
         <div id="statsSection" class="p-6 hidden"><div id="statsContent" class="space-y-6 text-right"></div></div>
 
-        <!-- MODAL -->
+        <!-- WOTD MODAL -->
         <div id="wotdModal" class="modal-bg fixed inset-0 z-50 flex items-center justify-center p-6">
             <div class="bg-white rounded-[2.5rem] overflow-hidden w-full shadow-2xl animate-pop max-w-sm">
                 <div class="bg-blue-600 p-5 text-white text-center">
-                    <p class="text-[9px] uppercase font-black tracking-widest mb-1 opacity-70">Daily Recommendation</p>
+                    <p class="text-[9px] uppercase font-black tracking-widest mb-1 opacity-70 italic font-sans">Recommendation</p>
                     <h2 id="wotdWord" class="english-text text-4xl font-black italic">...</h2>
                 </div>
-                <div class="p-8 text-center">
-                    <p id="wotdTrans" class="text-xl font-black text-slate-700 mb-6">...</p>
-                    <div class="bg-blue-50 p-5 rounded-3xl mb-8 border border-blue-100 shadow-inner">
-                        <p id="wotdExample" class="english-text text-sm italic text-slate-600 leading-relaxed text-center">...</p>
+                <div id="wotdBody" class="p-8 text-center">
+                    <p id="wotdTrans" class="text-xl font-black text-slate-700 mb-6 persian-text text-center">...</p>
+                    <div class="bg-blue-50 p-5 rounded-3xl mb-8 border border-blue-100 shadow-inner text-right relative">
+                        <button id="wotdVoice" class="absolute left-3 top-3 text-xl opacity-40 hover:opacity-100">🔊</button>
+                        <p id="wotdExample" class="english-text text-sm italic text-slate-600 leading-relaxed text-left">...</p>
+                        <p id="wotdExTrans" class="text-[11px] text-blue-500 font-bold border-t pt-3 persian-text">...</p>
                     </div>
-                    <button onclick="closeWotd()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-xl active:scale-95 transition-all">بستن</button>
+                    <button onclick="closeWotd()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-xl active:scale-95 transition-all">متوجه شدم</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        const PUB_ID = '2PACX-1vRLfGnlIoQoX8NtHa99PvWeZIIcHh1s6Asc0jOIKewDKHq7fjiQ-KsZ0B7PVNANcjXtid63Wqih-zjC';
-        const SHEET_ID = '1GOqwBlOym9WIVKLjHmR9xTJBgkICWj7bC92XAJoxuYg';
+        const SHEET_ID = '2PACX-1vRLfGnlIoQoX8NtHa99PvWeZIIcHh1s6Asc0jOIKewDKHq7fjiQ-KsZ0B7PVNANcjXtid63Wqih-zjC';
+        // لینک وب‌اپ گوگل اسکریپت خود را اینجا قرار دهید:
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVfkhE8Cc5L2htsTO4WNvPTQykTYMtNTG7wsceftJEXF6Yjc4UVXIPvpGbVufkwPIw/exec'; 
 
         let wordsData = [], quizData = [], usersData = [], learnedWords = [], hardWords = [], quizHistory = [], filteredWords = [];
@@ -124,7 +130,8 @@
         localStorage.setItem('pte_device_id', deviceId);
 
         async function fetchCSV(gid) {
-            const res = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`);
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
+            const res = await fetch(url);
             const text = await res.text();
             const rows = []; let row = []; let col = ''; let inQuotes = false;
             for (let i = 0; i < text.length; i++) {
@@ -150,9 +157,6 @@
                 usersData = await fetchCSV('1914745392');
                 const match = usersData.find(r => r[0].toString().toLowerCase().trim() === u && r[1].toString().trim() === p);
                 if (match) {
-                    const checkRes = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'checkDevice', username: u, deviceId: deviceId }) });
-                    if ((await checkRes.text()) === "LimitReached") { alert("خطا: حد ۳ دستگاه پر شده است!"); return; }
-
                     currentUser = u;
                     wordsData = (await fetchCSV('0')).sort(() => 0.5 - Math.random());
                     quizData = await fetchCSV('1776379547');
@@ -171,9 +175,9 @@
                     document.getElementById('mainApp').classList.remove('hidden');
                     document.getElementById('userNameDisplay').innerText = `${u.toUpperCase()} 😊🌻`;
                     applyFilters(); updateProgress(); showQuizHome();
-                    setTimeout(showWotd, 4000);
+                    setTimeout(showWotd, 1500);
                 } else { document.getElementById('loginError').classList.remove('hidden'); }
-            } catch (e) { alert("خطا در بارگذاری اطلاعات."); }
+            } catch (e) { alert("خطا در اتصال."); }
             finally { document.getElementById('loader').classList.add('hidden'); }
         }
 
@@ -195,8 +199,8 @@
                     <div class="p-6 text-right">
                         <div class="flex justify-between items-center mb-6">
                             <div class="flex gap-2">
-                                <button onclick="toggleStatus('${w[0]}','hard')" class="w-10 h-10 rounded-2xl border ${hardWords.includes(w[0]) ? 'bg-red-500 text-white border-red-500' : 'bg-slate-50 text-slate-300'} font-black shadow-sm">🔥</button>
-                                <button onclick="toggleStatus('${w[0]}','learned')" class="w-10 h-10 rounded-2xl border ${learnedWords.includes(w[0]) ? 'bg-green-500 text-white border-green-500' : 'bg-slate-50 text-slate-300'} font-black shadow-sm">✓</button>
+                                <button onclick="toggleStatus('${w[0]}','hard')" class="w-10 h-10 rounded-2xl border flex items-center justify-center ${hardWords.includes(w[0]) ? 'bg-red-500 text-white border-red-500' : 'bg-slate-50 text-slate-300'} font-black shadow-sm transition-all">🔥</button>
+                                <button onclick="toggleStatus('${w[0]}','learned')" class="w-10 h-10 rounded-2xl border flex items-center justify-center ${learnedWords.includes(w[0]) ? 'bg-green-500 text-white border-green-500' : 'bg-slate-50 text-slate-300'} font-black shadow-sm transition-all">✓</button>
                             </div>
                             <span class="text-[8px] px-3 py-1 rounded-full font-black border uppercase tracking-widest ${getLevelStyle(w[2])}">${w[2]}</span>
                         </div>
@@ -205,15 +209,15 @@
                              <h3 class="english-text text-2xl font-black text-slate-800">${w[0]} <span class="text-xl">${w[5] || ''}</span></h3>
                              <button onclick="speak('${w[0]}')" class="text-xl active:scale-75 transition-all">🔊</button>
                         </div>
-                        <p class="text-blue-700 font-black text-lg mb-6">${w[1]}</p>
+                        <p class="text-blue-700 font-black text-lg mb-6 persian-text">${w[1]}</p>
                         <div class="bg-slate-50 p-5 rounded-3xl border-r-8 border-blue-400 relative mb-4 shadow-inner">
                              <div class="flex items-start gap-3 english-text mb-4">
                                 <button onclick="speak('${w[3].replace(/'/g,"")}')" class="text-lg opacity-40">🔊</button>
                                 <p class="text-sm text-slate-600 italic leading-relaxed text-left">${w[3].replace(new RegExp(w[0], 'gi'), '<b>$&</b>')}</p>
                              </div>
-                             <p class="text-[11px] text-blue-500 font-black border-t pt-4 border-blue-100">${w[7] || ''}</p>
+                             <p class="text-[11px] text-blue-500 font-black border-t pt-4 border-blue-100 persian-text italic uppercase"><span class="bg-blue-600 text-white px-2 py-0.5 rounded text-[7px] ml-2 not-italic">Meaning</span>${w[7] || ''}</p>
                         </div>
-                        ${w[4] ? `<div class="bg-amber-50 p-4 rounded-2xl text-[10px] text-slate-500 border-r-4 border-amber-300 leading-relaxed italic shadow-sm">💡 ${w[4]}</div>` : ''}
+                        ${w[4] ? `<div class="bg-amber-50 p-4 rounded-2xl text-[10px] text-slate-500 border-r-4 border-amber-300 leading-relaxed persian-text italic shadow-sm">💡 ${w[4]}</div>` : ''}
                     </div>
                 </div>`).join('');
             document.getElementById('pageInfo').innerText = `PAGE ${currentPage} / ${Math.ceil(filteredWords.length / itemsPerPage) || 1}`;
@@ -244,23 +248,9 @@
             const p = Math.round((learnedWords.length / wordsData.length) * 100) || 0;
             document.getElementById('progressBar').style.width = p + '%';
             document.getElementById('progressPercent').innerText = p + '%';
-            const msgs = [{p: 0, m: "یادگیری را شروع کنید!"},
-                {p: 5, m: "۵٪ مسیر طی شد. عالیه! 🚀"},
-                {p: 10, m: "۱۰٪ لغات تو مشتته. تسلیم نشو! 💎"},
-                {p: 15, m: "۱۵٪! داری به لغات آکادمیک مسلط میشی. ✨"},
-                {p: 20, m: "۲۰٪! شروع عالی، ادامه بده قهرمان! 🔥"},
-                {p: 25, m: "یک چهارم مسیر فتح شد! تو یک پله بالاتری. 🌟"},
-                {p: 50, m: "نیمی از راه طی شد! تو الان یک متخصص PTE هستی. 🏆"},
-                {p: 60, m: "۶۰٪! سرعتت عالیه، توقف ناپذیر شدی! 🏔️"},
-                {p: 70, m: "۷۰٪! داری به تسلط کامل نزدیک میشی. فوق‌العاده است! ⚡"},
-                {p: 75, m: "سه چهارم مسیر! فقط ۲۵٪ تا پیروزی نهایی مونده. 🎖️"},
-                {p: 80, m: "۸۰٪! تو الان به اکثر کالوکیشن‌ها مسلطی. حیرت‌انگیزه! 💥"},
-                {p: 90, m: "۹۰٪! بوی موفقیت میاد! فقط یک قدم تا خط پایان. 🏁"},
-                {p: 95, m: "۹۵٪! استادیِ کامل در یک قدمی توست. تمومش کن قهرمان! 💪"},
-                {p: 100, m: "تبریک نهایی! کل لغات یاد گرفته شد. 🎉"}
-];
-            const found = msgs.reverse().find(m => p >= m.p);
-            document.getElementById('motivationalText').innerText = found ? found.m : "";
+            const msgs = [{p:0,m:"یادگیری را شروع کنید!"},{p:5,m:"۵٪ طی شد. شروع عالی! 🚀"},{p:10,m:"۱۰٪ لغات تو مشتته! 💎"},{p:20,m:"۲۰٪! شروع عالی، ادامه بده قهرمان! 🔥"},{p:25,m:"یک چهارم مسیر فتح شد! تو یک پله بالاتری. 🌟"}];
+            const msg = msgs.reverse().find(m => p >= m.p).m;
+            document.getElementById('motivationalText').innerText = msg;
         }
 
         function showWotd() {
@@ -269,11 +259,13 @@
             document.getElementById('wotdWord').innerText = obj[0];
             document.getElementById('wotdTrans').innerText = obj[1];
             document.getElementById('wotdExample').innerText = obj[3];
+            document.getElementById('wotdExTrans').innerText = obj[7] || "";
+            document.getElementById('wotdVoice').onclick = () => speak(obj[3]);
             document.getElementById('wotdModal').style.display = 'flex';
             localStorage.setItem('lastWotdDate', new Date().toDateString());
         }
 
-        function showQuizHome() { document.getElementById('quizContent').innerHTML = `<div class="text-center p-4"><div class="text-8xl mb-8 animate-bounce">🚀</div><h2 class="text-2xl font-black text-slate-800 mb-8 uppercase tracking-widest">Start Test</h2><button onclick="initQuiz()" class="w-full bg-blue-600 text-white font-black py-5 rounded-[1.5rem] shadow-xl hover:scale-95 transition-all">START 25 Q</button></div>`; }
+        function showQuizHome() { document.getElementById('quizContent').innerHTML = `<div class="text-center p-4"><div class="text-8xl mb-8 animate-bounce">🚀</div><h2 class="text-2xl font-black text-slate-800 mb-8 uppercase tracking-widest">Start Test</h2><button onclick="initQuiz()" class="w-full bg-blue-600 text-white font-black py-5 rounded-[1.5rem] shadow-xl hover:bg-blue-700 transition-all">START 25 Q</button></div>`; }
         function initQuiz() { quizState = { currentIdx: 0, score: 0, questions: [...quizData].sort(()=>0.5-Math.random()).slice(0, 25), currentSelection: null }; showQuestion(); }
         function showQuestion() {
             const q = quizState.questions[quizState.currentIdx];
@@ -285,7 +277,6 @@
                     <button onclick="confirmAnswer()" class="bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg">ثبت پاسخ</button>
                 </div>`;
         }
-
         function confirmAnswer() {
             if(!quizState.currentSelection) return alert("لطفاً یک گزینه انتخاب کنید.");
             const q = quizState.questions[quizState.currentIdx];
@@ -301,19 +292,40 @@
                     <button onclick="if(quizState.currentIdx<24){quizState.currentIdx++;showQuestion()}else{renderQuizResult()}" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg">NEXT QUESTION</button>
                 </div>`;
         }
-
         function renderQuizResult() { const p = Math.round((quizState.score/25)*100); document.getElementById('quizContent').innerHTML = `<div class="text-center p-4 animate-pop"><h2 class="text-4xl font-black text-blue-600 mb-2 underline">${p}% SCORE</h2><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">RETRY</button></div>`; }
-        function showTab(t) { ['vocabSection','quizSection','statsSection','vocabControls'].forEach(id => document.getElementById(id).classList.add('hidden')); document.getElementById(t+'Section').classList.remove('hidden'); if(t==='vocab') document.getElementById('vocabControls').classList.remove('hidden'); document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-tab', 'text-blue-600')); document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1)).classList.add('active-tab', 'text-blue-600'); if(t === 'stats') renderStats(); }
+
+        function showTab(t) {
+            ['vocabSection','quizSection','statsSection','vocabControls'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById(t+'Section').classList.remove('hidden');
+            if(t==='vocab') document.getElementById('vocabControls').classList.remove('hidden');
+            
+            // استایل دهی تب فعال
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.className = "flex-1 py-4 tab-inactive transition-all";
+            });
+            document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1)).className = "flex-1 py-4 tab-active transition-all";
+            if(t === 'stats') renderStats();
+        }
+
+        function setStatusFilter(f) {
+            currentStatusFilter = f;
+            ['btnNew', 'btnLearned', 'btnHard'].forEach(id => {
+                document.getElementById(id).className = "px-3 py-2 rounded-xl text-[9px] font-black border bg-white text-slate-400 transition-all";
+            });
+            const activeId = f === 'new' ? 'btnNew' : f === 'learned' ? 'btnLearned' : 'btnHard';
+            document.getElementById(activeId).className = "px-3 py-2 rounded-xl text-[9px] font-black filter-active whitespace-nowrap transition-all";
+            currentPage = 1; applyFilters();
+        }
+
         function renderStats() {
             const l = learnedWords.length, t = wordsData.length, s = quizHistory.length ? quizHistory[quizHistory.length-1].score : 0;
-            document.getElementById('statsContent').innerHTML = `<div class="bg-blue-600 text-white p-10 rounded-[2.5rem] shadow-2xl text-center"><p class="text-[10px] uppercase font-bold opacity-70 tracking-widest mb-2">Mastered Words</p><div class="text-7xl font-black my-2 tracking-tighter">${l} / ${t}</div><p class="text-xs font-bold italic uppercase">Last Quiz: ${s} / 25</p></div><div class="bg-white border-2 border-slate-100 p-8 rounded-3xl shadow-sm text-right"><p class="font-black text-slate-800 mb-4 italic underline uppercase">Quiz History:</p>${quizHistory.reverse().slice(0,5).map(h=>`<div class="flex justify-between border-b py-2 text-xs font-bold"><span>${h.date}</span><span>Score: ${h.score}/25</span></div>`).join('') || 'No records.'}</div>`;
+            document.getElementById('statsContent').innerHTML = `<div class="bg-blue-600 text-white p-10 rounded-[2.5rem] shadow-2xl text-center"><p class="text-[10px] uppercase font-bold opacity-70 tracking-widest mb-2">Mastered Words</p><div class="text-7xl font-black my-2 tracking-tighter">${l} / ${t}</div><p class="text-xs font-bold italic">نمره آخرین آزمون: ${s} از ۲۵</p></div><div class="bg-white border-2 border-slate-100 p-8 rounded-3xl shadow-sm text-right"><p class="font-black text-slate-800 mb-4 italic underline uppercase">Quiz History:</p>${quizHistory.reverse().slice(0,5).map(h=>`<div class="flex justify-between border-b py-2 text-xs font-bold"><span>${h.date}</span><span>Score: ${h.score}/25</span></div>`).join('') || 'No records.'}</div>`;
         }
         function togglePass() { const p = document.getElementById('passInp'); p.type = p.type === 'password' ? 'text' : 'password'; }
         function closeWotd() { document.getElementById('wotdModal').style.display = 'none'; }
         function speak(t) { window.speechSynthesis.cancel(); const m = new SpeechSynthesisUtterance(t); m.lang = 'en-US'; m.rate = 0.8; window.speechSynthesis.speak(m); }
         function getLevelStyle(lvl) { return lvl.includes('B2') ? 'bg-green-50 text-green-600 border-green-100' : lvl.includes('C1') ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-purple-50 text-purple-600 border-purple-100'; }
-        function setStatusFilter(f) { currentStatusFilter = f; currentPage = 1; applyFilters(); }
-        function resetFilters() { document.getElementById('searchInput').value = ''; document.getElementById('levelFilter').value = 'All'; document.getElementById('grammarFilter').value = 'All'; currentStatusFilter = 'new'; applyFilters(); }
+        function resetFilters() { document.getElementById('searchInput').value = ''; document.getElementById('levelFilter').value = 'All'; document.getElementById('grammarFilter').value = 'All'; setStatusFilter('new'); }
         function changePage(s) { currentPage += s; renderWords(); window.scrollTo(0, 0); }
     </script>
 </body>
