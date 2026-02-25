@@ -12,7 +12,7 @@
         .persian-text { direction: rtl; text-align: right; }
         .tab-active { border-bottom: 4px solid #2563eb !important; color: #2563eb !important; font-weight: 900 !important; }
         .tab-inactive { border-bottom: 4px solid transparent; color: #94a3b8; font-weight: 600; }
-        .filter-active { background-color: #2563eb !important; color: white !important; font-weight: 900; shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .filter-active { background-color: #2563eb !important; color: white !important; font-weight: 900; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .modal-bg { background-color: rgba(0,0,0,0.85); display: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .animate-pop { animation: pop 0.3s ease-out; }
@@ -22,10 +22,10 @@
 <body class="bg-slate-100">
 
     <!-- LOGIN PAGE -->
-    <div id="loginPage" class="fixed inset-0 z-[100] bg-gradient-to-br from-blue-800 to-slate-950 flex items-center justify-center p-6">
-        <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl text-center animate-pop">
+    <div id="loginPage" class="fixed inset-0 z-[100] bg-gradient-to-br from-blue-800 to-slate-950 flex items-center justify-center p-6 text-center">
+        <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl animate-pop">
             <h2 class="text-3xl font-black text-blue-700 mb-2 italic tracking-tighter">PTEinsider</h2>
-            <p class="text-slate-400 text-[10px] mb-8 font-bold tracking-[0.2em] uppercase">Reading Studio V.01</p>
+            <p class="text-slate-400 text-[10px] mb-8 font-bold tracking-[0.2em] uppercase">Reading Studio V.04</p>
             <div class="space-y-4">
                 <input id="userInp" type="text" placeholder="Username" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500 text-center english-text font-bold">
                 <div class="relative">
@@ -34,7 +34,7 @@
                 </div>
                 <button onclick="attemptLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-blue-700 active:scale-95 transition-all">LOGIN</button>
             </div>
-            <p id="loginError" class="text-red-500 text-[10px] mt-4 hidden font-bold">نام کاربری یا رمز عبور اشتباه است!</p>
+            <p id="loginError" class="text-red-500 text-[10px] mt-4 hidden font-bold">اطلاعات ورود اشتباه است!</p>
             <div id="loader" class="mt-6 hidden text-center w-full">
                 <span class="english-text text-blue-600 text-[10px] font-black animate-pulse italic inline-block text-left" style="direction: ltr;">
                     Connecting to PTEinsider...
@@ -45,35 +45,46 @@
 
     <!-- MAIN APP -->
     <div id="mainApp" class="max-w-md mx-auto bg-white min-h-screen shadow-2xl pb-24 relative hidden overflow-hidden">
-        <header class="bg-slate-900 text-white p-5 text-center shadow-lg border-b border-blue-900">
-            <h1 class="text-sm font-black text-blue-400 uppercase tracking-widest italic">PTEinsider - Reading Studio</h1>
-            <p class="text-[9px] mt-1 opacity-70 italic font-sans">by Nasim Mohammmadian (<a href="https://t.me/nsmmhdn" target="_blank" class="text-blue-300 underline font-bold">t.me/nsmmhdn</a>)</</</p>
+        <header class="bg-slate-900 text-white p-4 text-center shadow-lg border-b border-blue-900">
+            <h1 class="text-xs font-black text-blue-400 uppercase tracking-widest italic leading-relaxed">PTEinsider - Reading Studio</h1>
+            <p class="text-[8px] opacity-70 italic">Nasim Mohammmadian (<a href="https://t.me/nsmmhdn" target="_blank" class="text-blue-300 underline font-bold">t.me/nsmmhdn</a>)</</</p>
         </header>
 
-        <div class="p-5 bg-white border-b shadow-sm">
-            <div class="flex justify-between items-start mb-3">
-                <div class="text-right">
-                    <p id="userNameDisplay" class="text-xl font-black text-slate-800 uppercase tracking-tight">... 😊🌻</p>
-                    <p id="motivationalText" class="text-[10px] text-blue-600 font-black mt-1 italic"></p>
-                </div>
-                <span id="progressPercent" class="text-3xl font-black text-blue-600 italic">0%</span>
+        <!-- ADVANCED PROGRESS TRACKER -->
+        <div class="p-4 bg-white border-b shadow-sm space-y-3">
+            <div class="flex justify-between items-start">
+                <p id="userNameDisplay" class="text-lg font-black text-slate-800 uppercase">... 😊🌻</p>
+                <div class="text-left"><p id="motivationalText" class="text-[9px] text-blue-600 font-black italic text-left"></p></div>
             </div>
-            <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden shadow-inner border border-slate-200">
-                <div id="progressBar" class="bg-gradient-to-r from-blue-500 to-indigo-600 h-full transition-all duration-1000 shadow-[0_0_10px_#2563eb]" style="width: 0%"></div>
+            
+            <!-- Academic Progress -->
+            <div class="space-y-1">
+                <div class="flex justify-between text-[8px] font-black text-slate-500 uppercase tracking-tighter"><span>Academic Vocab</span><span id="progTextAcademic">0%</span></div>
+                <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden border border-slate-200">
+                    <div id="progBarAcademic" class="bg-blue-500 h-full transition-all duration-1000" style="width: 0%"></div>
+                </div>
+            </div>
+            <!-- Exam Progress -->
+            <div class="space-y-1">
+                <div class="flex justify-between text-[8px] font-black text-slate-500 uppercase tracking-tighter"><span>Exam Vocab & Collocations</span><span id="progTextExam">0%</span></div>
+                <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden border border-slate-200">
+                    <div id="progBarExam" class="bg-indigo-500 h-full transition-all duration-1000" style="width: 0%"></div>
+                </div>
             </div>
         </div>
 
         <nav class="flex bg-white sticky top-0 z-40 border-b shadow-sm overflow-x-auto no-scrollbar">
-            <button id="tabVocab" onclick="showTab('vocab')" class="px-6 py-4 font-bold active-tab whitespace-nowrap">لغات</button>
-            <button id="tabExact" onclick="showTab('exact')" class="px-6 py-4 font-bold tab-inactive whitespace-nowrap">لغات ایپیونی</button>
-            <button id="tabQuiz" onclick="showTab('quiz')" class="px-6 py-4 font-bold tab-inactive whitespace-nowrap">آزمون جامع</button>
-            <button id="tabStats" onclick="showTab('stats')" class="px-6 py-4 font-bold tab-inactive whitespace-nowrap">آمار من</button>
+            <button id="tabAcademic" onclick="showTab('academic')" class="px-5 py-4 font-bold active-tab whitespace-nowrap text-xs">وکب آکادمیک</button>
+            <button id="tabExam" onclick="showTab('exam')" class="px-5 py-4 font-bold tab-inactive whitespace-nowrap text-xs">وکب آزمون</button>
+            <button id="tabQuiz" onclick="showTab('quiz')" class="px-5 py-4 font-bold tab-inactive whitespace-nowrap text-xs">آزمون جامع</button>
+            <button id="tabStats" onclick="showTab('stats')" class="px-5 py-4 font-bold tab-inactive whitespace-nowrap text-xs">آمار من</button>
         </nav>
 
+        <!-- FILTERS -->
         <div id="vocabControls" class="p-4 bg-white border-b space-y-3 shadow-sm">
             <div class="relative">
                 <div class="flex gap-2">
-                    <input id="searchInput" oninput="handleSearchSuggestions()" type="text" placeholder="Search word..." class="flex-1 p-3 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500 text-sm english-text">
+                    <input id="searchInput" oninput="handleSearchSuggestions()" type="text" placeholder="Search..." class="flex-1 p-3 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-400 text-sm english-text">
                     <button onclick="applyFilters()" class="bg-blue-600 text-white px-5 rounded-2xl font-bold text-xs shadow-md">جستجو</button>
                     <button onclick="resetFilters()" class="bg-slate-100 text-slate-600 px-3 rounded-2xl font-bold text-xs border">🔄</button>
                 </div>
@@ -89,21 +100,20 @@
             <p id="itemsCount" class="text-[9px] text-slate-400 font-bold mr-1"></p>
         </div>
 
-        <div id="vocabSection" class="p-4">
-            <div id="wordsContainer" class="space-y-6"></div>
+        <div id="vocabSection" class="p-4"><div id="wordsContainer" class="space-y-6"></div>
             <div id="pagination" class="flex justify-center items-center gap-6 mt-10 pb-10">
                 <button onclick="changePage(-1)" id="prevBtn" class="bg-slate-100 p-3 rounded-full shadow-sm disabled:opacity-20">◀️</button>
-                <span id="pageInfo" class="text-[10px] font-black text-slate-500 tracking-widest uppercase text-center">...</span>
+                <span id="pageInfo" class="text-[10px] font-black text-slate-500 tracking-widest uppercase">...</span>
                 <button onclick="changePage(1)" id="nextBtn" class="bg-slate-100 p-3 rounded-full shadow-sm disabled:opacity-20">▶️</button>
             </div>
         </div>
 
-        <div id="quizSection" class="p-4 hidden"><div id="quizContent" class="bg-slate-50 border-2 border-white rounded-[2rem] p-6 shadow-lg min-h-[450px] flex flex-col justify-center text-center"></div></div>
-        <div id="statsSection" class="p-6 hidden"><div id="statsContent" class="space-y-6 text-right animate-pop"></div></div>
+        <div id="quizSection" class="p-4 hidden"><div id="quizContent" class="bg-slate-50 border-2 border-white rounded-[2rem] p-6 shadow-lg min-h-[450px] flex flex-col justify-center"></div></div>
+        <div id="statsSection" class="p-6 hidden"><div id="statsContent" class="space-y-6 text-right"></div></div>
 
-        <!-- MODAL -->
-        <div id="wotdModal" class="modal-bg fixed inset-0 z-50 flex items-center justify-center p-6">
-            <div class="bg-white rounded-[2.5rem] overflow-hidden w-full shadow-2xl animate-pop max-w-sm text-center">
+        <!-- WORD OF THE DAY MODAL -->
+        <div id="wotdModal" class="modal-bg fixed inset-0 z-50 flex items-center justify-center p-6 text-center">
+            <div class="bg-white rounded-[2.5rem] overflow-hidden w-full shadow-2xl animate-pop max-w-sm">
                 <div class="bg-blue-600 p-6 text-white">
                     <p class="text-[9px] uppercase font-black opacity-70 mb-1">Study Recommendation</p>
                     <h2 id="wotdWord" class="english-text text-4xl font-black italic">...</h2>
@@ -122,11 +132,12 @@
     <script>
         const PUB_ID = '2PACX-1vRLfGnlIoQoX8NtHa99PvWeZIIcHh1s6Asc0jOIKewDKHq7fjiQ-KsZ0B7PVNANcjXtid63Wqih-zjC';
         const SHEET_ID = '1GOqwBlOym9WIVKLjHmR9xTJBgkICWj7bC92XAJoxuYg';
+        // ۱. لینک Web App جدید گوگل اسکریپت خود را اینجا بگذارید:
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVfkhE8Cc5L2htsTO4WNvPTQykTYMtNTG7wsceftJEXF6Yjc4UVXIPvpGbVufkwPIw/exec'; 
 
-        let wordsData = [], exactData = [], quizData = [], usersData = [];
+        let academicWords = [], examWords = [], quizData = [], usersData = [];
         let learnedWords = [], hardWords = [], quizHistory = [], filteredWords = [];
-        let currentPage = 1, itemsPerPage = 25, currentUser = null, currentStatusFilter = 'new', activeTabName = 'vocab';
+        let currentPage = 1, itemsPerPage = 25, currentUser = null, currentStatusFilter = 'new', activeTabName = 'academic';
         
         const deviceId = localStorage.getItem('pte_device_id') || Math.random().toString(36).substr(2, 9);
         localStorage.setItem('pte_device_id', deviceId);
@@ -134,9 +145,8 @@
         async function fetchCSV(gid_or_name) {
             const isName = isNaN(gid_or_name);
             const url = isName ? 
-                `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${gid_or_name}` :
+                `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(gid_or_name)}` :
                 `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid_or_name}`;
-            
             const res = await fetch(url);
             const text = await res.text();
             const rows = []; let row = []; let col = ''; let inQuotes = false;
@@ -163,23 +173,20 @@
                 const match = usersData.find(r => r[0].toString().toLowerCase().trim() === u && r[1].toString().trim() === p);
                 if (match) {
                     const checkRes = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'checkDevice', username: u, deviceId: deviceId }) });
-                    if ((await checkRes.text()) === "LimitReached") { alert("خطا: حد ۳ دستگاه پر شده است!"); return; }
+                    if ((await checkRes.text()) === "LimitReached") { alert("خطا: حد مجاز ۳ دستگاه پر شده است!"); return; }
 
                     currentUser = u;
-                    wordsData = (await fetchCSV('0')).sort(() => 0.5 - Math.random());
-                    exactData = await fetchCSV('PTE Exact words and collocations');
+                    academicWords = (await fetchCSV('0')).sort(() => 0.5 - Math.random());
+                    examWords = await fetchCSV('PTE Exact words and collocations');
                     quizData = await fetchCSV('1776379547');
                     
-                    try {
-                        const syncRes = await fetch(APPS_SCRIPT_URL);
-                        const allP = await syncRes.json();
-                        const myP = allP.find(x => x.username.toLowerCase() === currentUser);
-                        if (myP) {
-                            learnedWords = myP.learned ? myP.learned.split('|') : [];
-                            hardWords = myP.hard ? myP.hard.split('|') : [];
-                            quizHistory = myP.quizHistory ? JSON.parse(myP.quizHistory) : [];
-                        }
-                    } catch(e) {}
+                    const syncRes = await fetch(APPS_SCRIPT_URL);
+                    const myP = (await syncRes.json()).find(x => x.username.toLowerCase() === currentUser);
+                    if (myP) {
+                        learnedWords = myP.learned ? myP.learned.split('|') : [];
+                        hardWords = myP.hard ? myP.hard.split('|') : [];
+                        quizHistory = myP.quizHistory ? JSON.parse(myP.quizHistory) : [];
+                    }
 
                     document.getElementById('loginPage').classList.add('hidden');
                     document.getElementById('mainApp').classList.remove('hidden');
@@ -187,7 +194,7 @@
                     applyFilters(); updateProgress(); showQuizHome();
                     setTimeout(showWotd, 2000);
                 } else { document.getElementById('loginError').classList.remove('hidden'); }
-            } catch (e) { alert("خطا در اتصال به دیتابیس."); }
+            } catch (e) { alert("خطا در اتصال."); }
             finally { document.getElementById('loader').classList.add('hidden'); }
         }
 
@@ -195,7 +202,7 @@
             const v = document.getElementById('searchInput').value.toLowerCase();
             const b = document.getElementById('searchSuggestions');
             if(v.length < 2) { b.classList.add('hidden'); return; }
-            const activeDS = activeTabName === 'vocab' ? wordsData : exactData;
+            const activeDS = activeTabName === 'academic' ? academicWords : examWords;
             const m = activeDS.filter(w => w[0].toLowerCase().includes(v)).slice(0,10);
             b.innerHTML = m.map(x => `<div onclick="document.getElementById('searchInput').value='${x[0]}';applyFilters();document.getElementById('searchSuggestions').classList.add('hidden')" class="p-3 border-b text-sm english-text hover:bg-blue-50 cursor-pointer">${x[0]}</div>`).join('');
             b.classList.remove('hidden');
@@ -206,6 +213,7 @@
             const paged = filteredWords.slice(start, start + itemsPerPage);
             document.getElementById('wordsContainer').innerHTML = paged.map(w => `
                 <div class="bg-white border-2 border-slate-50 rounded-[2.5rem] shadow-sm mb-8 animate-pop overflow-hidden">
+                    ${w[8] && w[8].toString().includes('http') ? `<img src="${w[8]}" class="w-full h-32 object-cover border-b-4 border-blue-50">` : ''}
                     <div class="p-6 text-right">
                         <div class="flex justify-between items-center mb-6">
                             <div class="flex gap-2">
@@ -213,7 +221,7 @@
                                 <button onclick="toggleStatus('${w[0]}','learned')" class="w-10 h-10 rounded-2xl border flex items-center justify-center ${learnedWords.includes(w[0]) ? 'bg-green-500 text-white border-green-500 shadow-md' : 'bg-slate-50 text-slate-300 border-slate-200'} transition-all shadow-sm">✓</button>
                             </div>
                             <div class="flex gap-2 items-center">
-                                ${w[8] ? `<span class="bg-slate-900 text-white text-[7px] px-2 py-1 rounded font-bold">APEUni #${w[8]}</span>` : ''}
+                                ${ (activeTabName === 'exam' && w[8]) ? `<span class="bg-slate-900 text-white text-[7px] px-2 py-1 rounded font-bold">APEUni #${w[8]}</span>` : ''}
                                 <span class="text-[8px] px-3 py-1 rounded-full font-black border uppercase tracking-widest ${getLevelStyle(w[2])}">${w[2]}</span>
                             </div>
                         </div>
@@ -240,7 +248,7 @@
         function showTab(t) {
             activeTabName = t;
             ['vocabSection','quizSection','statsSection','vocabControls'].forEach(id => document.getElementById(id).classList.add('hidden'));
-            if(t === 'vocab' || t === 'exact') {
+            if(t === 'academic' || t === 'exam') {
                 document.getElementById('vocabSection').classList.remove('hidden');
                 document.getElementById('vocabControls').classList.remove('hidden');
                 currentPage = 1;
@@ -248,8 +256,9 @@
             } else {
                 document.getElementById(t+'Section').classList.remove('hidden');
             }
-            document.querySelectorAll('nav button').forEach(b => b.className = "px-6 py-4 tab-inactive transition-all");
-            document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1)).className = "px-6 py-4 tab-active transition-all";
+            document.querySelectorAll('nav button').forEach(b => b.className = "flex-1 py-4 tab-inactive transition-all text-xs");
+            const btnMap = { 'academic': 'tabAcademic', 'exam': 'tabExam', 'quiz': 'tabQuiz', 'stats': 'tabStats' };
+            document.getElementById(btnMap[t]).className = "flex-1 py-4 tab-active transition-all text-xs";
             if(t === 'stats') renderStats();
         }
 
@@ -257,7 +266,7 @@
             const s = document.getElementById('searchInput').value.toLowerCase();
             const lvl = document.getElementById('levelFilter').value;
             const grm = document.getElementById('grammarFilter').value;
-            const activeDS = activeTabName === 'vocab' ? wordsData : exactData;
+            const activeDS = activeTabName === 'academic' ? academicWords : examWords;
 
             filteredWords = activeDS.filter(w => {
                 const isL = learnedWords.includes(w[0]), isH = hardWords.includes(w[0]);
@@ -276,47 +285,83 @@
             currentPage = 1; applyFilters();
         }
 
+        function updateProgress() {
+            const lAcademic = academicWords.filter(w => learnedWords.includes(w[0])).length;
+            const pAcademic = Math.round((lAcademic / academicWords.length) * 100) || 0;
+            const lExam = examWords.filter(w => learnedWords.includes(w[0])).length;
+            const pExam = Math.round((lExam / examWords.length) * 100) || 0;
+
+            document.getElementById('progBarAcademic').style.width = pAcademic + '%';
+            document.getElementById('progTextAcademic').innerText = pAcademic + '%';
+            document.getElementById('progBarExam').style.width = pExam + '%';
+            document.getElementById('progTextExam').innerText = pExam + '%';
+            
+            const avg = (pAcademic + pExam) / 2;
+            const msgs = [
+                {p: 0, m: "یادگیری را شروع کنید!"},
+                {p: 5, m: "۵٪ مسیر طی شد. عالیه! 🚀"},
+                {p: 10, m: "۱۰٪ لغات تو مشتته. تسلیم نشو! 💎"},
+                {p: 15, m: "۱۵٪! داری به لغات آکادمیک مسلط میشی. ✨"},
+                {p: 20, m: "۲۰٪! شروع عالی، ادامه بده قهرمان! 🔥"},
+                {p: 25, m: "یک چهارم مسیر فتح شد! تو یک پله بالاتری. 🌟"},
+                {p: 50, m: "نیمی از راه طی شد! تو الان یک متخصص PTE هستی. 🏆"},
+                {p: 60, m: "۶۰٪! سرعتت عالیه، توقف ناپذیر شدی! 🏔️"},
+                {p: 70, m: "۷۰٪! داری به تسلط کامل نزدیک میشی. فوق‌العاده است! ⚡"},
+                {p: 75, m: "سه چهارم مسیر! فقط ۲۵٪ تا پیروزی نهایی مونده. 🎖️"},
+                {p: 80, m: "۸۰٪! تو الان به اکثر کالوکیشن‌ها مسلطی. حیرت‌انگیزه! 💥"},
+                {p: 90, m: "۹۰٪! بوی موفقیت میاد! فقط یک قدم تا خط پایان. 🏁"},
+                {p: 95, m: "۹۵٪! استادیِ کامل در یک قدمی توست. تمومش کن قهرمان! 💪"},
+                {p: 100, m: "تبریک نهایی! کل لغات یاد گرفته شد. 🎉"}
+            ];
+            const found = msgs.reverse().find(m => avg >= m.p);
+            document.getElementById('motivationalText').innerText = found ? found.m : "";
+            document.getElementById('progressPercent').innerText = Math.round(avg) + '%';
+        }
+
+        function renderStats() {
+            const lAcad = academicWords.filter(w => learnedWords.includes(w[0])).length;
+            const lExam = examWords.filter(w => learnedWords.includes(w[0])).length;
+            const last = quizHistory.length ? quizHistory[quizHistory.length-1].score : 0;
+            
+            document.getElementById('statsContent').innerHTML = `
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-blue-600 text-white p-5 rounded-3xl shadow-lg text-center">
+                        <p class="text-[8px] uppercase font-bold opacity-70">Academic Vocab</p>
+                        <div class="text-3xl font-black my-1">${lAcad} / ${academicWords.length}</div>
+                    </div>
+                    <div class="bg-indigo-600 text-white p-5 rounded-3xl shadow-lg text-center">
+                        <p class="text-[8px] uppercase font-bold opacity-70">Exam Vocab</p>
+                        <div class="text-3xl font-black my-1">${lExam} / ${examWords.length}</div>
+                    </div>
+                </div>
+                <div class="bg-white border-2 border-slate-100 p-8 rounded-3xl shadow-sm text-right">
+                    <p class="font-black text-slate-800 mb-4 italic underline uppercase">Quiz History:</p>
+                    <p class="text-xs mb-4 font-bold text-blue-600">آخرین نمره آزمون: ${last} از ۲۵</p>
+                    ${quizHistory.reverse().slice(0,5).map(h=>`<div class="flex justify-between border-b py-2 text-xs font-bold text-slate-500"><span>${h.date}</span><span>Score: ${h.score}/25</span></div>`).join('') || 'No records.'}
+                </div>`;
+        }
+
+        // --- QUIZ & UTILS ---
         function showWotd() {
-            if (wordsData.length === 0 || localStorage.getItem('lastWotdDate') === new Date().toDateString()) return;
-            const obj = wordsData[Math.floor(Math.random() * wordsData.length)];
+            if (academicWords.length === 0 || localStorage.getItem('lastWotdDate') === new Date().toDateString()) return;
+            const obj = academicWords[Math.floor(Math.random() * academicWords.length)];
             document.getElementById('wotdWord').innerText = obj[0];
             document.getElementById('wotdTrans').innerText = obj[1];
             document.getElementById('wotdExample').innerText = obj[3];
             document.getElementById('wotdModal').style.display = 'flex';
             localStorage.setItem('lastWotdDate', new Date().toDateString());
         }
-
+        function toggleStatus(w, type) { if(type==='learned') { learnedWords.includes(w) ? learnedWords=learnedWords.filter(x=>x!==w) : (learnedWords.push(w), hardWords=hardWords.filter(x=>x!==w)); } else { hardWords.includes(w) ? hardWords=hardWords.filter(x=>x!==w) : (hardWords.push(w), learnedWords=learnedWords.filter(x=>x!==w)); } fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'saveProgress',username:currentUser,learned:learnedWords.join('|'),hard:hardWords.join('|'),quizHistory:JSON.stringify(quizHistory),deviceId:deviceId})}); updateProgress(); applyFilters(); }
         function initQuiz() { quizState = { currentIdx: 0, score: 0, questions: [...quizData].sort(()=>0.5-Math.random()).slice(0, 25), currentSelection: null }; showQuestion(); }
-        function showQuestion() {
-            const q = quizState.questions[quizState.currentIdx];
-            document.getElementById('quizContent').innerHTML = `
-                <div class="text-right flex flex-col h-full animate-pop">
-                    <div class="flex justify-between items-center mb-8"><span class="text-[10px] bg-slate-200 px-4 py-1.5 rounded-full font-black">سوال ${quizState.currentIdx + 1} از ۲۵</span><span class="text-green-600 font-bold text-xs">Score: ${quizState.score}</span></div>
-                    <div class="english-text bg-slate-900 p-8 rounded-[2rem] mb-6 text-white shadow-xl text-lg font-medium border-b-4 border-blue-500">${q[0].toString().replace('_______', '<span class="text-blue-400 font-bold border-b-2">_________</span>')}</div>
-                    <div class="grid gap-3 mb-6">${[1,2,3,4].map(i => `<button id="opt${i}" onclick="selectQuizOption('${q[i].toString().replace(/'/g, "\\'")}', ${i})" class="english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-700 transition-all">${q[i]}</button>`).join('')}</div>
-                    <button onclick="confirmQuizAnswer()" class="bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg">ثبت پاسخ</button>
-                </div>`;
-        }
-        function selectQuizOption(val, idx) { quizState.currentSelection = val; for(let i=1; i<=4; i++) document.getElementById('opt'+i).className = "english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-700"; document.getElementById('opt'+idx).className = "english-text text-left w-full p-4 border-2 border-blue-500 bg-blue-50 rounded-2xl font-black text-blue-700 shadow-inner"; }
-        function confirmQuizAnswer() {
-            if(!quizState.currentSelection) return alert("یک گزینه انتخاب کنید.");
-            const q = quizState.questions[quizState.currentIdx];
-            const isCorrect = quizState.currentSelection.trim().toLowerCase() === q[5].toString().trim().toLowerCase();
-            if(isCorrect) quizState.score++;
-            const sentence = q[0].replace('_______', '<b>' + q[5] + '</b>');
-            document.getElementById('quizContent').innerHTML = `<div class="py-6 text-center animate-pop"><div class="text-7xl mb-4">${isCorrect ? '✅' : '❌'}</div><div class="english-text bg-white p-5 rounded-3xl mb-4 text-sm border italic text-slate-700 leading-relaxed">${sentence}</div><p class="text-blue-600 font-bold text-[11px] mb-4 p-3 bg-blue-50 rounded-xl">${q[7] || ""}</p><div class="bg-amber-50 p-6 rounded-3xl text-[11px] text-right border-r-8 border-amber-400 mb-8 font-bold leading-relaxed">${q[6]}</div><button onclick="if(quizState.currentIdx<24){quizState.currentIdx++;showQuestion()}else{renderQuizResult()}" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg">NEXT QUESTION</button></div>`;
-        }
-        function renderQuizResult() { const p = Math.round((quizState.score/25)*100); document.getElementById('quizContent').innerHTML = `<div class="text-center p-4 animate-pop"><h2 class="text-4xl font-black text-blue-600 mb-2 underline">${p}% SCORE</h2><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">RETRY</button></div>`; }
-        function renderStats() { const l = learnedWords.length, t = wordsData.length, s = quizHistory.length ? quizHistory[quizHistory.length-1].score : 0; document.getElementById('statsContent').innerHTML = `<div class="bg-blue-600 text-white p-10 rounded-[2.5rem] shadow-2xl text-center"><p class="text-[10px] uppercase font-bold opacity-70 tracking-widest mb-2">Mastered Words</p><div class="text-7xl font-black my-2 tracking-tighter">${l} / ${t}</div><p class="text-xs font-bold italic">نمره آخرین آزمون: ${s} از ۲۵</p></div><div class="bg-white border-2 border-slate-100 p-8 rounded-3xl shadow-sm text-right"><p class="font-black text-slate-800 mb-4 italic underline uppercase">Quiz History:</p>${quizHistory.reverse().slice(0,5).map(h=>`<div class="flex justify-between border-b py-2 text-xs font-bold text-slate-600 tracking-tight"><span>${h.date}</span><span>Score: ${h.score}/25</span></div>`).join('') || 'No records.'}</div>`; }
+        function showQuestion() { const q = quizState.questions[quizState.currentIdx]; document.getElementById('quizContent').innerHTML = `<div class="text-right flex flex-col h-full animate-pop"><div class="flex justify-between items-center mb-8"><span class="text-[10px] bg-slate-200 px-4 py-1.5 rounded-full font-black">Q ${quizState.currentIdx + 1}/25</span><span class="text-green-600 font-bold text-xs">${quizState.score} Correct</span></div><div class="english-text bg-slate-900 p-8 rounded-[2rem] mb-6 text-white shadow-xl text-lg font-medium border-b-4 border-blue-500">${q[0].toString().replace('_______', '<span class="text-blue-400 font-bold border-b-2">_________</span>')}</div><div class="grid gap-3 mb-6">${[1,2,3,4].map(i => `<button id="opt${i}" onclick="quizState.currentSelection='${q[i]}';[1,2,3,4].forEach(j=>document.getElementById('opt'+j).className='english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-700');document.getElementById('opt${i}').className='english-text text-left w-full p-4 border-2 border-blue-500 bg-blue-50 rounded-2xl font-black text-blue-700 shadow-inner'" class="english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-700 transition-all">${q[i]}</button>`).join('')}</div><button onclick="if(!quizState.currentSelection)return;const q=quizState.questions[quizState.currentIdx];const isC=quizState.currentSelection.trim().toLowerCase()===q[5].toString().trim().toLowerCase();if(isC)quizState.score++;const sentence = q[0].replace('_______', '<b>' + q[5] + '</b>');document.getElementById('quizContent').innerHTML='<div class=\'py-6 text-center animate-pop\'><div class=\'text-8xl mb-4\'>'+(isC?\'💎\':\'❌\')+'</div><div class=\'english-text bg-white p-5 rounded-3xl mb-4 text-sm border italic text-slate-700\'>'+sentence+'</div><p class=\'text-blue-600 font-bold text-[11px] mb-4 p-3 bg-blue-50 rounded-xl\'>'+(q[7]||"")+'</p><div class=\'bg-amber-50 p-6 rounded-3xl text-[11px] text-right border-r-8 border-amber-400 mb-8 font-bold leading-relaxed\'>'+q[6]+'</div><button onclick=\'if(quizState.currentIdx<24){quizState.currentIdx++;showQuestion()}else{quizHistory.push({score:quizState.score,date:new Date().toLocaleDateString()});toggleStatus("","");renderQuizResult()}\' class=\'w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg\'>NEXT QUESTION</button></div>'" class="bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg">ثبت پاسخ</button></div>`; }
+        function renderQuizResult() { const p = Math.round((quizState.score/25)*100); document.getElementById('quizContent').innerHTML = `<div class="text-center p-4 animate-pop"><h2 class="text-4xl font-black text-blue-600 mb-2 underline">${p}% SCORE</h2><p class="mb-10 text-slate-400 font-bold uppercase tracking-widest italic">Result Generated</p><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">RETRY</button></div>`; }
         function togglePass() { const p = document.getElementById('passInp'); p.type = p.type === 'password' ? 'text' : 'password'; }
         function closeWotd() { document.getElementById('wotdModal').style.display = 'none'; }
         function speak(t) { window.speechSynthesis.cancel(); const m = new SpeechSynthesisUtterance(t); m.lang = 'en-US'; m.rate = 0.8; window.speechSynthesis.speak(m); }
         function getLevelStyle(lvl) { return lvl.includes('B2') ? 'bg-green-50 text-green-600 border-green-100' : lvl.includes('C1') ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-purple-50 text-purple-600 border-purple-100'; }
-        function toggleStatus(w, type) { if(type==='learned') { learnedWords.includes(w) ? learnedWords=learnedWords.filter(x=>x!==w) : (learnedWords.push(w), hardWords=hardWords.filter(x=>x!==w)); } else { hardWords.includes(w) ? hardWords=hardWords.filter(x=>x!==w) : (hardWords.push(w), learnedWords=learnedWords.filter(x=>x!==w)); } fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'saveProgress',username:currentUser,learned:learnedWords.join('|'),hard:hardWords.join('|'),quizHistory:JSON.stringify(quizHistory),deviceId:deviceId})}); updateProgress(); applyFilters(); }
-        function updateProgress() { const p = Math.round((learnedWords.length / (wordsData.length + exactData.length)) * 100) || 0; document.getElementById('progressBar').style.width = p + '%'; document.getElementById('progressPercent').innerText = p + '%'; }
         function resetFilters() { document.getElementById('searchInput').value = ''; document.getElementById('levelFilter').value = 'All'; document.getElementById('grammarFilter').value = 'All'; setStatusFilter('new'); }
         function changePage(s) { currentPage += s; renderWords(); window.scrollTo(0, 0); }
-        function showQuizHome() { document.getElementById('quizContent').innerHTML = `<div class="text-center p-4"><div class="text-8xl mb-8 animate-bounce">🚀</div><h2 class="text-2xl font-black text-slate-800 mb-8 uppercase tracking-widest">Start Test</h2><button onclick="initQuiz()" class="w-full bg-blue-600 text-white font-black py-5 rounded-[1.5rem] shadow-xl hover:scale-95 transition-all">START 25 Q</button></div>`; }
+        showQuizHome();
     </script>
 </body>
 </html>
