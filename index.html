@@ -260,10 +260,85 @@
         // --- مابقی توابع بدون تغییر (ApplyFilters, Quiz, Stats, etc.) ---
         function applyFilters() { const s = document.getElementById('searchInput').value.toLowerCase(); const lvl = document.getElementById('levelFilter').value; const grm = document.getElementById('grammarFilter').value; filteredWords = wordsData.filter(w => { const isL = learnedWords.includes(w[0]), isH = hardWords.includes(w[0]); let matchStatus = (currentStatusFilter==='new') ? (!isL && !isH) : (currentStatusFilter==='learned' ? isL : isH); let matchGrm = (grm==='All') || (w[4] && w[4].includes(grm)) || (grm==='Other' && !['Noun','Verb','Adj','Adv','Conj','کالو','حرف'].some(k=>w[4] && w[4].includes(k))); return matchStatus && w[0].toLowerCase().includes(s) && (lvl==='All' || w[2].includes(lvl)) && matchGrm; }); renderWords(); }
         function toggleStatus(w, type) { if(type==='learned') { learnedWords.includes(w) ? learnedWords=learnedWords.filter(x=>x!==w) : (learnedWords.push(w), hardWords=hardWords.filter(x=>x!==w)); } else { hardWords.includes(w) ? hardWords=hardWords.filter(x=>x!==w) : (hardWords.push(w), learnedWords=learnedWords.filter(x=>x!==w)); } fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'saveProgress',username:currentUser,learned:learnedWords.join('|'),hard:hardWords.join('|'),quizHistory:JSON.stringify(quizHistory),deviceId:deviceId})}); updateProgress(); applyFilters(); }
-        function updateProgress() { const p = Math.round((learnedWords.length / wordsData.length) * 100) || 0; document.getElementById('progressBar').style.width = p + '%'; document.getElementById('progressPercent').innerText = p + '%'; const msgs = [{p:0,m:"یادگیری را شروع کنید!"},{p:5,m:"۵٪ طی شد. شروع عالی! 🚀"},{p:10,m:"۱۰٪ لغات تو مشتته! 💎"},{p:20,m:"۲۰٪! شروع عالی، قهرمان! 🔥"},{p:25,m:"یک چهارم مسیر فتح شد! 🌟"},{p:50,m:"نیمی از راه طی شد! 🏆"},{p:75,m:"۳/۴ مسیر فتح شد! 🎖️"},{p:100,m:"تبریک! 🎉"}]; const found = msgs.reverse().find(m => p >= m.p); document.getElementById('motivationalText').innerText = found ? found.m : ""; }
+        function updateProgress() { const p = Math.round((learnedWords.length / wordsData.length) * 100) || 0; document.getElementById('progressBar').style.width = p + '%'; document.getElementById('progressPercent').innerText = p + '%'; const msgs = [{p: 0, m: "یادگیری را شروع کنید!"},
+                {p: 5, m: "۵٪ مسیر طی شد. عالیه! 🚀"},
+                {p: 10, m: "۱۰٪ لغات تو مشتته. تسلیم نشو! 💎"},
+                {p: 15, m: "۱۵٪! داری به لغات آکادمیک مسلط میشی. ✨"},
+                {p: 20, m: "۲۰٪! شروع عالی، ادامه بده قهرمان! 🔥"},
+                {p: 25, m: "یک چهارم مسیر فتح شد! تو یک پله بالاتری. 🌟"},
+                {p: 50, m: "نیمی از راه طی شد! تو الان یک متخصص PTE هستی. 🏆"},
+                {p: 60, m: "۶۰٪! سرعتت عالیه، توقف ناپذیر شدی! 🏔️"},
+                {p: 70, m: "۷۰٪! داری به تسلط کامل نزدیک میشی. فوق‌العاده است! ⚡"},
+                {p: 75, m: "سه چهارم مسیر! فقط ۲۵٪ تا پیروزی نهایی مونده. 🎖️"},
+                {p: 80, m: "۸۰٪! تو الان به اکثر کالوکیشن‌ها مسلطی. حیرت‌انگیزه! 💥"},
+                {p: 90, m: "۹۰٪! بوی موفقیت میاد! فقط یک قدم تا خط پایان. 🏁"},
+                {p: 95, m: "۹۵٪! استادیِ کامل در یک قدمی توست. تمومش کن قهرمان! 💪"},
+                {p: 100, m: "تبریک نهایی! کل لغات یاد گرفته شد. 🎉"}
+]; const found = msgs.reverse().find(m => p >= m.p); document.getElementById('motivationalText').innerText = found ? found.m : ""; }
         function showQuizHome() { document.getElementById('quizContent').innerHTML = `<div class="text-center p-4"><div class="text-8xl mb-8 animate-bounce">🚀</div><h2 class="text-2xl font-black text-slate-800 mb-8 uppercase tracking-widest">Start Test</h2><button onclick="initQuiz()" class="w-full bg-blue-600 text-white font-black py-5 rounded-[1.5rem] shadow-xl">START 25 Q</button></div>`; }
         function initQuiz() { quizState = { currentIdx: 0, score: 0, questions: [...quizData].sort(()=>0.5-Math.random()).slice(0, 25), currentSelection: null }; showQuestion(); }
-        function showQuestion() { const q = quizState.questions[quizState.currentIdx]; document.getElementById('quizContent').innerHTML = `<div class="text-right flex flex-col h-full animate-pop"><div class="flex justify-between items-center mb-8"><span class="text-[10px] bg-slate-200 px-4 py-1.5 rounded-full font-black">Q ${quizState.currentIdx + 1}/25</span><span class="text-green-600 font-bold text-xs">${quizState.score} Correct</span></div><div class="english-text bg-slate-900 p-8 rounded-[2rem] mb-6 text-white shadow-xl text-lg font-medium border-b-4 border-blue-500">${q[0].toString().replace('_______', '<span class="text-blue-400 font-bold border-b-2">_________</span>')}</div><div class="grid gap-3 mb-6">${[1,2,3,4].map(i => `<button id="opt${i}" onclick="quizState.currentSelection='${q[i]}';[1,2,3,4].forEach(j=>document.getElementById('opt'+j).className='english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-700');document.getElementById('opt${i}').className='english-text text-left w-full p-4 border-2 border-blue-500 bg-blue-50 rounded-2xl font-black text-blue-700 shadow-inner'" class="english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-700 transition-all">${q[i]}</button>`).join('')}</div><button onclick="if(!quizState.currentSelection)return;const q=quizState.questions[quizState.currentIdx];const isC=quizState.currentSelection.trim().toLowerCase()===q[5].toString().trim().toLowerCase();if(isC)quizState.score++;const sentence = q[0].replace('_______', '<b>' + q[5] + '</b>');document.getElementById('quizContent').innerHTML='<div class=\'py-6 text-center animate-pop\'><div class=\'text-8xl mb-4\'>'+(isC?\'💎\':\'❌\')+'</div><div class=\'english-text bg-white p-5 rounded-3xl mb-4 text-sm border italic text-slate-700\'>'+sentence+'</div><p class=\'text-blue-600 font-bold text-[11px] mb-4 p-3 bg-blue-50 rounded-xl\'>'+(q[7]||"")+'</p><div class=\'bg-amber-50 p-6 rounded-3xl text-[11px] text-right border-r-8 border-amber-400 mb-8 font-bold leading-relaxed\'>'+q[6]+'</div><button onclick=\'if(quizState.currentIdx<24){quizState.currentIdx++;showQuestion()}else{renderQuizResult()}\' class=\'w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg\'>NEXT QUESTION</button></div>'" class="bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg">ثبت پاسخ</button></div>`; }
+        function showQuestion() {
+            const q = quizState.questions[quizState.currentIdx];
+            document.getElementById('quizContent').innerHTML = `
+                <div class="text-right flex flex-col h-full animate-pop">
+                    <div class="flex justify-between items-center mb-8">
+                        <span class="text-[10px] bg-slate-200 px-4 py-1.5 rounded-full font-black">سوال ${quizState.currentIdx + 1} از ۲۵</span>
+                        <span class="text-green-600 font-bold text-xs">درست: ${quizState.score}</span>
+                    </div>
+                    <div class="english-text bg-slate-900 p-8 rounded-[2rem] mb-6 text-white shadow-xl text-lg font-medium border-b-4 border-blue-500">
+                        ${q[0].toString().replace('_______', '<span class="text-blue-400 font-bold border-b-2">_________</span>')}
+                    </div>
+                </div>`;
+            function selectOption(val, idx) {
+            quizState.currentSelection = val;
+            // ریست کردن استایل تمام دکمه‌ها
+            for(let i=1; i<=4; i++) {
+                const btn = document.getElementById('opt' + i);
+                if(btn) btn.className = "english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-700";
+            }
+            // استایل دکمه انتخاب شده
+            const activeBtn = document.getElementById('opt' + idx);
+            if(activeBtn) activeBtn.className = "english-text text-left w-full p-4 border-2 border-blue-500 bg-blue-50 rounded-2xl font-black text-blue-700 shadow-inner";
+        }
+            function confirmAnswer() {
+            if(!quizState.currentSelection) return alert("لطفاً یک گزینه انتخاب کنید.");
+            
+            const q = quizState.questions[quizState.currentIdx];
+            const isCorrect = quizState.currentSelection.trim().toLowerCase() === q[5].toString().trim().toLowerCase();
+            
+            if(isCorrect) quizState.score++;
+            
+            // بولد کردن جواب در جمله
+            const fullSentence = q[0].toString().replace('_______', `<b class="text-blue-600 underline">${q[5]}</b>`);
+            
+            document.getElementById('quizContent').innerHTML = `
+                <div class="py-6 text-center animate-pop">
+                    <div class="text-8xl mb-4">${isCorrect ? '✅' : '❌'}</div>
+                    <div class="english-text bg-white p-5 rounded-3xl mb-4 text-sm border-2 border-slate-100 italic text-slate-700 leading-relaxed">
+                        ${fullSentence}
+                    </div>
+                    <p class="persian-text text-blue-600 font-bold text-[11px] mb-4 p-3 bg-blue-50 rounded-xl">
+                        ترجمه: ${q[7] || "ترجمه برای این سوال ثبت نشده است."}
+                    </p>
+                    <div class="bg-amber-50 p-6 rounded-3xl text-[11px] text-right border-r-8 border-amber-400 mb-8 font-bold leading-relaxed shadow-inner">
+                        ${q[6]}
+                    </div>
+                    <button onclick="goToNextStep()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg">NEXT QUESTION</button>
+                </div>`;
+        }
+
+        function goToNextStep() {
+            if (quizState.currentIdx < 24) {
+                quizState.currentIdx++;
+                quizState.currentSelection = null;
+                showQuestion();
+            } else {
+                quizHistory.push({score: quizState.score, date: new Date().toLocaleDateString()});
+                saveProgress(); 
+                renderQuizResult();
+            }
+        }
+        };
         function renderQuizResult() { const p = Math.round((quizState.score/25)*100); document.getElementById('quizContent').innerHTML = `<div class="text-center p-4 animate-pop"><h2 class="text-4xl font-black text-blue-600 mb-2">${p}%</h2><p class="mb-10 text-slate-400 font-bold uppercase tracking-widest">Mastery Result</p><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">RETRY</button></div>`; }
         function renderStats() { const learned = learnedWords.length, total = wordsData.length, last = quizHistory.length ? quizHistory[quizHistory.length-1].score : 0; document.getElementById('statsContent').innerHTML = `<div class="bg-blue-600 text-white p-10 rounded-[2.5rem] shadow-2xl text-center"><p class="text-[10px] uppercase font-bold opacity-70 tracking-widest mb-2">Mastered Words</p><div class="text-7xl font-black my-2 tracking-tighter">${learned} / ${total}</div><p class="text-xs font-bold italic">نمره آخرین آزمون: ${last} از ۲۵</p></div><div class="bg-white border-2 border-slate-100 p-8 rounded-3xl shadow-sm text-right"><p class="font-black text-slate-800 mb-4 italic underline uppercase">Quiz History:</p>${quizHistory.reverse().slice(0,5).map(h=>`<div class="flex justify-between border-b py-2 text-xs font-bold"><span>${h.date}</span><span>Score: ${h.score}/25</span></div>`).join('') || 'No records.'}</div>`; }
         function togglePass() { const p = document.getElementById('passInp'); p.type = p.type === 'password' ? 'text' : 'password'; }
