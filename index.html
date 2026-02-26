@@ -10,7 +10,8 @@
         body { font-family: 'Vazir', sans-serif; background-color: #f1f5f9; user-select: none; touch-action: manipulation; }
         .english-text { font-family: 'Arial', sans-serif; direction: ltr; text-align: left; }
         .persian-text { direction: rtl; text-align: right; }
-        .tab-active { border-bottom: 4px solid #2563eb !important; color: #2563eb !important; font-weight: 900 !important; }
+        /* تغییر رنگ نوار زیر تب به زرد */
+        .tab-active { border-bottom: 4px solid #facc15 !important; color: #1e293b !important; font-weight: 900 !important; }
         .tab-inactive { border-bottom: 4px solid transparent; color: #94a3b8; font-weight: 600; }
         .filter-active { background-color: #2563eb !important; color: white !important; font-weight: 900; }
         .modal-bg { background-color: rgba(0,0,0,0.85); display: none; }
@@ -121,16 +122,14 @@
 
     <script>
         const SHEET_ID = '1GOqwBlOym9WIVKLjHmR9xTJBgkICWj7bC92XAJoxuYg';
-        // ۱. لینک Web App جدید گوگل اسکریپت خود را در خط پایین بگذارید:
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVfkhE8Cc5L2htsTO4WNvPTQykTYMtNTG7wsceftJEXF6Yjc4UVXIPvpGbVufkwPIw/exec'; 
+        const APPS_SCRIPT_URL = 'https://script.https://script.google.com/macros/s/AKfycbyVfkhE8Cc5L2htsTO4WNvPTQykTYMtNTG7wsceftJEXF6Yjc4UVXIPvpGbVufkwPIw/exec'; 
 
         let academicWords = [], examWords = [], quizData = [], usersData = [];
         let learnedWords = [], hardWords = [], quizHistory = [], filteredWords = [];
-        let currentPage = 1, itemsPerPage = 25, currentUser = null, currentStatusFilter = 'new', activeTabName = 'academic', currentWotdObj = null;
+        let currentPage = 1, itemsPerPage = 25, currentUser = null, currentStatusFilter = 'new', activeTabName = 'academic', quizState = {};
         const deviceId = localStorage.getItem('pte_device_id') || Math.random().toString(36).substr(2, 9);
         localStorage.setItem('pte_device_id', deviceId);
 
-        // تابع تجزیه CSV پیشرفته برای مدیریت کاما و کوتیشن
         function parseCSV(text) {
             const rows = []; let row = []; let col = ''; let inQuotes = false;
             for (let i = 0; i < text.length; i++) {
@@ -145,14 +144,24 @@
             return rows.slice(1).filter(r => r.length > 1);
         }
 
-        async function fetchCSV(gid_or_name) {
-            const isName = isNaN(gid_or_name);
-            const url = isName ? 
-                `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(gid_or_name)}` :
-                `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid_or_name}`;
-            const res = await fetch(url);
-            return parseCSV(await res.text());
-        }
+        // آی‌دی طولانی که در کادر Publish to the web دیدی را اینجا بگذار
+const PUB_ID = '2PACX-1vRLfGnlIoQoX8NtHa99PvWeZIIcHh1s6Asc0jOIKewDKHq7fjiQ-KsZ0B7PVNANcjXtid63Wqih-zjC';
+
+async function fetchCSV(gid) {
+    // فرمت لینک پابلیش شده برای خروجی CSV
+    const url = `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?output=csv&gid=${gid}`;
+    
+    try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Network response was not ok');
+        const text = await res.text();
+        return parseCSV(text);
+    } catch (e) {
+        console.error("خطا در دریافت اطلاعات از گوگل:", e);
+        // نمایش پیام خطا به کاربر (اختیاری)
+        return [];
+    }
+}
 
         async function attemptLogin() {
             const u = document.getElementById('userInp').value.toLowerCase().trim();
@@ -162,34 +171,67 @@
             document.getElementById('loginError').classList.add('hidden');
 
             try {
-                usersData = await fetchCSV('1914745392');
+                usersData = await fetchCSV('1914745392'); // برگه یوزرز
                 const match = usersData.find(r => r[0].toString().toLowerCase().trim() === u && r[1].toString().trim() === p);
+                
                 if (match) {
-                    const checkRes = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'checkDevice', username: u, deviceId: deviceId }) });
-                    if ((await checkRes.text()) === "LimitReached") { alert("خطا: حد ۳ دستگاه پر شده است!"); return; }
-
                     currentUser = u;
-                    academicWords = (await fetchCSV('Words')).sort(() => 0.5 - Math.random());
-                    examWords = (await fetchCSV('PTE Exact words and collocations')).sort(() => 0.5 - Math.random());
+                    // لود کردن دیتاها
+                    academicWords = (await fetchCSV('Words'));
+                    examWords = (await fetchCSV('PTE Exact words and collocations'));
                     quizData = await fetchCSV('Quizzes');
                     
-                    const syncRes = await fetch(APPS_SCRIPT_URL);
-                    const allP = await syncRes.json();
-                    const myP = allP.find(x => x.username.toLowerCase() === currentUser);
-                    if (myP) {
-                        learnedWords = myP.learned ? myP.learned.split('|') : [];
-                        hardWords = myP.hard ? myP.hard.split('|') : [];
-                        quizHistory = myP.quizHistory ? JSON.parse(myP.quizHistory) : [];
-                    }
+                    try {
+                        const syncRes = await fetch(APPS_SCRIPT_URL);
+                        const allP = await syncRes.json();
+                        const myP = allP.find(x => x.username.toLowerCase() === currentUser);
+                        if (myP) {
+                            learnedWords = myP.learned ? myP.learned.split('|') : [];
+                            hardWords = myP.hard ? myP.hard.split('|') : [];
+                            quizHistory = myP.quizHistory ? JSON.parse(myP.quizHistory) : [];
+                        }
+                    } catch(e) { console.log("AppsScript sync failed, using local."); }
 
                     document.getElementById('loginPage').classList.add('hidden');
                     document.getElementById('mainApp').classList.remove('hidden');
                     document.getElementById('userNameDisplay').innerText = `${u.toUpperCase()} 😊🌻`;
-                    applyFilters(); updateProgress(); showQuizHome();
-                    setTimeout(showWotd, 2000);
-                } else { document.getElementById('loginError').classList.remove('hidden'); }
-            } catch (e) { alert("خطا در اتصال به گوگل‌شیت."); }
-            finally { document.getElementById('loader').classList.add('hidden'); }
+                    
+                    applyFilters(); 
+                    updateProgress(); 
+                    showQuizHome();
+                    
+                    // پاپ آپ کلمه روز بعد از لود کامل
+                    setTimeout(showWotd, 1500);
+                } else { 
+                    document.getElementById('loginError').classList.remove('hidden'); 
+                }
+            } catch (e) { 
+                alert("خطا در برقراری ارتباط با دیتابیس. لطفا اینترنت خود را چک کنید."); 
+            } finally { 
+                document.getElementById('loader').classList.add('hidden'); 
+            }
+        }
+
+        // تابع تیک و آتش (رفع ایراد شماره 5)
+        function toggleStatus(word, type) {
+            if (type === 'learned') {
+                if (learnedWords.includes(word)) {
+                    learnedWords = learnedWords.filter(w => w !== word);
+                } else {
+                    learnedWords.push(word);
+                    hardWords = hardWords.filter(w => w !== word); // اگر تیک زد، از لیست سخت خارج شود
+                }
+            } else if (type === 'hard') {
+                if (hardWords.includes(word)) {
+                    hardWords = hardWords.filter(w => w !== word);
+                } else {
+                    hardWords.push(word);
+                    learnedWords = learnedWords.filter(w => w !== word); // اگر سخت زد، از لیست آشنا خارج شود
+                }
+            }
+            applyFilters();
+            updateProgress();
+            saveProgress();
         }
 
         function highlightWord(s, w) {
@@ -211,7 +253,7 @@
                             </div>
                             <div class="flex gap-2 items-center">
                                 ${ (activeTabName === 'exam' && w[8]) ? `<span class="bg-slate-900 text-white text-[7px] px-2 py-1 rounded font-bold italic">APEUni #${w[8]}</span>` : ''}
-                                <span class="text-[8px] px-3 py-1 rounded-full font-black border uppercase tracking-widest ${getLevelStyle(w[2])}">${w[2]}</span>
+                                <span class="text-[8px] px-3 py-1 rounded-full font-black border uppercase tracking-widest ${getLevelStyle(w[2])}">${w[2] || 'Any'}</span>
                             </div>
                         </div>
                         <div class="flex items-center gap-3 justify-end mb-2">
@@ -222,8 +264,8 @@
                         <p class="text-blue-700 font-black text-lg mb-6">${w[1]}</p>
                         <div class="bg-slate-50 p-5 rounded-3xl border-r-8 border-blue-400 relative mb-4 shadow-inner text-left">
                              <div class="flex items-start gap-3 english-text mb-4">
-                                <button onclick="speak('${w[3].replace(/'/g,"")}')" class="text-lg opacity-40">🔊</button>
-                                <p class="text-sm text-slate-600 italic leading-relaxed text-left">${highlightWord(w[3], w[0])}</p>
+                                <button onclick="speak(\`${w[3] ? w[3].replace(/'/g,"") : ""}\`)" class="text-lg opacity-40">🔊</button>
+                                <p class="text-sm text-slate-600 italic leading-relaxed text-left">${highlightWord(w[3] || '', w[0])}</p>
                              </div>
                              <p class="text-[11px] text-blue-500 font-black border-t pt-4 border-blue-100 text-right"><span class="bg-blue-600 text-white px-2 py-0.5 rounded text-[7px] ml-2 not-italic">Meaning</span>${w[7] || ''}</p>
                         </div>
@@ -240,8 +282,14 @@
             if(t === 'academic' || t === 'exam') {
                 document.getElementById('vocabSection').classList.remove('hidden');
                 document.getElementById('vocabControls').classList.remove('hidden');
-                currentPage = 1; applyFilters();
-            } else { document.getElementById(t+'Section').classList.remove('hidden'); }
+                currentPage = 1; 
+                applyFilters();
+            } else if (t === 'quiz') {
+                document.getElementById('quizSection').classList.remove('hidden');
+                showQuizHome();
+            } else { 
+                document.getElementById(t+'Section').classList.remove('hidden'); 
+            }
             
             document.querySelectorAll('nav button').forEach(b => b.className = "flex-1 py-4 tab-inactive transition-all text-xs");
             const btnId = t === 'academic' ? 'tabAcademic' : t === 'exam' ? 'tabExam' : t === 'quiz' ? 'tabQuiz' : 'tabStats';
@@ -253,12 +301,15 @@
             const s = document.getElementById('searchInput').value.toLowerCase();
             const lvl = document.getElementById('levelFilter').value;
             const grm = document.getElementById('grammarFilter').value;
+            
+            // رفع ایراد شماره 4: انتخاب دیتای درست بر اساس تب
             const ds = activeTabName === 'academic' ? academicWords : examWords;
+            
             filteredWords = ds.filter(w => {
                 const isL = learnedWords.includes(w[0]), isH = hardWords.includes(w[0]);
                 let matchStatus = (currentStatusFilter==='new') ? (!isL && !isH) : (currentStatusFilter==='learned' ? isL : isH);
                 let matchGrm = (grm==='All') || (w[4] && w[4].includes(grm)) || (grm==='Other' && !['Noun','Verb','Adj','Adv','Conj','کالو','حرف'].some(k=>w[4] && w[4].includes(k)));
-                return matchStatus && w[0].toLowerCase().includes(s) && (lvl==='All' || w[2].includes(lvl)) && matchGrm;
+                return matchStatus && w[0].toLowerCase().includes(s) && (lvl==='All' || (w[2] && w[2].includes(lvl))) && matchGrm;
             });
             renderWords();
         }
@@ -271,24 +322,45 @@
             currentPage = 1; applyFilters();
         }
 
+        // اصلاح پاپ آپ کلمه روز (رفع ایراد شماره 2)
         function showWotd() {
-            if (academicWords.length === 0 || localStorage.getItem('lastWotdDate') === new Date().toDateString()) return;
-            const obj = academicWords[Math.floor(Math.random() * academicWords.length)];
-            document.getElementById('wotdWord').innerText = obj[0];
-            document.getElementById('wotdTrans').innerText = obj[1];
-            document.getElementById('wotdExample').innerText = obj[3];
+            if (!academicWords || academicWords.length === 0) return;
+            if (localStorage.getItem('lastWotdDate') === new Date().toDateString()) return;
+            
+            const randomIndex = Math.floor(Math.random() * academicWords.length);
+            const obj = academicWords[randomIndex];
+            
+            document.getElementById('wotdWord').innerText = obj[0] || "Unknown";
+            document.getElementById('wotdTrans').innerText = obj[1] || "";
+            document.getElementById('wotdExample').innerText = obj[3] || "No example available.";
             document.getElementById('wotdModal').style.display = 'flex';
             localStorage.setItem('lastWotdDate', new Date().toDateString());
         }
 
-        function initQuiz() { quizState = { currentIdx: 0, score: 0, questions: [...quizData].sort(()=>0.5-Math.random()).slice(0, 25), currentSelection: null }; showQuestion(); }
+        // رفع ایراد شماره 3: نمایش صفحه اصلی آزمون
+        function showQuizHome() {
+            document.getElementById('quizContent').innerHTML = `
+                <div class="text-center p-8 animate-pop">
+                    <div class="text-6xl mb-6">📝</div>
+                    <h2 class="text-2xl font-black text-slate-800 mb-4">آزمون جامع PTE</h2>
+                    <p class="text-sm text-slate-500 mb-8 leading-relaxed">شامل ۲۵ سوال چهارگزینه‌ای از بخش ریدینگ و لغات مهم امتحانی.</p>
+                    <button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl hover:bg-blue-700">شروع آزمون</button>
+                </div>`;
+        }
+
+        function initQuiz() { 
+            if(!quizData || quizData.length === 0) return alert("دیتای آزمون یافت نشد.");
+            quizState = { currentIdx: 0, score: 0, questions: [...quizData].sort(()=>0.5-Math.random()).slice(0, 25), currentSelection: null }; 
+            showQuestion(); 
+        }
+
         function showQuestion() {
             const q = quizState.questions[quizState.currentIdx];
             document.getElementById('quizContent').innerHTML = `
                 <div class="text-right flex flex-col h-full animate-pop">
                     <div class="flex justify-between items-center mb-8"><span class="text-[10px] bg-slate-200 px-4 py-1.5 rounded-full font-black">Q ${quizState.currentIdx + 1}/25</span><span class="text-green-600 font-bold text-xs">${quizState.score} Correct</span></div>
                     <div class="english-text bg-slate-900 p-8 rounded-[2rem] mb-6 text-white shadow-xl text-lg font-medium border-b-4 border-blue-500">${q[0].toString().replace('_______', '<span class="text-blue-400 font-bold border-b-2">_________</span>')}</div>
-                    <div class="grid gap-3 mb-6">${[1,2,3,4].map(i => `<button id="opt${i}" onclick="quizState.currentSelection='${q[i].toString().replace(/'/g, "\\'")}';[1,2,3,4].forEach(j=>document.getElementById('opt'+j).className='english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-700');document.getElementById('opt${i}').className='english-text text-left w-full p-4 border-2 border-blue-500 bg-blue-50 rounded-2xl font-black text-blue-700 shadow-inner'" class="english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-700 transition-all">${q[i]}</button>`).join('')}</div>
+                    <div class="grid gap-3 mb-6">${[1,2,3,4].map(i => `<button id="opt${i}" onclick="quizState.currentSelection='${q[i] ? q[i].toString().replace(/'/g, "\\'") : ""}';[1,2,3,4].forEach(j=>document.getElementById('opt'+j).className='english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-700');document.getElementById('opt${i}').className='english-text text-left w-full p-4 border-2 border-blue-500 bg-blue-50 rounded-2xl font-black text-blue-700 shadow-inner'" class="english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-700 transition-all">${q[i] || ""}</button>`).join('')}</div>
                     <button onclick="confirmAnswer()" class="bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg">ثبت پاسخ</button>
                 </div>`;
         }
@@ -309,7 +381,13 @@
                 </div>`;
         }
 
-        function renderQuizResult() { const p = Math.round((quizState.score/25)*100); document.getElementById('quizContent').innerHTML = `<div class="text-center p-4 animate-pop"><h2 class="text-4xl font-black text-blue-600 mb-2 underline">${p}% SCORE</h2><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">RETRY</button></div>`; }
+        function renderQuizResult() { 
+            const p = Math.round((quizState.score/25)*100); 
+            const record = { date: new Date().toLocaleDateString('fa-IR'), score: quizState.score };
+            quizHistory.push(record);
+            saveProgress();
+            document.getElementById('quizContent').innerHTML = `<div class="text-center p-4 animate-pop"><h2 class="text-4xl font-black text-blue-600 mb-2 underline">${p}% SCORE</h2><p class="mb-8 font-bold">${quizState.score} از ۲۵ پاسخ صحیح</p><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">تلاش دوباره</button></div>`; 
+        }
 
         function renderStats() {
             const lA = academicWords.filter(w => learnedWords.includes(w[0])).length;
@@ -320,26 +398,53 @@
                     <div class="bg-blue-600 text-white p-6 rounded-3xl shadow-lg text-center"><p class="text-[8px] uppercase font-bold opacity-70">Academic</p><div class="text-4xl font-black my-2">${lA} / ${academicWords.length}</div></div>
                     <div class="bg-yellow-400 text-slate-900 p-6 rounded-3xl shadow-lg text-center"><p class="text-[8px] uppercase font-bold opacity-70">Collocations</p><div class="text-4xl font-black my-2">${lE} / ${examWords.length}</div></div>
                 </div>
-                <div class="bg-white border-2 border-slate-100 p-8 rounded-3xl shadow-sm text-right"><p class="font-black text-slate-800 mb-4 italic underline uppercase">History:</p><p class="text-xs mb-4 font-bold text-blue-600">آخرین آزمون: ${last} از ۲۵</p>${quizHistory.reverse().slice(0,5).map(h=>`<div class="flex justify-between border-b py-2 text-xs font-bold text-slate-500"><span>${h.date}</span><span>Score: ${h.score}/25</span></div>`).join('') || 'No records.'}</div>`;
+                <div class="bg-white border-2 border-slate-100 p-8 rounded-3xl shadow-sm text-right"><p class="font-black text-slate-800 mb-4 italic underline uppercase">History:</p><p class="text-xs mb-4 font-bold text-blue-600">آخرین آزمون: ${last} از ۲۵</p>${[...quizHistory].reverse().slice(0,5).map(h=>`<div class="flex justify-between border-b py-2 text-xs font-bold text-slate-500"><span>${h.date}</span><span>Score: ${h.score}/25</span></div>`).join('') || 'No records.'}</div>`;
         }
 
         function updateProgress() {
+            const total = academicWords.length + examWords.length;
+            if (total === 0) return;
             const lAll = academicWords.concat(examWords).filter(w => learnedWords.includes(w[0])).length;
-            const p = Math.round((lAll / (academicWords.length + examWords.length)) * 100) || 0;
+            const p = Math.round((lAll / total) * 100) || 0;
             document.getElementById('progressBar').style.width = p + '%';
             document.getElementById('progressPercent').innerText = p + '%';
-            const msgs = [{p:0,m:"یادگیری را شروع کنید!"},{p:5,m:"۵٪ طی شد. عالیه! 🚀"},{p:10,m:"۱۰٪ لغات تو مشتته! 💎"},{p:25,m:"یک چهارم مسیر فتح شد! 🌟"},{p:50,m:"نیمی از راه طی شد! 🏆"},{p: 60, m: "! سرعتت عالیه، توقف ناپذیر شدی! 🏔️"},{p:75,m:"۳/۴ مسیر فتح شد! 🎖️"},{p:100,m:"تبریک! 🎉"}];
-            document.getElementById('motivationalText').innerText = msgs.reverse().find(m => p >= m.p).m;
+            const msgs = [{p:0,m:"یادگیری را شروع کنید!"},{p:5,m:"۵٪ طی شد. عالیه! 🚀"},{p:10,m:"۱۰٪ لغات تو مشتته! 💎"},{p:25,m:"یک چهارم مسیر فتح شد! 🌟"},{p:50,m:"نیمی از راه طی شد! 🏆"},{p:75,m:"۳/۴ مسیر فتح شد! 🎖️"},{p:100,m:"تبریک! 🎉"}];
+            const activeMsg = [...msgs].reverse().find(m => p >= m.p);
+            document.getElementById('motivationalText').innerText = activeMsg ? activeMsg.m : "";
         }
 
         function togglePass() { const p = document.getElementById('passInp'); p.type = p.type === 'password' ? 'text' : 'password'; }
         function closeWotd() { document.getElementById('wotdModal').style.display = 'none'; }
-        function speak(t) { window.speechSynthesis.cancel(); const m = new SpeechSynthesisUtterance(t); m.lang = 'en-US'; m.rate = 0.8; window.speechSynthesis.speak(m); }
-        function getLevelStyle(lvl) { return lvl.includes('B2') ? 'bg-green-50 text-green-600 border-green-100' : lvl.includes('C1') ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-purple-50 text-purple-600 border-purple-100'; }
+        function speak(t) { if(!t) return; window.speechSynthesis.cancel(); const m = new SpeechSynthesisUtterance(t); m.lang = 'en-US'; m.rate = 0.8; window.speechSynthesis.speak(m); }
+        function getLevelStyle(lvl) { if(!lvl) return ''; return lvl.includes('B2') ? 'bg-green-50 text-green-600 border-green-100' : lvl.includes('C1') ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-purple-50 text-purple-600 border-purple-100'; }
         function resetFilters() { document.getElementById('searchInput').value = ''; document.getElementById('levelFilter').value = 'All'; document.getElementById('grammarFilter').value = 'All'; setStatusFilter('new'); }
         function changePage(s) { currentPage += s; renderWords(); window.scrollTo(0, 0); }
-        function handleSearchSuggestions() { const v = document.getElementById('searchInput').value.toLowerCase(); const b = document.getElementById('searchSuggestions'); if(v.length < 2) { b.classList.add('hidden'); return; } const ds = activeTabName === 'academic' ? academicWords : examWords; const m = ds.filter(w => w[0].toLowerCase().includes(v)).slice(0,10); b.innerHTML = m.map(x => `<div onclick="document.getElementById('searchInput').value='${x[0]}';applyFilters();document.getElementById('searchSuggestions').classList.add('hidden')" class="p-3 border-b text-sm english-text hover:bg-blue-50 cursor-pointer">${x[0]}</div>`).join(''); b.classList.remove('hidden'); }
-        function saveProgress() { fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'saveProgress',username:currentUser,learned:learnedWords.join('|'),hard:hardWords.join('|'),quizHistory:JSON.stringify(quizHistory),deviceId:deviceId})}); }
+        
+        function handleSearchSuggestions() { 
+            const v = document.getElementById('searchInput').value.toLowerCase(); 
+            const b = document.getElementById('searchSuggestions'); 
+            if(v.length < 2) { b.classList.add('hidden'); return; } 
+            const ds = activeTabName === 'academic' ? academicWords : examWords; 
+            const m = ds.filter(w => w[0].toLowerCase().includes(v)).slice(0,10); 
+            b.innerHTML = m.map(x => `<div onclick="document.getElementById('searchInput').value='${x[0]}';applyFilters();document.getElementById('searchSuggestions').classList.add('hidden')" class="p-3 border-b text-sm english-text hover:bg-blue-50 cursor-pointer">${x[0]}</div>`).join(''); 
+            b.classList.remove('hidden'); 
+        }
+
+        function saveProgress() { 
+            if(!currentUser) return;
+            fetch(APPS_SCRIPT_URL,{
+                method:'POST',
+                mode: 'no-cors', // برای جلوگیری از خطای CORS در درخواست‌های ساده به گوگل
+                body:JSON.stringify({
+                    action:'saveProgress',
+                    username:currentUser,
+                    learned:learnedWords.join('|'),
+                    hard:hardWords.join('|'),
+                    quizHistory:JSON.stringify(quizHistory),
+                    deviceId:deviceId
+                })
+            }); 
+        }
     </script>
 </body>
 </html>
