@@ -337,18 +337,21 @@ async function attemptLogin() {
 
         // اصلاح پاپ آپ کلمه روز (رفع ایراد شماره 2)
         function showWotd() {
-            if (!academicWords || academicWords.length === 0) return;
-            if (localStorage.getItem('lastWotdDate') === new Date().toDateString()) return;
-            
-            const randomIndex = Math.floor(Math.random() * academicWords.length);
-            const obj = academicWords[randomIndex];
-            
-            document.getElementById('wotdWord').innerText = obj[0] || "Unknown";
-            document.getElementById('wotdTrans').innerText = obj[1] || "";
-            document.getElementById('wotdExample').innerText = obj[3] || "No example available.";
-            document.getElementById('wotdModal').style.display = 'flex';
-            localStorage.setItem('lastWotdDate', new Date().toDateString());
-        }
+    // فقط کلماتی که ستون کلمه و معنی دارن رو انتخاب کن
+    const validWords = academicWords.filter(w => w[0] && w[1] && w[0].trim() !== "");
+    
+    if (validWords.length === 0) return;
+    if (localStorage.getItem('lastWotdDate') === new Date().toDateString()) return;
+    
+    const randomIndex = Math.floor(Math.random() * validWords.length);
+    const obj = validWords[randomIndex];
+    
+    document.getElementById('wotdWord').innerText = obj[0];
+    document.getElementById('wotdTrans').innerText = obj[1];
+    document.getElementById('wotdExample').innerText = obj[3] || "No example provided.";
+    document.getElementById('wotdModal').style.display = 'flex';
+    localStorage.setItem('lastWotdDate', new Date().toDateString());
+}
 
         // رفع ایراد شماره 3: نمایش صفحه اصلی آزمون
         function showQuizHome() {
@@ -356,7 +359,8 @@ async function attemptLogin() {
                 <div class="text-center p-8 animate-pop">
                     <div class="text-6xl mb-6">📝</div>
                     <h2 class="text-2xl font-black text-slate-800 mb-4">آزمون جامع PTE</h2>
-                    <p class="text-sm text-slate-500 mb-8 leading-relaxed">شامل ۲۵ سوال چهارگزینه‌ای از بخش ریدینگ و لغات مهم امتحانی.</p>
+                    // پیدا کردن این خط در کد و اصلاح عدد:
+<p class="text-sm text-slate-500 mb-8 leading-relaxed">شامل 25 سوال چهارگزینه‌ای از بخش ریدینگ و لغات مهم امتحانی.</p>
                     <button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl hover:bg-blue-700">شروع آزمون</button>
                 </div>`;
         }
@@ -403,28 +407,50 @@ async function attemptLogin() {
         }
 
         function renderStats() {
-            const lA = academicWords.filter(w => learnedWords.includes(w[0])).length;
-            const lE = examWords.filter(w => learnedWords.includes(w[0])).length;
-            const last = quizHistory.length ? quizHistory[quizHistory.length-1].score : 0;
-            document.getElementById('statsContent').innerHTML = `
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-blue-600 text-white p-6 rounded-3xl shadow-lg text-center"><p class="text-[8px] uppercase font-bold opacity-70">Academic</p><div class="text-4xl font-black my-2">${lA} / ${academicWords.length}</div></div>
-                    <div class="bg-yellow-400 text-slate-900 p-6 rounded-3xl shadow-lg text-center"><p class="text-[8px] uppercase font-bold opacity-70">Collocations</p><div class="text-4xl font-black my-2">${lE} / ${examWords.length}</div></div>
-                </div>
-                <div class="bg-white border-2 border-slate-100 p-8 rounded-3xl shadow-sm text-right"><p class="font-black text-slate-800 mb-4 italic underline uppercase">History:</p><p class="text-xs mb-4 font-bold text-blue-600">آخرین آزمون: ${last} از ۲۵</p>${[...quizHistory].reverse().slice(0,5).map(h=>`<div class="flex justify-between border-b py-2 text-xs font-bold text-slate-500"><span>${h.date}</span><span>Score: ${h.score}/25</span></div>`).join('') || 'No records.'}</div>`;
-        }
+    const lA = academicWords.filter(w => learnedWords.includes(w[0])).length;
+    const lE = examWords.filter(w => learnedWords.includes(w[0])).length;
+    const last = quizHistory.length ? quizHistory[quizHistory.length-1].score : 0;
+    
+    document.getElementById('statsContent').innerHTML = `
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-blue-600 text-white p-6 rounded-3xl shadow-lg text-center">
+                <p class="text-[8px] uppercase font-bold opacity-70">Academic</p>
+                <!-- ترتیب اصلاح شد: خونده شده / کل -->
+                <div class="text-2xl font-black my-2">${lA} / ${academicWords.length}</div>
+            </div>
+            <div class="bg-yellow-400 text-slate-900 p-6 rounded-3xl shadow-lg text-center">
+                <p class="text-[8px] uppercase font-bold opacity-70">Collocations</p>
+                <div class="text-2xl font-black my-2">${lE} / ${examWords.length}</div>
+            </div>
+        </div>
+        <div class="bg-white border-2 border-slate-100 p-8 rounded-3xl shadow-sm text-right">
+            <p class="font-black text-slate-800 mb-4 italic underline uppercase">History:</p>
+            <p class="text-xs mb-4 font-bold text-blue-600">آخرین آزمون: ${last} از 25</p>
+            ${[...quizHistory].reverse().slice(0,5).map(h=>`
+                <div class="flex justify-between border-b py-2 text-xs font-bold text-slate-500">
+                    <span>${h.date}</span>
+                    <span>Score: ${h.score}/25</span>
+                </div>`).join('') || 'No records.'}
+        </div>`;
+}
 
         function updateProgress() {
-            const total = academicWords.length + examWords.length;
-            if (total === 0) return;
-            const lAll = academicWords.concat(examWords).filter(w => learnedWords.includes(w[0])).length;
-            const p = Math.round((lAll / total) * 100) || 0;
-            document.getElementById('progressBar').style.width = p + '%';
-            document.getElementById('progressPercent').innerText = p + '%';
-            const msgs = [{p:0,m:"یادگیری را شروع کنید!"},{p:5,m:"۵٪ طی شد. عالیه! 🚀"},{p:10,m:"۱۰٪ لغات تو مشتته! 💎"},{p:25,m:"یک چهارم مسیر فتح شد! 🌟"},{p:50,m:"نیمی از راه طی شد! 🏆"},{p:75,m:"۳/۴ مسیر فتح شد! 🎖️"},{p:100,m:"تبریک! 🎉"}];
-            const activeMsg = [...msgs].reverse().find(m => p >= m.p);
-            document.getElementById('motivationalText').innerText = activeMsg ? activeMsg.m : "";
-        }
+    const total = academicWords.length + examWords.length;
+    if (total === 0) return;
+    const lAll = academicWords.concat(examWords).filter(w => learnedWords.includes(w[0])).length;
+    
+    // محاسبه درصد با دقت بالاتر برای لغات زیاد
+    const p = (lAll / total) * 100;
+    // اگر درصد خیلی کم بود (مثلا 0.1) نشونش بده، در غیر این صورت رند کن
+    const displayP = (p > 0 && p < 1) ? p.toFixed(1) : Math.round(p);
+    
+    document.getElementById('progressBar').style.width = Math.round(p) + '%';
+    document.getElementById('progressPercent').innerText = displayP + '%';
+    
+    const msgs = [{p:0,m:"یادگیری را شروع کنید!"},{p:5,m:"5% طی شد. عالیه! 🚀"},{p:10,m:"10% لغات تو مشتته! 💎"},{p:25,m:"یک چهارم مسیر فتح شد! 🌟"},{p:50,m:"نیمی از راه طی شد! 🏆"},{p:75,m:"3/4 مسیر فتح شد! 🎖️"},{p:100,m:"تبریک! 🎉"}];
+    const activeMsg = [...msgs].reverse().find(m => p >= m.p);
+    document.getElementById('motivationalText').innerText = activeMsg ? activeMsg.m : "";
+}
 
         function togglePass() { const p = document.getElementById('passInp'); p.type = p.type === 'password' ? 'text' : 'password'; }
         function closeWotd() { document.getElementById('wotdModal').style.display = 'none'; }
