@@ -215,10 +215,9 @@
                     readingQuestions = await fetchCSV('1529009657');
                     filteredReading = [...readingQuestions];
 
-                    // Dynamic Filters Population
                     const subjects = [...new Set(readingQuestions.map(q => q[19]))].filter(s => s && s.trim() !== "");
                     document.getElementById('rSubjectFilter').innerHTML = '<option value="All">فیلتر موضوعی</option>' + subjects.map(s => `<option value="${s}">${s}</option>`).join('');
-                    const grammars = [...new Set(readingQuestions.map(q => q[14]))].filter(g => g && g.trim() !== "").map(g => g.split('.')[0].trim()).slice(0,10);
+                    const grammars = [...new Set(readingQuestions.map(q => q[14]))].filter(g => g && g.trim() !== "").map(g => g.split('.')[0].trim()).slice(0,15);
                     document.getElementById('rGrammarFilter').innerHTML = '<option value="All">فیلتر گرامر</option>' + [...new Set(grammars)].map(g => `<option value="${g}">${g}</option>`).join('');
 
                     try {
@@ -233,7 +232,7 @@
                             hardReading = myP.hardReading ? myP.hardReading.split('|') : [];
                             readingScores = myP.readingScores ? JSON.parse(myP.readingScores) : {};
                         }
-                    } catch(e) { console.warn("Apps Script sync failed"); }
+                    } catch(e) { console.warn("Sync failed"); }
                     document.getElementById('loginPage').classList.add('hidden');
                     document.getElementById('mainApp').classList.remove('hidden');
                     document.getElementById('userNameDisplay').innerText = `${u.toUpperCase()} 😊🌻`;
@@ -277,7 +276,6 @@
             document.getElementById('pageInfo').innerText = `PAGE ${currentPage} / ${Math.ceil(filteredWords.length / itemsPerPage) || 1}`;
         }
 
-        // --- READING TAB UPDATED LOGIC ---
         function handleReadingSuggestions() {
             const v = document.getElementById('readingSearch').value.toLowerCase();
             const b = document.getElementById('rSearchSuggestions');
@@ -307,8 +305,7 @@
             if(sort === 'Tested') filteredReading.sort((a, b) => (parseInt(b[17]) || 0) - (parseInt(a[17]) || 0));
             else filteredReading.sort((a, b) => (parseInt(a[0].replace('#','')) || 0) - (parseInt(b[0].replace('#','')) || 0));
 
-            document.getElementById('rItemsCount').innerText = `${filteredReading.length} مورد یافت شد`;
-            const p = (solvedReading.length / readingQuestions.length) * 100;
+            const p = readingQuestions.length > 0 ? (solvedReading.length / readingQuestions.length) * 100 : 0;
             document.getElementById('rProgressBar').style.width = p + '%';
             readingCurrentIdx = 0; renderReading();
         }
@@ -343,13 +340,11 @@
             const isHard = hardReading.includes(q[0]);
             const scoreData = readingScores[q[0]];
             const term = document.getElementById('readingSearch').value.toLowerCase();
-
             let statusIcon = '';
             if(scoreData) {
                 const perc = (scoreData.score / scoreData.total) * 100;
                 statusIcon = perc >= 60 ? '<span class="text-green-500 ml-1">✅</span>' : '<span class="text-red-500 ml-1">❌</span>';
             }
-
             const optionGroups = q[11].split('/').map(group => {
                 const parts = group.trim().match(/(\d+)\.\s*(.*)/);
                 return parts ? { num: parts[1], choices: parts[2].split(',').map(c => c.trim()) } : null;
@@ -426,36 +421,25 @@
             renderReading(); saveProgress();
         }
 
-        // --- STATS TAB (RE-REPORTING) ---
         function renderStats() {
             const lA = academicWords.filter(w => learnedWords.includes(w[0])).length;
             const lE = examWords.filter(w => learnedWords.includes(w[0])).length;
             let tc = 0, tb = 0;
             Object.values(readingScores).forEach(s => { tc += s.score; tb += s.total; });
             const rp = tb > 0 ? Math.round((tc/tb)*100) : 0;
-
             document.getElementById('statsContent').innerHTML = `
-                <div class="grid grid-cols-2 gap-4" dir="ltr">
-                    <div class="bg-blue-600 text-white p-5 rounded-3xl text-center shadow-lg"><p class="text-[8px] font-bold opacity-70">ACADEMIC</p><div class="text-xl font-black stat-number">${lA}/${academicWords.length}</div></div>
-                    <div class="bg-yellow-400 text-slate-900 p-5 rounded-3xl text-center shadow-lg"><p class="text-[8px] font-bold opacity-70">COLLOCATIONS</p><div class="text-xl font-black stat-number">${lE}/${examWords.length}</div></div>
-                </div>
-                <div class="bg-slate-900 text-white p-6 rounded-3xl shadow-xl text-center" dir="ltr">
-                    <p class="text-[10px] font-black mb-2 text-blue-400 uppercase tracking-widest">Reading Accuracy: ${rp}%</p>
-                    <div class="text-sm font-bold text-slate-400">${solvedReading.length} / ${readingQuestions.length} Items Done</div>
-                </div>
-                <div class="bg-white border-2 border-slate-100 p-6 rounded-3xl shadow-sm text-right">
-                    <p class="font-black text-slate-800 mb-4 italic underline uppercase text-[10px]">Detailed Questions Report:</p>
-                    <div class="space-y-2 max-h-80 overflow-y-auto no-scrollbar">
-                        ${Object.keys(readingScores).reverse().map(qid => {
-                            const d = readingScores[qid];
-                            const st = (d.score/d.total)*100 >= 60 ? '✅ خوب' : '❌ ضعیف';
-                            return `<div class="flex justify-between items-center border-b pb-1 text-[10px] font-bold" dir="ltr"><span class="text-slate-400">#${qid}</span><span>${st}</span><span class="stat-number">${d.score}/${d.total}</span></div>`;
-                        }).join('') || '<p class="text-center text-[10px] italic">دیتایی یافت نشد.</p>'}
-                    </div>
-                </div>`;
+                <div class="grid grid-cols-2 gap-4" dir="ltr"><div class="bg-blue-600 text-white p-5 rounded-3xl text-center shadow-lg"><p class="text-[8px] font-bold opacity-70">ACADEMIC</p><div class="text-xl font-black stat-number">${lA}/${academicWords.length}</div></div><div class="bg-yellow-400 text-slate-900 p-5 rounded-3xl text-center shadow-lg"><p class="text-[8px] font-bold opacity-70">COLLOCATIONS</p><div class="text-xl font-black stat-number">${lE}/${examWords.length}</div></div></div>
+                <div class="bg-slate-900 text-white p-6 rounded-3xl shadow-xl text-center" dir="ltr"><p class="text-[10px] font-black mb-2 text-blue-400 uppercase tracking-widest text-center">Reading Accuracy: ${rp}%</p><div class="text-sm font-bold text-slate-400 text-center">${solvedReading.length} / ${readingQuestions.length} Items Done</div></div>
+                <div class="bg-white border-2 border-slate-100 p-6 rounded-3xl shadow-sm text-right"><p class="font-black text-slate-800 mb-4 italic underline uppercase text-[10px]">Questions Report:</p>
+                <div class="space-y-2 max-h-80 overflow-y-auto no-scrollbar">
+                    ${Object.keys(readingScores).reverse().map(qid => {
+                        const d = readingScores[qid];
+                        const st = (d.score/d.total)*100 >= 60 ? '✅ خوب' : '❌ ضعیف';
+                        return `<div class="flex justify-between items-center border-b pb-1 text-[10px] font-bold" dir="ltr"><span class="text-slate-400">#${qid}</span><span>${st}</span><span class="stat-number">${d.score}/${d.total}</span></div>`;
+                    }).join('') || '<p class="text-center text-[10px] italic">دیتایی یافت نشد.</p>'}
+                </div></div>`;
         }
 
-        // --- CORE BASE LOGIC (RE-SYNCED) ---
         function showTab(t) {
             activeTabName = t;
             ['vocabSection','quizSection','statsSection','vocabControls','readingSection'].forEach(id => document.getElementById(id).classList.add('hidden'));
@@ -512,7 +496,6 @@
         function highlightWord(s, w) { if (!w) return s; const regex = new RegExp(`(${w})`, 'gi'); return s.replace(regex, '<b class="text-blue-600 underline font-black">$1</b>'); }
         function changePage(s) { currentPage += s; renderWords(); window.scrollTo(0, 0); }
         function resetFilters() { document.getElementById('searchInput').value = ''; applyFilters(); }
-        function handleSearchSuggestions() { const v = document.getElementById('searchInput').value.toLowerCase(); const b = document.getElementById('searchSuggestions'); if(v.length < 2) { b.classList.add('hidden'); return; } const ds = activeTabName === 'academic' ? academicWords : examWords; const m = ds.filter(w => w[0].toLowerCase().includes(v)).slice(0,10); b.innerHTML = m.map(x => `<div onclick="document.getElementById('searchInput').value='${x[0]}';applyFilters();document.getElementById('searchSuggestions').classList.add('hidden')" class="p-3 border-b text-sm english-text hover:bg-blue-50 cursor-pointer">${x[0]}</div>`).join(''); b.classList.remove('hidden'); }
         function showWotd() { const valid = academicWords.filter(w => w && w[0] && w[0].trim() !== ""); if (valid.length === 0) return; const obj = valid[Math.floor(Math.random() * valid.length)]; document.getElementById('wotdWord').innerText = obj[0]; document.getElementById('wotdTrans').innerText = obj[1]; document.getElementById('wotdExample').innerText = obj[3] || "No example available."; document.getElementById('wotdModal').style.display = 'flex'; }
     </script>
 </body>
