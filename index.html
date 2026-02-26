@@ -50,25 +50,23 @@
 
     <!-- MAIN APP -->
     <div id="mainApp" class="max-w-md mx-auto bg-white min-h-screen shadow-2xl pb-24 relative hidden overflow-hidden">
-        <header class="bg-slate-900 text-white p-5 shadow-lg border-b border-blue-900">
-            <div class="flex items-center justify-center gap-3">
-                <!-- Logo in Header -->
-                <img src="logo.png" alt="Logo" class="w-8 h-8 object-contain">
-                <div class="text-center">
-                    <h1 class="text-sm font-black text-blue-400 uppercase tracking-widest italic leading-tight">PTEinsider - Reading Studio</h1>
-                    <p class="text-[9px] opacity-70 italic font-sans text-white">by Nasim Mohammmadian (<a href="https://t.me/nsmmhdn" target="_blank" class="text-blue-300 underline font-bold">t.me/nsmmhdn</a>)</p>
-                </div>
-            </div>
+        <header class="bg-slate-900 text-white p-5 text-center shadow-lg border-b border-blue-900">
+            <h1 class="text-sm font-black text-blue-400 uppercase tracking-widest italic leading-relaxed">PTEinsider - Reading Studio</h1>
+            <p class="text-[9px] mt-1 opacity-70 italic font-sans text-white">by Nasim Mohammmadian (<a href="https://t.me/nsmmhdn" target="_blank" class="text-blue-300 underline font-bold">t.me/nsmmhdn</a>)</p>
         </header>
 
-        <!-- Progress Tracker -->
+        <!-- Progress Tracker with LOGO -->
         <div class="p-5 bg-white border-b shadow-sm">
-            <div class="flex justify-between items-start mb-3">
+            <div class="flex justify-between items-center mb-3">
+                <div class="flex items-center gap-3">
+                    <span id="progressPercent" class="text-3xl font-black text-blue-600 italic leading-none">0%</span>
+                    <!-- Logo in Progress Tracker (Visible on White) -->
+                    <img src="logo.png" alt="Logo" class="w-10 h-10 object-contain">
+                </div>
                 <div class="text-right">
                     <p id="userNameDisplay" class="text-2xl font-black text-slate-800 uppercase tracking-tight">... 😊🌻</p>
                     <p id="motivationalText" class="text-[10px] text-blue-500 font-black mt-1 italic"></p>
                 </div>
-                <span id="progressPercent" class="text-3xl font-black text-blue-600 italic">0%</span>
             </div>
             <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden shadow-inner border border-slate-200">
                 <div id="progressBar" class="bg-gradient-to-r from-blue-500 to-indigo-600 h-full transition-all duration-1000 shadow-[0_0_10px_#2563eb]" style="width: 0%"></div>
