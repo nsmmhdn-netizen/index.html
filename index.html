@@ -234,17 +234,12 @@
             document.getElementById('itemsCount').innerText = `${filteredWords.length} مورد یافت شد`;
         }
 
-        // --- READING SECTION RENDERER (UPDATED) ---
+        // --- READING SECTION RENDERER (UPDATED - Side by Side) ---
         function renderReading() {
             const container = document.getElementById('readingContent');
             if (readingQuestions.length === 0) { container.innerHTML = "<p class='text-center p-10 font-bold opacity-50 italic'>در حال بارگذاری سوالات...</p>"; return; }
             container.innerHTML = readingQuestions.map((q, idx) => {
-                let answers = [];
-                for(let i=3; i<=10; i++) { if(q[i] && q[i].trim() !== "" && q[i] !== "-") answers.push(q[i]); }
-                
-                // فرمت کردن آپشن‌ها: جایگزینی / با اینتر و تراز از چپ
                 const formattedOptions = q[11].split('/').map(opt => opt.trim()).join('<br>');
-                // فرمت کردن تحلیل و کالوکیشن: هر شماره در یک سطر
                 const formattedGrammar = q[14] ? q[14].replace(/(\d+\.)/g, '<br>$1').replace('<br>', '') : 'نکته‌ای ثبت نشده است.';
                 const formattedCollocations = q[15] ? q[15].replace(/\//g, '<br>') : 'کالوکیشنی ثبت نشده است.';
 
@@ -258,56 +253,63 @@
                         <span class="text-[7px] bg-slate-100 px-2 py-1 rounded font-bold text-slate-400 italic">${q[19] || 'General'}</span>
                     </div>
                     
-                    <!-- متن انگلیسی: تراز شده از راست -->
-                    <div id="readText_${idx}" class="english-text text-slate-700 leading-[2] mb-8 text-[14px] font-medium bg-slate-50 p-6 rounded-3xl border border-dashed border-slate-200" style="text-align: right;">
-                        ${q[2].replace(/\[Blank \d+\]/g, '<span class="inline-block w-12 border-b-2 border-blue-400 mx-1"></span>')}
+                    <!-- دو ستونه: متن و ترجمه -->
+                    <div class="grid grid-cols-2 gap-4 mb-8">
+                        <div id="readText_${idx}" class="english-text text-[13px] leading-[2] bg-slate-50 p-4 rounded-3xl border border-dashed border-slate-200" style="direction: ltr; text-align: justify;">
+                            ${q[2].replace(/\[Blank \d+\]/g, '<span class="inline-block w-12 border-b border-blue-400 mx-1"></span>')}
+                        </div>
+                        <div id="transText_${idx}" class="persian-text text-[13px] leading-[2] bg-blue-50/30 p-4 rounded-3xl border border-blue-100 opacity-0 transition-opacity duration-500">
+                            ${q[12]}
+                        </div>
                     </div>
 
-                    <!-- دکمه نمایش پاسخ در متن -->
                     <div class="mb-8 flex justify-center">
-                        <button onclick="toggleReadingAnswer(${idx})" id="readBtn_${idx}" class="bg-green-600 text-white px-8 py-3 rounded-2xl font-black text-xs shadow-lg hover:bg-green-700 transition-all">نمایش پاسخ در متن</button>
+                        <button onclick="toggleReadingAnswer(${idx})" id="readBtn_${idx}" class="bg-green-600 text-white px-8 py-3 rounded-2xl font-black text-xs shadow-lg hover:bg-green-700 transition-all">نمایش پاسخ در متن و ترجمه</button>
                     </div>
 
-                    <!-- آپشن‌ها: تراز از چپ و انگلیسی -->
                     <div class="mb-8">
-                        <p class="text-[9px] font-black text-slate-400 mb-2 uppercase italic text-right">Options Available:</p>
-                        <div class="english-text text-[11px] text-slate-500 bg-slate-50 p-5 rounded-2xl leading-loose border border-slate-100" style="text-align: left; direction: ltr;">
+                        <p class="text-[9px] font-black text-slate-400 mb-2 uppercase italic english-text">Options Available:</p>
+                        <div class="english-text text-[11px] text-slate-500 bg-slate-50 p-5 rounded-2xl leading-loose border border-slate-100">
                             ${formattedOptions}
                         </div>
                     </div>
 
-                    <details class="group bg-slate-900 rounded-[2rem] overflow-hidden transition-all shadow-xl">
-                        <summary class="p-5 text-[10px] font-black text-blue-400 cursor-pointer text-center list-none uppercase tracking-widest italic flex items-center justify-center gap-2"><span>Analysis & Translation</span><span class="group-open:rotate-180 transition-transform">▼</span></summary>
-                        <div class="p-6 space-y-6 bg-slate-800 animate-pop">
-                            <div class="persian-text"><p class="text-[10px] text-blue-300 font-black mb-3 border-b border-blue-900 pb-1 italic text-right">📚 ترجمه متن:</p><p class="text-[12px] text-slate-300 leading-7 font-medium text-right">${q[12]}</p></div>
-                            <div class="persian-text"><p class="text-[10px] text-yellow-400 font-black mb-3 border-b border-yellow-900 pb-1 italic text-right">💡 نکات گرامری:</p><div class="text-[11px] text-slate-300 leading-7 text-right">${formattedGrammar}</div></div>
-                            <div class="persian-text"><p class="text-[10px] text-green-400 font-black mb-3 border-b border-green-900 pb-1 italic text-right">🔗 کالوکیشن‌های مهم:</p><div class="text-[11px] text-slate-300 leading-7 text-right">${formattedCollocations}</div></div>
-                        </div>
-                    </details>
+                    <div class="space-y-3">
+                        <details class="group bg-slate-900 rounded-2xl overflow-hidden shadow-md">
+                            <summary class="p-4 text-[10px] font-black text-blue-400 cursor-pointer text-center list-none uppercase italic">💡 نکات گرامری</summary>
+                            <div class="p-5 text-[11px] text-slate-300 bg-slate-800 leading-7 persian-text">${formattedGrammar}</div>
+                        </details>
+                        <details class="group bg-slate-900 rounded-2xl overflow-hidden shadow-md">
+                            <summary class="p-4 text-[10px] font-black text-green-400 cursor-pointer text-center list-none uppercase italic">🔗 کالوکیشن‌ها</summary>
+                            <div class="p-5 text-[11px] text-slate-300 bg-slate-800 leading-7 english-text" style="direction: ltr;">${formattedCollocations}</div>
+                        </details>
+                    </div>
                 </div>`;
             }).join('');
         }
 
-        // تابع هندل کردن نمایش پاسخ در متن ریدینگ
         function toggleReadingAnswer(idx) {
             const q = readingQuestions[idx];
             const textDiv = document.getElementById(`readText_${idx}`);
+            const transDiv = document.getElementById(`transText_${idx}`);
             const btn = document.getElementById(`readBtn_${idx}`);
             
-            if (btn.innerText === "نمایش پاسخ در متن") {
+            if (btn.innerText.includes("نمایش")) {
                 let currentText = q[2];
                 for(let i=1; i<=8; i++) {
-                    const ans = q[i+2]; // ستون ۳ به بعد جواب‌ها هستند
+                    const ans = q[i+2];
                     if(ans && ans !== "-") {
-                        currentText = currentText.replace(`[Blank ${i}]`, `<b class="text-green-600 underline px-1 mx-1 decoration-2 underline-offset-4 font-black">${ans}</b>`);
+                        currentText = currentText.replace(`[Blank ${i}]`, `<b class="text-green-600 underline decoration-2 underline-offset-4 font-black">${ans}</b>`);
                     }
                 }
                 textDiv.innerHTML = currentText;
-                btn.innerText = "مخفی کردن پاسخ";
+                transDiv.classList.remove('opacity-0');
+                btn.innerText = "مخفی کردن پاسخ و ترجمه";
                 btn.classList.replace('bg-green-600', 'bg-slate-700');
             } else {
-                textDiv.innerHTML = q[2].replace(/\[Blank \d+\]/g, '<span class="inline-block w-12 border-b-2 border-blue-400 mx-1"></span>');
-                btn.innerText = "نمایش پاسخ در متن";
+                textDiv.innerHTML = q[2].replace(/\[Blank \d+\]/g, '<span class="inline-block w-12 border-b border-blue-400 mx-1"></span>');
+                transDiv.classList.add('opacity-0');
+                btn.innerText = "نمایش پاسخ در متن و ترجمه";
                 btn.classList.replace('bg-slate-700', 'bg-green-600');
             }
         }
