@@ -171,20 +171,30 @@ async function attemptLogin() {
     document.getElementById('loginError').classList.add('hidden');
 
     try {
-        // حتما این اعداد GID را با فایل خودت چک کن:
-        usersData = await fetchCSV('1914745392'); //1914745392
+        // ۱. برگه یوزرز (این عدد ثابت است طبق گفته شما)
+        usersData = await fetchCSV('1914745392'); 
         
         const match = usersData.find(r => r[0].toString().toLowerCase().trim() === u && r[1].toString().trim() === p);
         
         if (match) {
             currentUser = u;
             
-            // جایگزینی نام‌ها با GIDهای واقعی:
-            academicWords = await fetchCSV('0'); //0
-            examWords = await fetchCSV('GID_کالوکیشن'); //1436328967
-            quizData = await fetchCSV('GID_کوییز');   //1776379547
+            // ۲. برگه وکب (Words) - معمولا 0 است
+            academicWords = await fetchCSV('0'); 
             
-            // بقیه کد برای سینک کردن با Apps Script...
+            // ۳. برگه کالوکیشن - عدد GID که از مرورگر کپی کردید را اینجا بگذارید
+            examWords = await fetchCSV('1436328967'); 
+            
+            // ۴. برگه کوییز - عدد GID که از مرورگر کپی کردید را اینجا بگذارید
+            quizData = await fetchCSV('1776379547');
+
+            // --- تست دریافت دیتا در کنسول (برای عیب یابی) ---
+            console.log("Vocab loaded:", academicWords.length);
+            console.log("Collocations loaded:", examWords.length);
+            console.log("Quiz loaded:", quizData.length);
+            // ----------------------------------------------
+
+            // لود اطلاعات Apps Script (اگر خطا داد نادیده می‌گیرد)
             try {
                 const syncRes = await fetch(APPS_SCRIPT_URL);
                 const allP = await syncRes.json();
@@ -194,7 +204,7 @@ async function attemptLogin() {
                     hardWords = myP.hard ? myP.hard.split('|') : [];
                     quizHistory = myP.quizHistory ? JSON.parse(myP.quizHistory) : [];
                 }
-            } catch(e) { console.log("AppsScript sync failed"); }
+            } catch(e) { console.warn("AppsScript sync failed"); }
 
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
@@ -208,7 +218,8 @@ async function attemptLogin() {
             document.getElementById('loginError').classList.remove('hidden'); 
         }
     } catch (e) { 
-        alert("خطا در برقراری ارتباط. GIDها یا اینترنت را چک کنید."); 
+        console.error(e);
+        alert("خطا در اتصال! احتمالا عدد GID یکی از برگه‌ها اشتباه است."); 
     } finally { 
         document.getElementById('loader').classList.add('hidden'); 
     }
