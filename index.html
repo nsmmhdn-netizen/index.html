@@ -107,8 +107,15 @@
             </div>
         </div>
 
+        <!-- READING SECTION (Flashcard Model) -->
         <div id="readingSection" class="p-4 hidden">
-            <div id="readingContent" class="space-y-8"></div>
+            <div id="readingContent" class="space-y-6"></div>
+            <!-- Reading Navigation -->
+            <div class="flex justify-between items-center mt-8 px-2">
+                <button onclick="changeReadingPage(-1)" class="bg-white border p-4 rounded-full shadow-sm active:scale-95 transition-all">◀️</button>
+                <span id="readingPageInfo" class="text-[11px] font-black text-slate-400 tracking-widest italic uppercase">Card 1 / 1</span>
+                <button onclick="changeReadingPage(1)" class="bg-white border p-4 rounded-full shadow-sm active:scale-95 transition-all">▶️</button>
+            </div>
         </div>
 
         <div id="quizSection" class="p-4 hidden"><div id="quizContent" class="bg-slate-50 border-2 border-white rounded-[2.5rem] p-6 shadow-lg min-h-[450px] flex flex-col justify-center"></div></div>
@@ -138,7 +145,7 @@
         
         let academicWords = [], examWords = [], readingQuestions = [], quizData = [], usersData = [];
         let learnedWords = [], hardWords = [], quizHistory = [], filteredWords = [];
-        let currentPage = 1, itemsPerPage = 25, currentUser = null, currentStatusFilter = 'new', activeTabName = 'academic', quizState = {};
+        let currentPage = 1, readingCurrentIdx = 0, itemsPerPage = 25, currentUser = null, currentStatusFilter = 'new', activeTabName = 'academic', quizState = {};
         const deviceId = localStorage.getItem('pte_device_id') || Math.random().toString(36).substr(2, 9);
         localStorage.setItem('pte_device_id', deviceId);
 
@@ -234,65 +241,65 @@
             document.getElementById('itemsCount').innerText = `${filteredWords.length} مورد یافت شد`;
         }
 
-        // --- READING SECTION RENDERER (UPDATED - Side by Side) ---
+        // --- READING SECTION (FLASHCARD) ---
         function renderReading() {
             const container = document.getElementById('readingContent');
             if (readingQuestions.length === 0) { container.innerHTML = "<p class='text-center p-10 font-bold opacity-50 italic'>در حال بارگذاری سوالات...</p>"; return; }
-            container.innerHTML = readingQuestions.map((q, idx) => {
-                const formattedOptions = q[11].split('/').map(opt => opt.trim()).join('<br>');
-                const formattedGrammar = q[14] ? q[14].replace(/(\d+\.)/g, '<br>$1').replace('<br>', '') : 'نکته‌ای ثبت نشده است.';
-                const formattedCollocations = q[15] ? q[15].replace(/\//g, '<br>') : 'کالوکیشنی ثبت نشده است.';
+            
+            const q = readingQuestions[readingCurrentIdx];
+            const formattedOptions = q[11].split('/').map(opt => opt.trim()).join('<br>');
+            const formattedGrammar = q[14] ? q[14].replace(/(\d+\.)/g, '<br><b>$1</b>').replace('<br>', '') : 'نکته‌ای ثبت نشده است.';
+            const formattedCollocations = q[15] ? q[15].replace(/\//g, '<br>') : 'کالوکیشنی ثبت نشده است.';
 
-                return `
+            container.innerHTML = `
                 <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border-2 border-slate-50 animate-pop relative overflow-hidden">
                     <div class="flex justify-between items-center mb-6 border-b pb-3">
-                        <div>
-                            <span class="bg-blue-600 text-white text-[8px] px-3 py-1 rounded-full font-black italic uppercase">APEUni #${q[0]}</span>
-                            <span class="text-[9px] font-black text-slate-800 mr-2 uppercase tracking-tighter">${q[1]}</span>
+                        <div class="text-left">
+                            <p class="text-xs font-black text-slate-800 uppercase tracking-tighter">${q[1]}</p>
+                            <p class="text-[9px] text-slate-400 font-bold italic">APEUni #${q[0]} <span class="opacity-40 ml-1">(${q[17]} repeats)</span></p>
                         </div>
-                        <span class="text-[7px] bg-slate-100 px-2 py-1 rounded font-bold text-slate-400 italic">${q[19] || 'General'}</span>
+                        <span class="text-[10px] bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-black italic uppercase">${q[19] || 'General'}</span>
                     </div>
                     
-                    <!-- دو ستونه: متن و ترجمه -->
-                    <div class="grid grid-cols-2 gap-4 mb-8">
-                        <div id="readText_${idx}" class="english-text text-[13px] leading-[2] bg-slate-50 p-4 rounded-3xl border border-dashed border-slate-200" style="direction: ltr; text-align: justify;">
-                            ${q[2].replace(/\[Blank \d+\]/g, '<span class="inline-block w-12 border-b border-blue-400 mx-1"></span>')}
-                        </div>
-                        <div id="transText_${idx}" class="persian-text text-[13px] leading-[2] bg-blue-50/30 p-4 rounded-3xl border border-blue-100 opacity-0 transition-opacity duration-500">
-                            ${q[12]}
-                        </div>
+                    <div id="readText" class="english-text text-[15px] leading-[2.2] mb-8 bg-slate-50 p-6 rounded-3xl border border-dashed border-slate-200" style="direction: ltr; text-align: justify;">
+                        ${q[2].replace(/\[Blank \d+\]/g, '<span class="inline-block w-12 border-b-2 border-blue-400 mx-1"></span>')}
+                    </div>
+
+                    <div id="transText" class="persian-text text-[14px] leading-[2] bg-blue-50/40 p-6 rounded-3xl mb-8 border border-blue-100 hidden animate-pop">
+                        <b class="text-blue-600 block mb-2 underline">ترجمه فارسی متن:</b>
+                        ${q[12]}
                     </div>
 
                     <div class="mb-8 flex justify-center">
-                        <button onclick="toggleReadingAnswer(${idx})" id="readBtn_${idx}" class="bg-green-600 text-white px-8 py-3 rounded-2xl font-black text-xs shadow-lg hover:bg-green-700 transition-all">نمایش پاسخ در متن و ترجمه</button>
+                        <button onclick="toggleReadingAnswer()" id="readBtn" class="bg-green-600 text-white px-8 py-4 rounded-2xl font-black text-xs shadow-lg hover:bg-green-700 transition-all">نمایش پاسخ در متن و ترجمه</button>
                     </div>
 
                     <div class="mb-8">
-                        <p class="text-[9px] font-black text-slate-400 mb-2 uppercase italic english-text">Options Available:</p>
-                        <div class="english-text text-[11px] text-slate-500 bg-slate-50 p-5 rounded-2xl leading-loose border border-slate-100">
+                        <p class="text-[10px] font-black text-slate-400 mb-2 uppercase italic english-text">Options Available:</p>
+                        <div class="english-text text-[13px] text-slate-600 bg-slate-50 p-6 rounded-2xl leading-loose border border-slate-100 font-medium">
                             ${formattedOptions}
                         </div>
                     </div>
 
-                    <div class="space-y-3">
-                        <details class="group bg-slate-900 rounded-2xl overflow-hidden shadow-md">
-                            <summary class="p-4 text-[10px] font-black text-blue-400 cursor-pointer text-center list-none uppercase italic">💡 نکات گرامری</summary>
-                            <div class="p-5 text-[11px] text-slate-300 bg-slate-800 leading-7 persian-text">${formattedGrammar}</div>
+                    <div class="space-y-4 mt-10">
+                        <details class="group bg-slate-900 rounded-[1.5rem] overflow-hidden shadow-lg">
+                            <summary class="p-5 text-[11px] font-black text-blue-400 cursor-pointer text-center list-none uppercase italic tracking-widest">💡 نکات گرامری</summary>
+                            <div class="p-6 text-[13px] text-slate-300 bg-slate-800 leading-8 persian-text font-medium">${formattedGrammar}</div>
                         </details>
-                        <details class="group bg-slate-900 rounded-2xl overflow-hidden shadow-md">
-                            <summary class="p-4 text-[10px] font-black text-green-400 cursor-pointer text-center list-none uppercase italic">🔗 کالوکیشن‌ها</summary>
-                            <div class="p-5 text-[11px] text-slate-300 bg-slate-800 leading-7 english-text" style="direction: ltr;">${formattedCollocations}</div>
+                        <details class="group bg-slate-900 rounded-[1.5rem] overflow-hidden shadow-lg">
+                            <summary class="p-5 text-[11px] font-black text-green-400 cursor-pointer text-center list-none uppercase italic tracking-widest">🔗 کالوکیشن‌ها</summary>
+                            <div class="p-6 text-[13px] text-slate-300 bg-slate-800 leading-8 english-text font-medium" style="direction: ltr;">${formattedCollocations}</div>
                         </details>
                     </div>
                 </div>`;
-            }).join('');
+            document.getElementById('readingPageInfo').innerText = `Card ${readingCurrentIdx + 1} / ${readingQuestions.length}`;
         }
 
-        function toggleReadingAnswer(idx) {
-            const q = readingQuestions[idx];
-            const textDiv = document.getElementById(`readText_${idx}`);
-            const transDiv = document.getElementById(`transText_${idx}`);
-            const btn = document.getElementById(`readBtn_${idx}`);
+        function toggleReadingAnswer() {
+            const q = readingQuestions[readingCurrentIdx];
+            const textDiv = document.getElementById(`readText`);
+            const transDiv = document.getElementById(`transText`);
+            const btn = document.getElementById(`readBtn`);
             
             if (btn.innerText.includes("نمایش")) {
                 let currentText = q[2];
@@ -303,15 +310,23 @@
                     }
                 }
                 textDiv.innerHTML = currentText;
-                transDiv.classList.remove('opacity-0');
+                transDiv.classList.remove('hidden');
                 btn.innerText = "مخفی کردن پاسخ و ترجمه";
                 btn.classList.replace('bg-green-600', 'bg-slate-700');
             } else {
                 textDiv.innerHTML = q[2].replace(/\[Blank \d+\]/g, '<span class="inline-block w-12 border-b border-blue-400 mx-1"></span>');
-                transDiv.classList.add('opacity-0');
+                transDiv.classList.add('hidden');
                 btn.innerText = "نمایش پاسخ در متن و ترجمه";
                 btn.classList.replace('bg-slate-700', 'bg-green-600');
             }
+        }
+
+        function changeReadingPage(step) {
+            readingCurrentIdx += step;
+            if (readingCurrentIdx < 0) readingCurrentIdx = 0;
+            if (readingCurrentIdx >= readingQuestions.length) readingCurrentIdx = readingQuestions.length - 1;
+            renderReading();
+            window.scrollTo(0, 0);
         }
 
         function showTab(t) {
