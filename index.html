@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PTEinsider - Reading Studio</title>
+    <!-- Favicon (Logo in address bar) -->
+    <link rel="icon" type="image/png" href="logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @font-face { font-family: 'Vazir'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2'); }
@@ -24,8 +26,10 @@
 
     <!-- LOGIN PAGE -->
     <div id="loginPage" class="fixed inset-0 z-[100] bg-gradient-to-br from-blue-800 to-slate-950 flex items-center justify-center p-6">
-        <div class="bg-white w-full max-sm rounded-[2.5rem] p-8 shadow-2xl text-center animate-pop">
-            <h2 class="text-3xl font-black text-blue-700 mb-2 italic tracking-tighter">PTEinsider</h2>
+        <div class="bg-white w-full max-w-[400px] rounded-[2.5rem] p-8 shadow-2xl text-center animate-pop mx-auto">
+            <!-- Logo in Login Page -->
+            <img src="logo.png" alt="Logo" class="w-24 h-24 mx-auto mb-4 object-contain">
+            <h2 class="text-3xl font-black text-blue-700 mb-1 italic tracking-tighter">PTEinsider</h2>
             <p class="text-slate-400 text-[10px] mb-8 font-bold tracking-[0.2em] uppercase">Reading Studio V.01</p>
             <div class="space-y-4">
                 <input id="userInp" type="text" placeholder="Username" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500 text-center english-text font-bold">
@@ -46,9 +50,15 @@
 
     <!-- MAIN APP -->
     <div id="mainApp" class="max-w-md mx-auto bg-white min-h-screen shadow-2xl pb-24 relative hidden overflow-hidden">
-        <header class="bg-slate-900 text-white p-5 text-center shadow-lg border-b border-blue-900">
-            <h1 class="text-sm font-black text-blue-400 uppercase tracking-widest italic leading-relaxed">PTEinsider - Reading Studio</h1>
-            <p class="text-[9px] mt-1 opacity-70 italic font-sans">by Nasim Mohammmadian (<a href="https://t.me/nsmmhdn" target="_blank" class="text-blue-300 underline font-bold">t.me/nsmmhdn</a>)</p>
+        <header class="bg-slate-900 text-white p-5 shadow-lg border-b border-blue-900">
+            <div class="flex items-center justify-center gap-3">
+                <!-- Logo in Header -->
+                <img src="logo.png" alt="Logo" class="w-8 h-8 object-contain">
+                <div class="text-center">
+                    <h1 class="text-sm font-black text-blue-400 uppercase tracking-widest italic leading-tight">PTEinsider - Reading Studio</h1>
+                    <p class="text-[9px] opacity-70 italic font-sans text-white">by Nasim Mohammmadian (<a href="https://t.me/nsmmhdn" target="_blank" class="text-blue-300 underline font-bold">t.me/nsmmhdn</a>)</p>
+                </div>
+            </div>
         </header>
 
         <!-- Progress Tracker -->
@@ -173,7 +183,7 @@
                     academicWords = await fetchCSV('0'); 
                     examWords = await fetchCSV('1436328967'); 
                     quizData = await fetchCSV('1776379547');
-                    readingQuestions = await fetchCSV('1529009657');
+                    readingQuestions = await fetchCSV('1116132845');
                     try {
                         const syncRes = await fetch(APPS_SCRIPT_URL);
                         const allP = await syncRes.json();
@@ -192,7 +202,6 @@
             } catch (e) { alert("خطا در اتصال."); } finally { document.getElementById('loader').classList.add('hidden'); }
         }
 
-        // VOCAB RENDERER (RE-ENABLED DELETED FIELDS)
         function renderWords() {
             const start = (currentPage - 1) * itemsPerPage;
             const paged = filteredWords.slice(start, start + itemsPerPage);
@@ -229,7 +238,6 @@
             document.getElementById('itemsCount').innerText = `${filteredWords.length} مورد یافت شد`;
         }
 
-        // READING SECTION RENDERER
         function renderReading() {
             const container = document.getElementById('readingContent');
             if (readingQuestions.length === 0) { container.innerHTML = "<p class='text-center p-10 font-bold opacity-50 italic'>در حال بارگذاری سوالات...</p>"; return; }
@@ -259,7 +267,6 @@
             }).join('');
         }
 
-        // TAB SYSTEM
         function showTab(t) {
             activeTabName = t;
             ['vocabSection','quizSection','statsSection','vocabControls','readingSection'].forEach(id => document.getElementById(id).classList.add('hidden'));
@@ -275,7 +282,6 @@
             document.getElementById(btnId).className = "flex-1 py-4 tab-active transition-all text-xs";
         }
 
-        // QUIZ SYSTEM
         function showQuizHome() {
             document.getElementById('quizContent').innerHTML = `<div class="text-center p-8 animate-pop"><div class="text-6xl mb-6">📝</div><h2 class="text-2xl font-black text-slate-800 mb-4">آزمون جامع PTE</h2><p class="text-xs text-slate-400 mb-8 italic">آماده‌ای خودت رو به چالش بکشی؟</p><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl hover:bg-blue-700 transition-all">شروع آزمون</button></div>`;
         }
@@ -294,7 +300,6 @@
         }
         function renderQuizResult() { const p = Math.round((quizState.score/25)*100); quizHistory.push({ date: new Date().toLocaleDateString('fa-IR'), score: quizState.score }); saveProgress(); document.getElementById('quizContent').innerHTML = `<div class="text-center p-4 animate-pop"><h2 class="text-4xl font-black text-blue-600 mb-2 underline tracking-tighter">${p}% SCORE</h2><p class="mb-8 font-bold text-slate-500">${quizState.score} از 25 پاسخ صحیح</p><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">تلاش دوباره</button></div>`; }
 
-        // STATS & PROGRESS
         function renderStats() {
             const lA = academicWords.filter(w => learnedWords.includes(w[0])).length;
             const lE = examWords.filter(w => learnedWords.includes(w[0])).length;
@@ -313,7 +318,6 @@
             document.getElementById('motivationalText').innerText = activeMsg ? activeMsg.m : "";
         }
 
-        // HELPERS
         function toggleStatus(word, type) { if (type === 'learned') { if (learnedWords.includes(word)) learnedWords = learnedWords.filter(w => w !== word); else { learnedWords.push(word); hardWords = hardWords.filter(w => w !== word); } } else if (type === 'hard') { if (hardWords.includes(word)) hardWords = hardWords.filter(w => w !== word); else { hardWords.push(word); learnedWords = learnedWords.filter(w => w !== word); } } applyFilters(); updateProgress(); renderStats(); saveProgress(); }
         function applyFilters() { const s = document.getElementById('searchInput').value.toLowerCase(); const lvl = document.getElementById('levelFilter').value; const ds = activeTabName === 'academic' ? academicWords : examWords; filteredWords = ds.filter(w => { const isL = learnedWords.includes(w[0]), isH = hardWords.includes(w[0]); let matchStatus = (currentStatusFilter==='new') ? (!isL && !isH) : (currentStatusFilter==='learned' ? isL : isH); return matchStatus && w[0].toLowerCase().includes(s) && (lvl==='All' || (w[2] && w[2].includes(lvl))); }); renderWords(); }
         function setStatusFilter(f) { currentStatusFilter = f; ['btnNew', 'btnLearned', 'btnHard'].forEach(id => document.getElementById(id).className = "px-3 py-2 rounded-xl text-[9px] font-black border bg-white text-slate-400 transition-all"); document.getElementById(f === 'new' ? 'btnNew' : f === 'learned' ? 'btnLearned' : 'btnHard').className = "px-3 py-2 rounded-xl text-[9px] font-black filter-active whitespace-nowrap transition-all shadow-md"; currentPage = 1; applyFilters(); }
