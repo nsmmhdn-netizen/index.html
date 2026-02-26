@@ -195,25 +195,28 @@ async function attemptLogin() {
             // ----------------------------------------------
 
             // لود اطلاعات Apps Script (اگر خطا داد نادیده می‌گیرد)
-            try {
-                const syncRes = await fetch(APPS_SCRIPT_URL);
-                const allP = await syncRes.json();
-                const myP = allP.find(x => x.username.toLowerCase() === currentUser);
-                if (myP) {
-                    learnedWords = myP.learned ? myP.learned.split('|') : [];
-                    hardWords = myP.hard ? myP.hard.split('|') : [];
-                    quizHistory = myP.quizHistory ? JSON.parse(myP.quizHistory) : [];
-                }
-            } catch(e) { console.warn("AppsScript sync failed"); }
+            // داخل تابع attemptLogin، بعد از لود کردن لغات (academicWords و غیره):
 
-            document.getElementById('loginPage').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            document.getElementById('userNameDisplay').innerText = `${u.toUpperCase()} 😊🌻`;
-            
-            applyFilters(); 
-            updateProgress(); 
-            showQuizHome();
-            setTimeout(showWotd, 1500);
+try {
+    const syncRes = await fetch(APPS_SCRIPT_URL);
+    const allP = await syncRes.json();
+    const myP = allP.find(x => x.username.toLowerCase() === currentUser);
+    
+    if (myP) {
+        // بازگردانی لغات یادگرفته شده و سخت از شیت Progress
+        learnedWords = myP.learned ? myP.learned.split('|') : [];
+        hardWords = myP.hard ? myP.hard.split('|') : [];
+        quizHistory = myP.quizHistory ? JSON.parse(myP.quizHistory) : [];
+        console.log("Progress loaded from Sheets successfully!");
+    }
+} catch(e) { 
+    console.warn("Could not load progress from Sheets, using local state."); 
+}
+
+// حالا آپدیت آمار و پراگرس
+applyFilters(); 
+updateProgress(); 
+renderStats(); // اضافه شد
         } else { 
             document.getElementById('loginError').classList.remove('hidden'); 
         }
@@ -337,10 +340,15 @@ async function attemptLogin() {
 
         // اصلاح پاپ آپ کلمه روز (رفع ایراد شماره 2)
         function showWotd() {
-    // فقط کلماتی که ستون کلمه و معنی دارن رو انتخاب کن
-    const validWords = academicWords.filter(w => w[0] && w[1] && w[0].trim() !== "");
+    // مطمئن می‌شویم دیتا لود شده و ردیف‌های خالی حذف شده‌اند
+    const validWords = academicWords.filter(w => w && w[0] && w[0].trim() !== "" && w[0] !== "Word");
     
-    if (validWords.length === 0) return;
+    if (validWords.length === 0) {
+        console.log("Wotd: No valid words yet, retrying...");
+        setTimeout(showWotd, 2000); // اگر دیتا نبود ۲ ثانیه بعد دوباره تلاش کن
+        return;
+    }
+    
     if (localStorage.getItem('lastWotdDate') === new Date().toDateString()) return;
     
     const randomIndex = Math.floor(Math.random() * validWords.length);
@@ -348,7 +356,7 @@ async function attemptLogin() {
     
     document.getElementById('wotdWord').innerText = obj[0];
     document.getElementById('wotdTrans').innerText = obj[1];
-    document.getElementById('wotdExample').innerText = obj[3] || "No example provided.";
+    document.getElementById('wotdExample').innerText = obj[3] || "No example available.";
     document.getElementById('wotdModal').style.display = 'flex';
     localStorage.setItem('lastWotdDate', new Date().toDateString());
 }
@@ -412,24 +420,24 @@ async function attemptLogin() {
     const last = quizHistory.length ? quizHistory[quizHistory.length-1].score : 0;
     
     document.getElementById('statsContent').innerHTML = `
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-2 gap-4" dir="ltr">
             <div class="bg-blue-600 text-white p-6 rounded-3xl shadow-lg text-center">
-                <p class="text-[8px] uppercase font-bold opacity-70">Academic</p>
-                <!-- ترتیب اصلاح شد: خونده شده / کل -->
-                <div class="text-2xl font-black my-2">${lA} / ${academicWords.length}</div>
+                <p class="text-[8px] uppercase font-bold opacity-70">ACADEMIC</p>
+                <!-- نمایش لغات یادگرفته شده / کل -->
+                <div class="text-2xl font-black my-2" style="direction: ltr;">${lA} / ${academicWords.length}</div>
             </div>
             <div class="bg-yellow-400 text-slate-900 p-6 rounded-3xl shadow-lg text-center">
-                <p class="text-[8px] uppercase font-bold opacity-70">Collocations</p>
-                <div class="text-2xl font-black my-2">${lE} / ${examWords.length}</div>
+                <p class="text-[8px] uppercase font-bold opacity-70">COLLOCATIONS</p>
+                <div class="text-2xl font-black my-2" style="direction: ltr;">${lE} / ${examWords.length}</div>
             </div>
         </div>
         <div class="bg-white border-2 border-slate-100 p-8 rounded-3xl shadow-sm text-right">
-            <p class="font-black text-slate-800 mb-4 italic underline uppercase">History:</p>
-            <p class="text-xs mb-4 font-bold text-blue-600">آخرین آزمون: ${last} از 25</p>
+            <p class="font-black text-slate-800 mb-4 italic underline uppercase">HISTORY:</p>
+            <p class="text-xs mb-4 font-bold text-blue-600">آخرین آزمون: <span style="direction: ltr; display: inline-block;">${last} / 25</span></p>
             ${[...quizHistory].reverse().slice(0,5).map(h=>`
-                <div class="flex justify-between border-b py-2 text-xs font-bold text-slate-500">
+                <div class="flex justify-between border-b py-2 text-xs font-bold text-slate-500" dir="ltr">
                     <span>${h.date}</span>
-                    <span>Score: ${h.score}/25</span>
+                    <span>Score: ${h.score} / 25</span>
                 </div>`).join('') || 'No records.'}
         </div>`;
 }
@@ -469,21 +477,28 @@ async function attemptLogin() {
             b.classList.remove('hidden'); 
         }
 
-        function saveProgress() { 
-            if(!currentUser) return;
-            fetch(APPS_SCRIPT_URL,{
-                method:'POST',
-                mode: 'no-cors', // برای جلوگیری از خطای CORS در درخواست‌های ساده به گوگل
-                body:JSON.stringify({
-                    action:'saveProgress',
-                    username:currentUser,
-                    learned:learnedWords.join('|'),
-                    hard:hardWords.join('|'),
-                    quizHistory:JSON.stringify(quizHistory),
-                    deviceId:deviceId
-                })
-            }); 
-        }
+        ffunction saveProgress() { 
+    if(!currentUser) return;
+    
+    const payload = {
+        action: 'saveProgress',
+        username: currentUser,
+        learned: learnedWords.join('|'),
+        hard: hardWords.join('|'),
+        quizHistory: JSON.stringify(quizHistory),
+        deviceId: deviceId
+    };
+
+    // استفاده از روش متنی برای دور زدن محدودیت‌های CORS گوگل
+    fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors', // گوگل معمولا پاسخ POST را برنمی‌گرداند اما دیتا را ثبت می‌کند
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload)
+    }).then(() => {
+        console.log("Progress Sync Triggered...");
+    }).catch(err => console.error("Sync Error:", err));
+}
     </script>
 </body>
 </html>
