@@ -11,7 +11,7 @@
         @font-face { font-family: 'Vazir'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2'); }
         body { font-family: 'Vazir', sans-serif; background-color: #f1f5f9; user-select: none; touch-action: manipulation; }
         .english-text { font-family: 'Arial', sans-serif; direction: ltr; text-align: left; }
-        .persian-text { direction: rtl; text-align: right; }
+        .persian-text { direction: rtl; text-align: right; text-align: justify; text-justify: inter-word; }
         .tab-active { border-bottom: 4px solid #facc15 !important; color: #1e293b !important; font-weight: 900 !important; }
         .tab-inactive { border-bottom: 4px solid transparent; color: #94a3b8; font-weight: 600; }
         .filter-active { background-color: #2563eb !important; color: white !important; font-weight: 900; }
@@ -20,6 +20,7 @@
         .animate-pop { animation: pop 0.3s ease-out; }
         @keyframes pop { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .stat-number { direction: ltr; display: inline-block; font-family: 'Arial', sans-serif; }
+        .reading-option-active { background-color: #2563eb !important; color: white !important; border-color: #1e40af !important; transform: scale(1.05); }
     </style>
 </head>
 <body>
@@ -54,7 +55,6 @@
             <p class="text-[9px] mt-1 opacity-70 italic font-sans text-white">by Nasim Mohammmadian (<a href="https://t.me/nsmmhdn" target="_blank" class="text-blue-300 underline font-bold">t.me/nsmmhdn</a>)</p>
         </header>
 
-        <!-- Progress Tracker with LOGO -->
         <div class="p-5 bg-white border-b shadow-sm">
             <div class="flex justify-between items-center mb-3">
                 <div class="flex items-center gap-3">
@@ -107,10 +107,8 @@
             </div>
         </div>
 
-        <!-- READING SECTION (Flashcard Model) -->
         <div id="readingSection" class="p-4 hidden">
             <div id="readingContent" class="space-y-6"></div>
-            <!-- Reading Navigation -->
             <div class="flex justify-between items-center mt-8 px-2">
                 <button onclick="changeReadingPage(-1)" class="bg-white border p-4 rounded-full shadow-sm active:scale-95 transition-all">◀️</button>
                 <span id="readingPageInfo" class="text-[11px] font-black text-slate-400 tracking-widest italic uppercase">Card 1 / 1</span>
@@ -145,7 +143,7 @@
         
         let academicWords = [], examWords = [], readingQuestions = [], quizData = [], usersData = [];
         let learnedWords = [], hardWords = [], quizHistory = [], filteredWords = [];
-        let currentPage = 1, readingCurrentIdx = 0, itemsPerPage = 25, currentUser = null, currentStatusFilter = 'new', activeTabName = 'academic', quizState = {};
+        let currentPage = 1, readingCurrentIdx = 0, itemsPerPage = 25, currentUser = null, currentStatusFilter = 'new', activeTabName = 'academic', quizState = {}, readingSelections = {};
         const deviceId = localStorage.getItem('pte_device_id') || Math.random().toString(36).substr(2, 9);
         localStorage.setItem('pte_device_id', deviceId);
 
@@ -241,15 +239,22 @@
             document.getElementById('itemsCount').innerText = `${filteredWords.length} مورد یافت شد`;
         }
 
-        // --- READING SECTION (FLASHCARD) ---
+        // --- READING SECTION (UPDATED: Interactive Buttons & Scoring) ---
         function renderReading() {
             const container = document.getElementById('readingContent');
             if (readingQuestions.length === 0) { container.innerHTML = "<p class='text-center p-10 font-bold opacity-50 italic'>در حال بارگذاری سوالات...</p>"; return; }
             
             const q = readingQuestions[readingCurrentIdx];
-            const formattedOptions = q[11].split('/').map(opt => opt.trim()).join('<br>');
+            // پارس کردن آپشن‌ها
+            const optionGroups = q[11].split('/').map(group => {
+                const parts = group.trim().match(/(\d+)\.\s*(.*)/);
+                return parts ? { num: parts[1], choices: parts[2].split(',').map(c => c.trim()) } : null;
+            }).filter(g => g !== null);
+
+            // استایل‌دهی به ترجمه (بولد کردن محتوای داخل پرانتز)
+            const highlightedTrans = q[12].replace(/\((.*?)\)/g, '<b>($1)</b>');
             const formattedGrammar = q[14] ? q[14].replace(/(\d+\.)/g, '<br><b>$1</b>').replace('<br>', '') : 'نکته‌ای ثبت نشده است.';
-            const formattedCollocations = q[15] ? q[15].replace(/\//g, '<br>') : 'کالوکیشنی ثبت نشده است.';
+            const formattedCollocations = q[15] ? q[15].split('/').map(c => `<b>• ${c.trim()}</b>`).join('<br>') : 'کالوکیشنی ثبت نشده است.';
 
             container.innerHTML = `
                 <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border-2 border-slate-50 animate-pop relative overflow-hidden">
@@ -258,27 +263,45 @@
                             <p class="text-xs font-black text-slate-800 uppercase tracking-tighter">${q[1]}</p>
                             <p class="text-[9px] text-slate-400 font-bold italic">APEUni #${q[0]} <span class="opacity-40 ml-1">(${q[17]} repeats)</span></p>
                         </div>
-                        <span class="text-[10px] bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-black italic uppercase">${q[19] || 'General'}</span>
+                        <span class="text-[10px] bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-black italic uppercase tracking-tighter">${q[19] || 'General'}</span>
                     </div>
                     
                     <div id="readText" class="english-text text-[15px] leading-[2.2] mb-8 bg-slate-50 p-6 rounded-3xl border border-dashed border-slate-200" style="direction: ltr; text-align: justify;">
-                        ${q[2].replace(/\[Blank \d+\]/g, '<span class="inline-block w-12 border-b-2 border-blue-400 mx-1"></span>')}
+                        ${q[2].replace(/\[Blank (\d+)\]/g, (match, n) => `<span id="blank_display_${n}" class="inline-block min-w-[60px] border-b-2 border-blue-400 mx-1 text-center font-black text-blue-600 italic">(${n})</span>`)}
                     </div>
 
-                    <div id="transText" class="persian-text text-[14px] leading-[2] bg-blue-50/40 p-6 rounded-3xl mb-8 border border-blue-100 hidden animate-pop">
+                    <div id="transText" class="persian-text text-[14px] leading-[2.2] bg-blue-50/40 p-6 rounded-3xl mb-8 border border-blue-100 hidden animate-pop">
                         <b class="text-blue-600 block mb-2 underline">ترجمه فارسی متن:</b>
-                        ${q[12]}
+                        ${highlightedTrans}
+                    </div>
+
+                    <div id="scoreDisplay" class="hidden mb-6 text-center animate-pop">
+                        <div class="inline-block bg-slate-900 text-white px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest">
+                            Your Score: <span id="readingScoreVal" class="text-yellow-400 ml-1">0 / 0</span>
+                        </div>
+                    </div>
+
+                    <!-- INTERACTIVE OPTIONS BUTTONS -->
+                    <div class="mb-10 space-y-6">
+                        <p class="text-[10px] font-black text-slate-400 mb-2 uppercase italic english-text">Select your answers:</p>
+                        ${optionGroups.map(group => `
+                            <div class="space-y-2">
+                                <p class="text-[9px] font-black text-blue-500 uppercase ml-2">Blank ${group.num}:</p>
+                                <div class="flex flex-wrap gap-2" style="direction: ltr;">
+                                    ${group.choices.map(choice => `
+                                        <button onclick="selectReadingChoice(${group.num}, '${choice.replace(/'/g, "\\'")}')" 
+                                                id="opt_${group.num}_${choice.replace(/\s+/g, '_')}"
+                                                class="reading-opt-btn px-4 py-2 bg-white border-2 border-slate-100 rounded-xl text-xs font-bold text-slate-600 transition-all active:scale-95 shadow-sm">
+                                            ${choice}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
                     </div>
 
                     <div class="mb-8 flex justify-center">
                         <button onclick="toggleReadingAnswer()" id="readBtn" class="bg-green-600 text-white px-8 py-4 rounded-2xl font-black text-xs shadow-lg hover:bg-green-700 transition-all">نمایش پاسخ در متن و ترجمه</button>
-                    </div>
-
-                    <div class="mb-8">
-                        <p class="text-[10px] font-black text-slate-400 mb-2 uppercase italic english-text">Options Available:</p>
-                        <div class="english-text text-[13px] text-slate-600 bg-slate-50 p-6 rounded-2xl leading-loose border border-slate-100 font-medium">
-                            ${formattedOptions}
-                        </div>
                     </div>
 
                     <div class="space-y-4 mt-10">
@@ -292,7 +315,25 @@
                         </details>
                     </div>
                 </div>`;
+            readingSelections = {}; // ریست کردن انتخاب‌ها
             document.getElementById('readingPageInfo').innerText = `Card ${readingCurrentIdx + 1} / ${readingQuestions.length}`;
+        }
+
+        // تابع انتخاب گزینه در ریدینگ
+        function selectReadingChoice(blankNum, choice) {
+            // پیدا کردن تمام دکمه‌های مربوط به این بلنک و ریست کردن استایل
+            const buttons = document.querySelectorAll(`.reading-opt-btn[id^="opt_${blankNum}_"]`);
+            buttons.forEach(b => b.classList.remove('reading-option-active'));
+            
+            // فعال کردن دکمه انتخابی
+            const selectedBtn = document.getElementById(`opt_${blankNum}_${choice.replace(/\s+/g, '_')}`);
+            if(selectedBtn) selectedBtn.classList.add('reading-option-active');
+            
+            // ذخیره انتخاب
+            readingSelections[blankNum] = choice;
+            // آپدیت نمایشی در متن
+            const displaySpan = document.getElementById(`blank_display_${blankNum}`);
+            if(displaySpan) displaySpan.innerText = choice;
         }
 
         function toggleReadingAnswer() {
@@ -300,24 +341,42 @@
             const textDiv = document.getElementById(`readText`);
             const transDiv = document.getElementById(`transText`);
             const btn = document.getElementById(`readBtn`);
+            const scoreDiv = document.getElementById(`scoreDisplay`);
             
             if (btn.innerText.includes("نمایش")) {
                 let currentText = q[2];
+                let correctCount = 0;
+                let totalBlanks = 0;
+
                 for(let i=1; i<=8; i++) {
-                    const ans = q[i+2];
-                    if(ans && ans !== "-") {
-                        currentText = currentText.replace(`[Blank ${i}]`, `<b class="text-green-600 underline decoration-2 underline-offset-4 font-black">${ans}</b>`);
+                    const ans = q[i+2]; // ستون ۳ به بعد جواب‌ها هستند
+                    if(ans && ans.trim() !== "" && ans !== "-") {
+                        totalBlanks++;
+                        const userSel = readingSelections[i] || "";
+                        const isCorrect = userSel.trim().toLowerCase() === ans.trim().toLowerCase();
+                        if(isCorrect) correctCount++;
+
+                        const colorClass = isCorrect ? 'text-green-600' : 'text-red-500';
+                        currentText = currentText.replace(`[Blank ${i}]`, `<b class="${colorClass} underline decoration-2 underline-offset-4 font-black">${ans}</b>`);
                     }
                 }
+                
                 textDiv.innerHTML = currentText;
                 transDiv.classList.remove('hidden');
+                scoreDiv.classList.remove('hidden');
+                document.getElementById('readingScoreVal').innerText = `${correctCount} / ${totalBlanks}`;
+                
                 btn.innerText = "مخفی کردن پاسخ و ترجمه";
                 btn.classList.replace('bg-green-600', 'bg-slate-700');
             } else {
-                textDiv.innerHTML = q[2].replace(/\[Blank \d+\]/g, '<span class="inline-block w-12 border-b border-blue-400 mx-1"></span>');
+                textDiv.innerHTML = q[2].replace(/\[Blank (\d+)\]/g, (match, n) => `<span id="blank_display_${n}" class="inline-block min-w-[60px] border-b-2 border-blue-400 mx-1 text-center font-black text-blue-600 italic">(${n})</span>`);
                 transDiv.classList.add('hidden');
+                scoreDiv.classList.add('hidden');
                 btn.innerText = "نمایش پاسخ در متن و ترجمه";
                 btn.classList.replace('bg-slate-700', 'bg-green-600');
+                // پاک کردن استایل دکمه‌های آپشن
+                document.querySelectorAll('.reading-opt-btn').forEach(b => b.classList.remove('reading-option-active'));
+                readingSelections = {};
             }
         }
 
