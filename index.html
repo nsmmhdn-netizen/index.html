@@ -172,7 +172,7 @@ async function attemptLogin() {
 
     try {
         // حتما این اعداد GID را با فایل خودت چک کن:
-        usersData = await fetchCSV('1914745392'); // GID برگه Users
+        usersData = await fetchCSV('1914745392'); //1914745392
         
         const match = usersData.find(r => r[0].toString().toLowerCase().trim() === u && r[1].toString().trim() === p);
         
@@ -180,9 +180,9 @@ async function attemptLogin() {
             currentUser = u;
             
             // جایگزینی نام‌ها با GIDهای واقعی:
-            academicWords = await fetchCSV('0'); // 0
-            examWords = await fetchCSV('GID_کالوکیشن'); // 1436328967
-            quizData = await fetchCSV('GID_کوییز');   // 1776379547
+            academicWords = await fetchCSV('0'); //0
+            examWords = await fetchCSV('GID_کالوکیشن'); //1436328967
+            quizData = await fetchCSV('GID_کوییز');   //1776379547
             
             // بقیه کد برای سینک کردن با Apps Script...
             try {
