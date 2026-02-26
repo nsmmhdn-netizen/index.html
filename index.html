@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PTEinsider - Reading Studio</title>
+    <title>PTEinsider - Reading Studio V.02</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @font-face { font-family: 'Vazir'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2'); }
@@ -18,6 +18,8 @@
         .animate-pop { animation: pop 0.3s ease-out; }
         @keyframes pop { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .stat-number { direction: ltr; display: inline-block; font-family: 'Arial', sans-serif; }
+        /* استایل خاص برای تراز متن ریدینگ */
+        .reading-text-justify { text-align: justify; text-justify: inter-word; line-height: 2; }
     </style>
 </head>
 <body>
@@ -26,7 +28,7 @@
     <div id="loginPage" class="fixed inset-0 z-[100] bg-gradient-to-br from-blue-800 to-slate-950 flex items-center justify-center p-6">
         <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl text-center animate-pop">
             <h2 class="text-3xl font-black text-blue-700 mb-2 italic tracking-tighter">PTEinsider</h2>
-            <p class="text-slate-400 text-[10px] mb-8 font-bold tracking-[0.2em] uppercase">Reading Studio V.01</p>
+            <p class="text-slate-400 text-[10px] mb-8 font-bold tracking-[0.2em] uppercase">Reading Studio V.02</p>
             <div class="space-y-4">
                 <input id="userInp" type="text" placeholder="Username" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500 text-center english-text font-bold">
                 <div class="relative">
@@ -66,20 +68,19 @@
         </div>
 
         <nav class="flex bg-white sticky top-0 z-40 border-b shadow-sm overflow-x-auto no-scrollbar">
-            <button id="tabAcademic" onclick="showTab('academic')" class="flex-1 py-4 tab-active whitespace-nowrap text-xs">وکب آکادمیک</button>
+            <button id="tabAcademic" onclick="showTab('academic')" class="flex-1 py-4 tab-inactive whitespace-nowrap text-xs">وکب آکادمیک</button>
             <button id="tabExam" onclick="showTab('exam')" class="flex-1 py-4 tab-inactive whitespace-nowrap text-xs">کالوکیشن‌ها</button>
             <button id="tabReading" onclick="showTab('reading')" class="flex-1 py-4 tab-inactive whitespace-nowrap text-xs">سوالات ریدینگ</button>
             <button id="tabQuiz" onclick="showTab('quiz')" class="flex-1 py-4 tab-inactive whitespace-nowrap text-xs">آزمون جامع</button>
             <button id="tabStats" onclick="showTab('stats')" class="flex-1 py-4 tab-inactive whitespace-nowrap text-xs">آمار من</button>
         </nav>
 
-        <!-- Vocab Section -->
+        <!-- Search & Filters for Vocab -->
         <div id="vocabControls" class="p-4 bg-white border-b space-y-3 shadow-sm">
             <div class="relative">
                 <div class="flex gap-2">
-                    <input id="searchInput" oninput="handleSearchSuggestions()" type="text" placeholder="Search..." class="flex-1 p-3 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-400 text-sm english-text">
+                    <input id="searchInput" oninput="handleSearchSuggestions()" type="text" placeholder="Search Words..." class="flex-1 p-3 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-400 text-sm english-text">
                     <button onclick="applyFilters()" class="bg-blue-600 text-white px-5 rounded-2xl font-bold text-xs shadow-md">جستجو</button>
-                    <button onclick="resetFilters()" class="bg-slate-100 text-slate-600 px-3 rounded-2xl font-bold text-xs border">🔄</button>
                 </div>
                 <div id="searchSuggestions" class="absolute left-0 right-12 bg-white border-2 border-slate-100 rounded-2xl mt-1 shadow-xl z-50 max-h-48 overflow-y-auto hidden no-scrollbar"></div>
             </div>
@@ -87,42 +88,46 @@
                 <button onclick="setStatusFilter('new')" id="btnNew" class="px-3 py-2 rounded-xl text-[9px] font-black filter-active whitespace-nowrap transition-all">🌟 جدید</button>
                 <button onclick="setStatusFilter('learned')" id="btnLearned" class="px-3 py-2 rounded-xl text-[9px] font-black border bg-white text-slate-400 whitespace-nowrap transition-all">✅ آشنا</button>
                 <button onclick="setStatusFilter('hard')" id="btnHard" class="px-3 py-2 rounded-xl text-[9px] font-black border bg-white text-slate-400 whitespace-nowrap transition-all">🔥 سخت</button>
-                <select id="levelFilter" onchange="applyFilters()" class="px-3 py-2 rounded-xl text-[9px] font-black border bg-slate-50 outline-none"><option value="All">سطح</option><option value="A1">A1</option><option value="A2">A2</option><option value="B1">B1</option><option value="B2">B2</option><option value="C1">C1</option><option value="C2">C2</option><option value="Academic">Academic</option></select>
-                <select id="grammarFilter" onchange="applyFilters()" class="px-3 py-2 rounded-xl text-[9px] font-black border bg-slate-50 outline-none"><option value="All">گرامر</option><option value="Noun">اسم</option><option value="Verb">فعل</option><option value="Adjective">صفت</option><option value="Adverb">قید</option><option value="Conjunction">حرف ربط</option><option value="کالوکیشن">کالوکیشن</option><option value="حرف اضافه">حرف اضافه</option><option value="Other">سایر</option></select>
             </div>
-            <p id="itemsCount" class="text-[9px] text-slate-400 font-bold mr-1"></p>
         </div>
 
+        <!-- Search & Filters for Reading -->
+        <div id="readingControls" class="p-4 bg-white border-b space-y-3 shadow-sm hidden">
+            <div class="flex gap-2">
+                <input id="readSearch" type="text" placeholder="ID, Title, Text..." class="flex-1 p-3 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500 text-sm">
+                <button onclick="applyReadingFilters()" class="bg-slate-900 text-white px-4 rounded-2xl text-xs font-bold">🔍</button>
+            </div>
+            <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                <select id="taskFilter" onchange="applyReadingFilters()" class="px-3 py-2 rounded-xl text-[9px] font-black border bg-slate-50"><option value="All">All Tasks</option><option value="Drop Down">Drop Down</option><option value="Drag and Drop">Drag and Drop</option></select>
+                <button onclick="togglePredictionFilter()" id="btnPred" class="px-3 py-2 rounded-xl text-[9px] font-black border bg-white text-slate-400">💎 Prediction</button>
+                <select id="readSort" onchange="applyReadingFilters()" class="px-3 py-2 rounded-xl text-[9px] font-black border bg-slate-50"><option value="id">Sort: ID</option><option value="tested">Sort: Tested</option></select>
+            </div>
+        </div>
+
+        <!-- Sections -->
         <div id="vocabSection" class="p-4">
             <div id="wordsContainer" class="space-y-6"></div>
             <div id="pagination" class="flex justify-center items-center gap-6 mt-10 pb-10">
-                <button onclick="changePage(-1)" id="prevBtn" class="bg-slate-100 p-3 rounded-full shadow-sm disabled:opacity-20">◀️</button>
-                <span id="pageInfo" class="text-[10px] font-black text-slate-500 tracking-widest uppercase">Page 1</span>
-                <button onclick="changePage(1)" id="nextBtn" class="bg-slate-100 p-3 rounded-full shadow-sm disabled:opacity-20">▶️</button>
+                <button onclick="changePage(-1)" id="prevBtn" class="bg-slate-100 p-3 rounded-full shadow-sm">◀️</button>
+                <span id="pageInfo" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Page 1</span>
+                <button onclick="changePage(1)" id="nextBtn" class="bg-slate-100 p-3 rounded-full shadow-sm">▶️</button>
             </div>
         </div>
 
-        <!-- Reading Questions Section -->
         <div id="readingSection" class="p-4 hidden">
-            <div id="readingContent" class="space-y-8"></div>
+            <div id="readingContainer"></div>
         </div>
 
         <div id="quizSection" class="p-4 hidden"><div id="quizContent" class="bg-slate-50 border-2 border-white rounded-[2.5rem] p-6 shadow-lg min-h-[450px] flex flex-col justify-center"></div></div>
         <div id="statsSection" class="p-6 hidden"><div id="statsContent" class="space-y-6 text-right"></div></div>
 
-        <!-- WORD OF THE DAY MODAL -->
+        <!-- MODALS -->
         <div id="wotdModal" class="modal-bg fixed inset-0 z-50 flex items-center justify-center p-6 text-center">
             <div class="bg-white rounded-[2.5rem] overflow-hidden w-full shadow-2xl animate-pop max-w-sm">
-                <div class="bg-blue-600 p-6 text-white">
-                    <p class="text-[9px] uppercase font-black opacity-70 mb-1 tracking-widest italic">Study Recommendation</p>
-                    <h2 id="wotdWord" class="english-text text-4xl font-black italic underline decoration-blue-300 underline-offset-4">...</h2>
-                </div>
+                <div class="bg-blue-600 p-6 text-white"><h2 id="wotdWord" class="english-text text-4xl font-black italic">...</h2></div>
                 <div class="p-8">
-                    <p id="wotdTrans" class="text-xl font-black text-slate-700 mb-6 persian-text text-center border-b pb-4 border-slate-100">...</p>
-                    <div class="bg-blue-50 p-6 rounded-3xl mb-8 border border-blue-100 shadow-inner">
-                        <p id="wotdExample" class="english-text text-sm italic text-slate-600 leading-relaxed text-center">...</p>
-                    </div>
-                    <button onclick="closeWotd()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-xl uppercase italic text-xs tracking-widest">Start Studying</button>
+                    <p id="wotdTrans" class="text-xl font-black text-slate-700 mb-6 persian-text">...</p>
+                    <button onclick="closeWotd()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic text-xs">Start Studying</button>
                 </div>
             </div>
         </div>
@@ -133,11 +138,11 @@
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVfkhE8Cc5L2htsTO4WNvPTQykTYMtNTG7wsceftJEXF6Yjc4UVXIPvpGbVufkwPIw/exec'; 
         
         let academicWords = [], examWords = [], readingQuestions = [], quizData = [], usersData = [];
-        let learnedWords = [], hardWords = [], quizHistory = [], filteredWords = [];
-        let currentPage = 1, itemsPerPage = 25, currentUser = null, currentStatusFilter = 'new', activeTabName = 'academic', quizState = {};
+        let learnedWords = [], hardWords = [], readingStatus = {}, quizHistory = [], filteredWords = [], filteredReading = [];
+        let currentPage = 1, currentReadingIdx = 0, itemsPerPage = 25, currentUser = null, currentStatusFilter = 'new', activeTabName = 'academic', quizState = {}, predFilter = false;
         const deviceId = localStorage.getItem('pte_device_id') || Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('pte_device_id', deviceId);
 
+        // --- CORE FUNCTIONS ---
         function parseCSV(text) {
             const rows = []; let row = []; let col = ''; let inQuotes = false;
             for (let i = 0; i < text.length; i++) {
@@ -154,11 +159,9 @@
 
         async function fetchCSV(gid) {
             const url = `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?output=csv&gid=${gid}`;
-            try {
-                const res = await fetch(url);
-                const text = await res.text();
-                return parseCSV(text);
-            } catch (e) { console.error("CSV Fetch Error:", gid, e); return []; }
+            const res = await fetch(url);
+            const text = await res.text();
+            return parseCSV(text);
         }
 
         async function attemptLogin() {
@@ -166,12 +169,9 @@
             const p = document.getElementById('passInp').value.trim();
             if(!u || !p) return;
             document.getElementById('loader').classList.remove('hidden');
-            document.getElementById('loginError').classList.add('hidden');
-
             try {
                 usersData = await fetchCSV('1914745392'); 
-                const match = usersData.find(r => r[0].toString().toLowerCase().trim() === u && r[1].toString().trim() === p);
-                
+                const match = usersData.find(r => r[0].toLowerCase().trim() === u && r[1].trim() === p);
                 if (match) {
                     currentUser = u;
                     academicWords = await fetchCSV('0'); 
@@ -179,18 +179,17 @@
                     quizData = await fetchCSV('1776379547');
                     
                     // جایگذاری GID سوالات ریدینگ در خط زیر:
-                    readingQuestions = await fetchCSV('1529009657');
+                    readingQuestions = await fetchCSV('1321473216'); // 1529009657
 
-                    try {
-                        const syncRes = await fetch(APPS_SCRIPT_URL);
-                        const allP = await syncRes.json();
-                        const myP = allP.find(x => x.username.toLowerCase() === currentUser);
-                        if (myP) {
-                            learnedWords = myP.learned ? myP.learned.split('|') : [];
-                            hardWords = myP.hard ? myP.hard.split('|') : [];
-                            quizHistory = myP.quizHistory ? JSON.parse(myP.quizHistory) : [];
-                        }
-                    } catch(e) { console.warn("Apps Script sync failed"); }
+                    const syncRes = await fetch(APPS_SCRIPT_URL);
+                    const allP = await syncRes.json();
+                    const myP = allP.find(x => x.username.toLowerCase() === currentUser);
+                    if (myP) {
+                        learnedWords = myP.learned ? myP.learned.split('|') : [];
+                        hardWords = myP.hard ? myP.hard.split('|') : [];
+                        readingStatus = myP.readingStatus ? JSON.parse(myP.readingStatus) : {};
+                        quizHistory = myP.quizHistory ? JSON.parse(myP.quizHistory) : [];
+                    }
 
                     document.getElementById('loginPage').classList.add('hidden');
                     document.getElementById('mainApp').classList.remove('hidden');
@@ -204,129 +203,223 @@
             } catch (e) { alert("خطا در اتصال."); } finally { document.getElementById('loader').classList.add('hidden'); }
         }
 
-        // NEW: Reading Section Renderer (Based on your exact columns)
+        // --- READING TAB LOGIC ---
+        function applyReadingFilters() {
+            const s = document.getElementById('readSearch').value.toLowerCase();
+            const task = document.getElementById('taskFilter').value;
+            const sort = document.getElementById('readSort').value;
+
+            filteredReading = readingQuestions.filter(q => {
+                const matchSearch = q[0].includes(s) || q[1].toLowerCase().includes(s) || q[2].toLowerCase().includes(s);
+                const matchTask = (task === 'All' || q[18] === task);
+                const matchPred = (!predFilter || q[16].toLowerCase().includes('yes'));
+                return matchSearch && matchTask && matchPred;
+            });
+
+            if(sort === 'tested') filteredReading.sort((a,b) => parseInt(b[17] || 0) - parseInt(a[17] || 0));
+            else filteredReading.sort((a,b) => parseInt(a[0].replace('#','')) - parseInt(b[0].replace('#','')));
+
+            currentReadingIdx = 0;
+            renderReading();
+        }
+
+        function togglePredictionFilter() {
+            predFilter = !predFilter;
+            document.getElementById('btnPred').className = predFilter ? "px-3 py-2 rounded-xl text-[9px] font-black filter-active whitespace-nowrap" : "px-3 py-2 rounded-xl text-[9px] font-black border bg-white text-slate-400";
+            applyReadingFilters();
+        }
+
         function renderReading() {
-            const container = document.getElementById('readingContent');
-            if (readingQuestions.length === 0) {
-                container.innerHTML = "<p class='text-center p-10 font-bold opacity-50 italic'>در حال بارگذاری سوالات...</p>";
-                return;
-            }
-            container.innerHTML = readingQuestions.map((q, idx) => {
-                // استخراج جواب‌ها از ستون ۳ تا ۱۰
-                let answers = [];
-                for(let i=3; i<=10; i++) { if(q[i] && q[i].trim() !== "" && q[i] !== "-") answers.push(q[i]); }
+            const container = document.getElementById('readingContainer');
+            if (filteredReading.length === 0) { container.innerHTML = "<p class='text-center p-10 font-bold opacity-30'>No Questions Found.</p>"; return; }
+            
+            const q = filteredReading[currentReadingIdx];
+            const qId = q[0];
+            const userTag = readingStatus[qId] || 'none';
 
-                return `
-                <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border-2 border-slate-50 animate-pop relative overflow-hidden">
+            container.innerHTML = `
+                <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border-2 border-slate-50 animate-pop relative">
+                    <!-- Header -->
                     <div class="flex justify-between items-center mb-6 border-b pb-3">
-                        <div>
-                            <span class="bg-blue-600 text-white text-[8px] px-3 py-1 rounded-full font-black italic uppercase">APEUni #${q[0]}</span>
-                            <span class="text-[9px] font-black text-slate-800 mr-2 uppercase tracking-tighter">${q[1]}</span>
+                        <span class="text-[10px] font-black text-slate-800 english-text uppercase">${q[1]}</span>
+                        <div class="text-center">
+                            <span class="bg-blue-600 text-white text-[8px] px-3 py-1 rounded-full font-black italic">APEUni ${q[0]}</span>
+                            <span class="block text-[7px] text-slate-400 mt-1 uppercase font-bold">Tested: ${q[17] || 0}</span>
                         </div>
-                        <span class="text-[7px] bg-slate-100 px-2 py-1 rounded font-bold text-slate-400 italic">${q[19] || 'General'}</span>
-                    </div>
-                    
-                    <div class="english-text text-slate-700 leading-[1.8] mb-8 text-[13px] font-medium bg-slate-50 p-6 rounded-3xl border border-dashed border-slate-200">
-                        ${q[2].replace(/\[Blank \d+\]/g, '<span class="inline-block w-12 border-b-2 border-blue-400 mx-1"></span>')}
+                        <span class="text-[8px] bg-slate-100 px-3 py-1 rounded-full font-black text-slate-500 uppercase">${q[19] || 'PTE'}</span>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3 mb-8">
-                        ${answers.map((ans, i) => `
-                            <div class="flex items-center gap-2 bg-green-50 p-3 rounded-2xl border border-green-100">
-                                <span class="bg-green-500 text-white w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-black">${i+1}</span>
-                                <span class="english-text text-xs font-black text-green-700">${ans}</span>
-                            </div>
+                    <!-- English Text -->
+                    <div id="englishBox" class="english-text reading-text-justify text-slate-700 mb-8 text-[13px] font-medium leading-relaxed" style="direction: ltr;">
+                        ${q[2].replace(/\[Blank \d+\]/g, (match) => `<span class="blank-spot inline-block w-16 border-b-2 border-blue-300 mx-1 text-center font-bold text-blue-600"></span>`)}
+                    </div>
+
+                    <!-- Show Answer Button -->
+                    <button onclick="fillReadingBlanks()" class="w-full bg-green-500 text-white py-3 rounded-2xl font-black text-[10px] shadow-lg mb-8 uppercase tracking-widest">Show Answers in Text</button>
+
+                    <!-- Options List -->
+                    <div class="bg-slate-50 p-5 rounded-3xl border border-slate-100 mb-8">
+                        <p class="text-[8px] font-black text-slate-400 mb-4 uppercase italic">Options List:</p>
+                        <div class="english-text text-[11px] text-slate-600 space-y-3" style="direction: ltr;">
+                            ${q[11].split('/').map(opt => `<p class="border-b border-slate-200 pb-1">${opt.trim()}</p>`).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Difficulty Tags -->
+                    <div class="flex gap-2 justify-center mb-8">
+                        ${['Simple', 'Normal', 'Hard'].map(tag => `
+                            <button onclick="setReadingStatus('${qId}','${tag}')" class="px-4 py-2 rounded-xl text-[8px] font-black border transition-all ${userTag === tag ? 'bg-slate-900 text-white' : 'bg-white text-slate-400'}">${tag}</button>
                         `).join('')}
                     </div>
 
-                    <div class="mb-8">
-                        <p class="text-[9px] font-black text-slate-400 mb-2 uppercase italic">Options Available:</p>
-                        <p class="english-text text-[11px] text-slate-500 bg-slate-50 p-4 rounded-2xl leading-relaxed border border-slate-100">${q[11]}</p>
+                    <!-- Action Buttons -->
+                    <div class="grid grid-cols-3 gap-2 mb-6">
+                        <button onclick="toggleReadingDetail('transBox')" class="bg-blue-50 text-blue-600 py-3 rounded-xl font-black text-[9px]">TRANSLATION</button>
+                        <button onclick="toggleReadingDetail('grammarBox')" class="bg-amber-50 text-amber-600 py-3 rounded-xl font-black text-[9px]">GRAMMAR</button>
+                        <button onclick="toggleReadingDetail('collocBox')" class="bg-emerald-50 text-emerald-600 py-3 rounded-xl font-black text-[9px]">COLLOCATIONS</button>
                     </div>
 
-                    <details class="group bg-slate-900 rounded-[2rem] overflow-hidden transition-all shadow-xl">
-                        <summary class="p-5 text-[10px] font-black text-blue-400 cursor-pointer text-center list-none uppercase tracking-widest italic flex items-center justify-center gap-2">
-                            <span>Analysis & Translation</span>
-                            <span class="group-open:rotate-180 transition-transform">▼</span>
-                        </summary>
-                        <div class="p-6 space-y-6 bg-slate-800 animate-pop">
-                            <div class="persian-text">
-                                <p class="text-[10px] text-blue-300 font-black mb-3 border-b border-blue-900 pb-1 italic">📚 ترجمه متن:</p>
-                                <p class="text-[12px] text-slate-300 leading-7 font-medium">${q[12]}</p>
-                            </div>
-                            <div class="persian-text">
-                                <p class="text-[10px] text-yellow-400 font-black mb-3 border-b border-yellow-900 pb-1 italic">💡 نکات گرامری:</p>
-                                <p class="text-[11px] text-slate-300 leading-6">${q[14] || 'نکته‌ای ثبت نشده است.'}</p>
-                            </div>
-                            <div class="persian-text">
-                                <p class="text-[10px] text-green-400 font-black mb-3 border-b border-green-900 pb-1 italic">🔗 کالوکیشن‌های مهم:</p>
-                                <p class="text-[11px] text-slate-300 leading-6">${q[15] || 'کالوکیشنی ثبت نشده است.'}</p>
-                            </div>
+                    <!-- Detail Sections -->
+                    <div id="transBox" class="hidden animate-pop mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
+                            <div class="english-text text-[11px] text-slate-500 reading-text-justify" style="direction: ltr;">${q[2]}</div>
+                            <div class="persian-text text-[11px] text-slate-700 reading-text-justify leading-7">${q[12]}</div>
                         </div>
-                    </details>
-                </div>
-            `}).join('');
+                    </div>
+                    <div id="grammarBox" class="hidden animate-pop persian-text text-[11px] text-slate-600 bg-amber-50 p-5 rounded-3xl border-r-4 border-amber-400 mb-6 leading-relaxed">${q[14] || 'بدون محتوا'}</div>
+                    <div id="collocBox" class="hidden animate-pop english-text text-[11px] text-slate-600 bg-emerald-50 p-5 rounded-3xl border-l-4 border-emerald-400 mb-6" style="direction: ltr;">
+                         ${(q[15] || '').split('/').join('<br>')}
+                    </div>
+
+                    <!-- Navigation -->
+                    <div class="flex justify-between items-center border-t pt-6 mt-4">
+                        <button onclick="navReading(-1)" class="p-3 bg-slate-100 rounded-full">◀️</button>
+                        <span class="text-[9px] font-black text-slate-400">${currentReadingIdx + 1} / ${filteredReading.length}</span>
+                        <button onclick="navReading(1)" class="p-3 bg-slate-100 rounded-full">▶️</button>
+                    </div>
+                </div>`;
         }
 
-        // TAB SYSTEM
+        function fillReadingBlanks() {
+            const q = filteredReading[currentReadingIdx];
+            const blanks = document.querySelectorAll('.blank-spot');
+            for(let i=0; i<blanks.length; i++) {
+                const answer = q[i+3]; // ستون‌های D تا K (اندیس ۳ تا ۱۰)
+                if(answer && answer !== '-') blanks[i].innerText = answer;
+            }
+        }
+
+        function toggleReadingDetail(id) {
+            ['transBox', 'grammarBox', 'collocBox'].forEach(boxId => {
+                if(boxId === id) document.getElementById(boxId).classList.toggle('hidden');
+                else document.getElementById(boxId).classList.add('hidden');
+            });
+        }
+
+        function navReading(step) {
+            currentReadingIdx = Math.max(0, Math.min(filteredReading.length - 1, currentReadingIdx + step));
+            renderReading();
+            window.scrollTo(0, 0);
+        }
+
+        function setReadingStatus(id, status) {
+            readingStatus[id] = status;
+            renderReading();
+            saveProgress();
+        }
+
+        // --- QUIZ UPDATED ---
+        function confirmAnswer() {
+            if(!quizState.currentSelection) return alert("Select an option.");
+            const q = quizState.questions[quizState.currentIdx];
+            const isC = quizState.currentSelection.trim().toLowerCase() === q[5].toString().trim().toLowerCase();
+            if(isC) quizState.score++;
+            
+            // نمایش متن کامل با جواب و ترجمه
+            const sentence = q[0].replace('_______', `<b class="text-green-600 underline">${q[5]}</b>`);
+            
+            document.getElementById('quizContent').innerHTML = `
+                <div class="py-6 text-center animate-pop">
+                    <div class="text-7xl mb-4">${isC ? '✅' : '❌'}</div>
+                    <div class="english-text bg-white p-5 rounded-3xl mb-4 text-[13px] border italic text-slate-800 leading-relaxed">${sentence}</div>
+                    <div class="bg-blue-50 p-4 rounded-2xl mb-4 persian-text text-[11px] text-slate-600 leading-relaxed">${q[7] || ""}</div>
+                    <div class="bg-amber-50 p-4 rounded-2xl text-[10px] text-right border-r-4 border-amber-400 mb-8 font-bold leading-relaxed">${q[6] || "نکته گرامری ثبت نشده است."}</div>
+                    <button onclick="if(quizState.currentIdx<24){quizState.currentIdx++;showQuestion()}else{renderQuizResult()}" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg uppercase">Next Question</button>
+                </div>`;
+        }
+
+        // --- PROGRESS & STATS UPDATED ---
+        function updateProgress() {
+            const total = academicWords.length + examWords.length;
+            if (total === 0) return;
+            const lAll = academicWords.concat(examWords).filter(w => learnedWords.includes(w[0])).length;
+            const p = (lAll / total) * 100;
+            
+            document.getElementById('progressBar').style.width = Math.round(p) + '%';
+            document.getElementById('progressPercent').innerText = Math.round(p) + '%';
+
+            const msgs = [
+                {p:0, m:"آماده‌ای برای شروع؟ 🚀"},
+                {p:10, m:"عالیه! ۱۰ درصد مسیر طی شد. 🌟"},
+                {p:25, m:"یک چهارم راه رو اومدی! دمت گرم. 💪"},
+                {p:50, m:"نصف راه رو رفتی، چیزی نمونده! 🏆"},
+                {p:75, m:"فقط یک قدم دیگه تا پیروزی! 🎖️"},
+                {p:100, m:"تبریک! تو یک PTEinsider واقعی هستی! 🎉"}
+            ];
+            const activeMsg = [...msgs].reverse().find(m => p >= m.p);
+            document.getElementById('motivationalText').innerText = activeMsg ? activeMsg.m : "";
+        }
+
+        function renderStats() {
+            const solvedReading = Object.keys(readingStatus).length;
+            const lA = academicWords.filter(w => learnedWords.includes(w[0])).length;
+            const lE = examWords.filter(w => learnedWords.includes(w[0])).length;
+            
+            document.getElementById('statsContent').innerHTML = `
+                <div class="bg-slate-900 text-white p-6 rounded-[2.5rem] shadow-xl text-center mb-6">
+                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4 italic">Reading Progress</p>
+                    <div class="text-4xl font-black stat-number mb-2">${solvedReading} / ${readingQuestions.length}</div>
+                    <p class="text-[9px] opacity-50">متون ریدینگ تمرین شده</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4" dir="ltr">
+                    <div class="bg-white border-2 border-slate-100 p-6 rounded-3xl text-center">
+                        <p class="text-[8px] font-black text-slate-400 mb-2 uppercase">Academic</p>
+                        <div class="text-xl font-black stat-number text-blue-600">${lA} / ${academicWords.length}</div>
+                    </div>
+                    <div class="bg-white border-2 border-slate-100 p-6 rounded-3xl text-center">
+                        <p class="text-[8px] font-black text-slate-400 mb-2 uppercase">Collocations</p>
+                        <div class="text-xl font-black stat-number text-indigo-600">${lE} / ${examWords.length}</div>
+                    </div>
+                </div>`;
+        }
+
+        // --- APP NAVIGATION ---
         function showTab(t) {
             activeTabName = t;
-            ['vocabSection','quizSection','statsSection','vocabControls','readingSection'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            ['vocabSection','quizSection','statsSection','vocabControls','readingSection','readingControls'].forEach(id => document.getElementById(id).classList.add('hidden'));
             
             if(t === 'academic' || t === 'exam') {
                 document.getElementById('vocabSection').classList.remove('hidden');
                 document.getElementById('vocabControls').classList.remove('hidden');
                 currentPage = 1; applyFilters();
-            } else if (t === 'quiz') { 
-                document.getElementById('quizSection').classList.remove('hidden'); showQuizHome(); 
             } else if (t === 'reading') {
                 document.getElementById('readingSection').classList.remove('hidden');
-                renderReading();
+                document.getElementById('readingControls').classList.remove('hidden');
+                applyReadingFilters();
+            } else if (t === 'quiz') { 
+                document.getElementById('quizSection').classList.remove('hidden'); 
+                showQuizHome(); 
             } else { 
-                document.getElementById('statsSection').classList.remove('hidden'); renderStats(); 
+                document.getElementById('statsSection').classList.remove('hidden'); 
+                renderStats(); 
             }
 
             document.querySelectorAll('nav button').forEach(b => b.className = "flex-1 py-4 tab-inactive transition-all text-xs");
-            const btnId = t === 'academic' ? 'tabAcademic' : t === 'exam' ? 'tabExam' : t === 'quiz' ? 'tabQuiz' : t === 'reading' ? 'tabReading' : 'tabStats';
+            const btnId = t === 'academic' ? 'tabAcademic' : t === 'exam' ? 'tabExam' : t === 'reading' ? 'tabReading' : t === 'quiz' ? 'tabQuiz' : 'tabStats';
             document.getElementById(btnId).className = "flex-1 py-4 tab-active transition-all text-xs";
         }
 
-        // OTHER CORE FUNCTIONS (UNCHANGED)
-        function renderWords() {
-            const start = (currentPage - 1) * itemsPerPage;
-            const paged = filteredWords.slice(start, start + itemsPerPage);
-            document.getElementById('wordsContainer').innerHTML = paged.map(w => `
-                <div class="bg-white border-2 border-slate-50 rounded-[2.5rem] shadow-sm mb-8 animate-pop overflow-hidden">
-                    <div class="p-6 text-right">
-                        <div class="flex justify-between items-center mb-6">
-                            <div class="flex gap-2">
-                                <button onclick="toggleStatus('${w[0]}','hard')" class="w-10 h-10 rounded-2xl border flex items-center justify-center ${hardWords.includes(w[0]) ? 'bg-red-500 text-white border-red-500' : 'bg-slate-50 text-slate-300'} transition-all shadow-sm">🔥</button>
-                                <button onclick="toggleStatus('${w[0]}','learned')" class="w-10 h-10 rounded-2xl border flex items-center justify-center ${learnedWords.includes(w[0]) ? 'bg-green-500 text-white border-green-500' : 'bg-slate-50 text-slate-300'} transition-all shadow-sm">✓</button>
-                            </div>
-                            <div class="flex gap-2 items-center">
-                                ${ (activeTabName === 'exam' && w[8]) ? `<span class="bg-slate-900 text-white text-[7px] px-2 py-1 rounded font-bold italic">APEUni #${w[8]}</span>` : ''}
-                                <span class="text-[8px] px-3 py-1 rounded-full font-black border uppercase tracking-widest ${getLevelStyle(w[2])}">${w[2] || 'Any'}</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3 justify-end mb-2">
-                             <p class="english-text text-slate-400 text-[10px] font-mono italic">${w[6] || ''}</p>
-                             <h3 class="english-text text-2xl font-black text-slate-800">${w[0]} <span class="text-xl">${w[5] || ''}</span></h3>
-                             <button onclick="speak('${w[0]}')" class="text-xl active:scale-75 transition-all">🔊</button>
-                        </div>
-                        <p class="text-blue-700 font-black text-lg mb-6">${w[1]}</p>
-                        <div class="bg-slate-50 p-5 rounded-3xl border-r-8 border-blue-400 relative mb-4 shadow-inner text-left">
-                             <div class="flex items-start gap-3 english-text mb-4">
-                                <button onclick="speak(\`${w[3] ? w[3].replace(/'/g,"") : ""}\`)" class="text-lg opacity-40">🔊</button>
-                                <p class="text-sm text-slate-600 italic leading-relaxed text-left">${highlightWord(w[3] || '', w[0])}</p>
-                             </div>
-                             <p class="text-[11px] text-blue-500 font-black border-t pt-4 border-blue-100 text-right"><span class="bg-blue-600 text-white px-2 py-0.5 rounded text-[7px] ml-2 not-italic">Meaning</span>${w[7] || ''}</p>
-                        </div>
-                    </div>
-                </div>`).join('');
-            document.getElementById('pageInfo').innerText = `PAGE ${currentPage} / ${Math.ceil(filteredWords.length / itemsPerPage) || 1}`;
-            document.getElementById('itemsCount').innerText = `${filteredWords.length} مورد یافت شد`;
-        }
-
+        // --- ORIGINAL UTILS (SAVED) ---
         function toggleStatus(word, type) {
             if (type === 'learned') {
                 if (learnedWords.includes(word)) learnedWords = learnedWords.filter(w => w !== word);
@@ -340,13 +433,11 @@
 
         function applyFilters() {
             const s = document.getElementById('searchInput').value.toLowerCase();
-            const lvl = document.getElementById('levelFilter').value;
-            const grm = document.getElementById('grammarFilter').value;
             const ds = activeTabName === 'academic' ? academicWords : examWords;
             filteredWords = ds.filter(w => {
                 const isL = learnedWords.includes(w[0]), isH = hardWords.includes(w[0]);
                 let matchStatus = (currentStatusFilter==='new') ? (!isL && !isH) : (currentStatusFilter==='learned' ? isL : isH);
-                return matchStatus && w[0].toLowerCase().includes(s) && (lvl==='All' || (w[2] && w[2].includes(lvl)));
+                return matchStatus && w[0].toLowerCase().includes(s);
             });
             renderWords();
         }
@@ -358,34 +449,27 @@
             currentPage = 1; applyFilters();
         }
 
-        function renderStats() {
-            const lA = academicWords.filter(w => learnedWords.includes(w[0])).length;
-            const lE = examWords.filter(w => learnedWords.includes(w[0])).length;
-            const last = quizHistory.length ? quizHistory[quizHistory.length-1].score : 0;
-            document.getElementById('statsContent').innerHTML = `
-                <div class="grid grid-cols-2 gap-4" dir="ltr">
-                    <div class="bg-blue-600 text-white p-6 rounded-3xl shadow-lg text-center">
-                        <p class="text-[8px] uppercase font-bold opacity-70">ACADEMIC</p>
-                        <div class="text-2xl font-black my-2 stat-number">${lA} / ${academicWords.length}</div>
+        function renderWords() {
+            const start = (currentPage - 1) * itemsPerPage;
+            const paged = filteredWords.slice(start, start + itemsPerPage);
+            document.getElementById('wordsContainer').innerHTML = paged.map(w => `
+                <div class="bg-white border-2 border-slate-50 rounded-[2.5rem] shadow-sm mb-8 animate-pop overflow-hidden">
+                    <div class="p-6 text-right">
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="flex gap-2">
+                                <button onclick="toggleStatus('${w[0]}','hard')" class="w-10 h-10 rounded-2xl border flex items-center justify-center ${hardWords.includes(w[0]) ? 'bg-red-500 text-white border-red-500' : 'bg-slate-50 text-slate-300'} transition-all shadow-sm">🔥</button>
+                                <button onclick="toggleStatus('${w[0]}','learned')" class="w-10 h-10 rounded-2xl border flex items-center justify-center ${learnedWords.includes(w[0]) ? 'bg-green-500 text-white border-green-500' : 'bg-slate-50 text-slate-300'} transition-all shadow-sm">✓</button>
+                            </div>
+                            <span class="text-[8px] px-3 py-1 rounded-full font-black border uppercase tracking-widest ${getLevelStyle(w[2])}">${w[2] || 'Any'}</span>
+                        </div>
+                        <h3 class="english-text text-2xl font-black text-slate-800">${w[0]}</h3>
+                        <p class="text-blue-700 font-black text-lg mb-6">${w[1]}</p>
+                        <div class="bg-slate-50 p-5 rounded-3xl border-r-8 border-blue-400 text-left">
+                            <p class="text-sm text-slate-600 italic leading-relaxed english-text">${w[3] || ''}</p>
+                        </div>
                     </div>
-                    <div class="bg-yellow-400 text-slate-900 p-6 rounded-3xl shadow-lg text-center">
-                        <p class="text-[8px] uppercase font-bold opacity-70">COLLOCATIONS</p>
-                        <div class="text-2xl font-black my-2 stat-number">${lE} / ${examWords.length}</div>
-                    </div>
-                </div>
-                <div class="bg-white border-2 border-slate-100 p-8 rounded-3xl shadow-sm text-right">
-                    <p class="font-black text-slate-800 mb-4 italic underline uppercase">HISTORY:</p>
-                    <p class="text-xs mb-4 font-bold text-blue-600">آخرین آزمون: <span class="stat-number">${last} / 25</span></p>
-                </div>`;
-        }
-
-        function updateProgress() {
-            const total = academicWords.length + examWords.length;
-            if (total === 0) return;
-            const lAll = academicWords.concat(examWords).filter(w => learnedWords.includes(w[0])).length;
-            const p = (lAll / total) * 100;
-            document.getElementById('progressBar').style.width = Math.round(p) + '%';
-            document.getElementById('progressPercent').innerText = Math.round(p) + '%';
+                </div>`).join('');
+            document.getElementById('pageInfo').innerText = `PAGE ${currentPage} / ${Math.ceil(filteredWords.length / itemsPerPage) || 1}`;
         }
 
         function saveProgress() { 
@@ -393,6 +477,7 @@
             const payload = {
                 action: 'saveProgress', username: currentUser,
                 learned: learnedWords.join('|'), hard: hardWords.join('|'),
+                readingStatus: JSON.stringify(readingStatus),
                 quizHistory: JSON.stringify(quizHistory), deviceId: deviceId
             };
             fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }); 
@@ -400,19 +485,17 @@
 
         function togglePass() { const p = document.getElementById('passInp'); p.type = p.type === 'password' ? 'text' : 'password'; }
         function closeWotd() { document.getElementById('wotdModal').style.display = 'none'; }
-        function speak(t) { window.speechSynthesis.cancel(); const m = new SpeechSynthesisUtterance(t); m.lang = 'en-US'; m.rate = 0.8; window.speechSynthesis.speak(m); }
         function getLevelStyle(lvl) { if(!lvl) return ''; return lvl.includes('B2') ? 'bg-green-50 text-green-600 border-green-100' : lvl.includes('C1') ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-purple-50 text-purple-600 border-purple-100'; }
-        function highlightWord(s, w) { if (!w) return s; const regex = new RegExp(`(${w})`, 'gi'); return s.replace(regex, '<b class="text-blue-600 underline font-black">$1</b>'); }
         function changePage(s) { currentPage += s; renderWords(); window.scrollTo(0, 0); }
-        function resetFilters() { document.getElementById('searchInput').value = ''; applyFilters(); }
         function handleSearchSuggestions() { const v = document.getElementById('searchInput').value.toLowerCase(); const b = document.getElementById('searchSuggestions'); if(v.length < 2) { b.classList.add('hidden'); return; } const ds = activeTabName === 'academic' ? academicWords : examWords; const m = ds.filter(w => w[0].toLowerCase().includes(v)).slice(0,10); b.innerHTML = m.map(x => `<div onclick="document.getElementById('searchInput').value='${x[0]}';applyFilters();document.getElementById('searchSuggestions').classList.add('hidden')" class="p-3 border-b text-sm english-text hover:bg-blue-50 cursor-pointer">${x[0]}</div>`).join(''); b.classList.remove('hidden'); }
         
         function showQuizHome() {
             document.getElementById('quizContent').innerHTML = `
                 <div class="text-center p-8 animate-pop">
                     <div class="text-6xl mb-6">📝</div>
-                    <h2 class="text-2xl font-black text-slate-800 mb-4">آزمون جامع PTE</h2>
-                    <button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl hover:bg-blue-700">شروع آزمون</button>
+                    <h2 class="text-2xl font-black text-slate-800 mb-4 uppercase">PTE Comprehensive Quiz</h2>
+                    <p class="text-xs text-slate-400 mb-8 italic uppercase tracking-widest font-black">25 Random Questions</p>
+                    <button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl hover:bg-blue-700">START QUIZ</button>
                 </div>`;
         }
 
@@ -425,29 +508,17 @@
             const q = quizState.questions[quizState.currentIdx];
             document.getElementById('quizContent').innerHTML = `
                 <div class="text-right flex flex-col h-full animate-pop">
-                    <div class="flex justify-between items-center mb-8"><span class="text-[10px] bg-slate-200 px-4 py-1.5 rounded-full font-black">Q ${quizState.currentIdx + 1} / 25</span></div>
-                    <div class="english-text bg-slate-900 p-8 rounded-[2rem] mb-6 text-white shadow-xl text-lg font-medium">${q[0].toString().replace('_______', '<b>_________</b>')}</div>
-                    <div class="grid gap-3 mb-6">${[1,2,3,4].map(i => `<button id="opt${i}" onclick="quizState.currentSelection='${q[i]}';[1,2,3,4].forEach(j=>document.getElementById('opt'+j).className='english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold');document.getElementById('opt${i}').className='english-text text-left w-full p-4 border-2 border-blue-500 bg-blue-50 rounded-2xl font-black'" class="english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold">${q[i] || ""}</button>`).join('')}</div>
-                    <button onclick="confirmAnswer()" class="bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg">ثبت پاسخ</button>
-                </div>`;
-        }
-
-        function confirmAnswer() {
-            const q = quizState.questions[quizState.currentIdx];
-            const isC = quizState.currentSelection.trim().toLowerCase() === q[5].toString().trim().toLowerCase();
-            if(isC) quizState.score++;
-            document.getElementById('quizContent').innerHTML = `
-                <div class="py-6 text-center animate-pop">
-                    <div class="text-8xl mb-4">${isC ? '✅' : '❌'}</div>
-                    <p class="text-blue-600 font-bold mb-8 italic">Correct Answer: ${q[5]}</p>
-                    <button onclick="if(quizState.currentIdx<24){quizState.currentIdx++;showQuestion()}else{renderQuizResult()}" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg">NEXT QUESTION</button>
+                    <div class="flex justify-between items-center mb-8"><span class="text-[10px] bg-slate-200 px-4 py-1.5 rounded-full font-black uppercase">Question ${quizState.currentIdx + 1}</span></div>
+                    <div class="english-text bg-slate-900 p-8 rounded-[2rem] mb-6 text-white shadow-xl text-[14px] leading-relaxed">${q[0].toString().replace('_______', '<span class="text-blue-400 font-bold border-b-2">_________</span>')}</div>
+                    <div class="grid gap-3 mb-6">${[1,2,3,4].map(i => `<button id="opt${i}" onclick="quizState.currentSelection='${q[i]}';[1,2,3,4].forEach(j=>document.getElementById('opt'+j).className='english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold');document.getElementById('opt${i}').className='english-text text-left w-full p-4 border-2 border-blue-500 bg-blue-50 rounded-2xl font-black text-blue-700'" class="english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold">${q[i] || ""}</button>`).join('')}</div>
+                    <button onclick="confirmAnswer()" class="bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg uppercase">Submit Answer</button>
                 </div>`;
         }
 
         function renderQuizResult() { 
             const p = Math.round((quizState.score/25)*100); 
             quizHistory.push({ date: new Date().toLocaleDateString('fa-IR'), score: quizState.score }); saveProgress();
-            document.getElementById('quizContent').innerHTML = `<div class="text-center p-4 animate-pop"><h2 class="text-4xl font-black text-blue-600 mb-2">${p}% SCORE</h2><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">تلاش دوباره</button></div>`; 
+            document.getElementById('quizContent').innerHTML = `<div class="text-center p-4 animate-pop"><h2 class="text-4xl font-black text-blue-600 mb-2">${p}%</h2><p class="font-black text-slate-800 mb-8 uppercase">Correct: ${quizState.score} / 25</p><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl uppercase tracking-widest">Retake Quiz</button></div>`; 
         }
 
         function showWotd() {
@@ -456,7 +527,6 @@
             const obj = valid[Math.floor(Math.random() * valid.length)];
             document.getElementById('wotdWord').innerText = obj[0];
             document.getElementById('wotdTrans').innerText = obj[1];
-            document.getElementById('wotdExample').innerText = obj[3] || "No example available.";
             document.getElementById('wotdModal').style.display = 'flex';
         }
 
