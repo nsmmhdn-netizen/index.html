@@ -27,7 +27,6 @@
     <!-- LOGIN PAGE -->
     <div id="loginPage" class="fixed inset-0 z-[100] bg-gradient-to-br from-blue-800 to-slate-950 flex items-center justify-center p-6">
         <div class="bg-white w-full max-w-[400px] rounded-[2.5rem] p-8 shadow-2xl text-center animate-pop mx-auto">
-            <!-- Logo in Login Page -->
             <img src="logo.png" alt="Logo" class="w-24 h-24 mx-auto mb-4 object-contain">
             <h2 class="text-3xl font-black text-blue-700 mb-1 italic tracking-tighter">PTEinsider</h2>
             <p class="text-slate-400 text-[10px] mb-8 font-bold tracking-[0.2em] uppercase">Reading Studio V.01</p>
@@ -60,7 +59,6 @@
             <div class="flex justify-between items-center mb-3">
                 <div class="flex items-center gap-3">
                     <span id="progressPercent" class="text-3xl font-black text-blue-600 italic leading-none">0%</span>
-                    <!-- Logo in Progress Tracker (Visible on White) -->
                     <img src="logo.png" alt="Logo" class="w-10 h-10 object-contain">
                 </div>
                 <div class="text-right">
@@ -236,12 +234,20 @@
             document.getElementById('itemsCount').innerText = `${filteredWords.length} مورد یافت شد`;
         }
 
+        // --- READING SECTION RENDERER (UPDATED) ---
         function renderReading() {
             const container = document.getElementById('readingContent');
             if (readingQuestions.length === 0) { container.innerHTML = "<p class='text-center p-10 font-bold opacity-50 italic'>در حال بارگذاری سوالات...</p>"; return; }
             container.innerHTML = readingQuestions.map((q, idx) => {
                 let answers = [];
                 for(let i=3; i<=10; i++) { if(q[i] && q[i].trim() !== "" && q[i] !== "-") answers.push(q[i]); }
+                
+                // فرمت کردن آپشن‌ها: جایگزینی / با اینتر و تراز از چپ
+                const formattedOptions = q[11].split('/').map(opt => opt.trim()).join('<br>');
+                // فرمت کردن تحلیل و کالوکیشن: هر شماره در یک سطر
+                const formattedGrammar = q[14] ? q[14].replace(/(\d+\.)/g, '<br>$1').replace('<br>', '') : 'نکته‌ای ثبت نشده است.';
+                const formattedCollocations = q[15] ? q[15].replace(/\//g, '<br>') : 'کالوکیشنی ثبت نشده است.';
+
                 return `
                 <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border-2 border-slate-50 animate-pop relative overflow-hidden">
                     <div class="flex justify-between items-center mb-6 border-b pb-3">
@@ -251,18 +257,59 @@
                         </div>
                         <span class="text-[7px] bg-slate-100 px-2 py-1 rounded font-bold text-slate-400 italic">${q[19] || 'General'}</span>
                     </div>
-                    <div class="english-text text-slate-700 leading-[1.8] mb-8 text-[13px] font-medium bg-slate-50 p-6 rounded-3xl border border-dashed border-slate-200">${q[2].replace(/\[Blank \d+\]/g, '<span class="inline-block w-12 border-b-2 border-blue-400 mx-1"></span>')}</div>
-                    <div class="grid grid-cols-2 gap-3 mb-8">${answers.map((ans, i) => `<div class="flex items-center gap-2 bg-green-50 p-3 rounded-2xl border border-green-100"><span class="bg-green-500 text-white w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-black">${i+1}</span><span class="english-text text-xs font-black text-green-700">${ans}</span></div>`).join('')}</div>
+                    
+                    <!-- متن انگلیسی: تراز شده از راست -->
+                    <div id="readText_${idx}" class="english-text text-slate-700 leading-[2] mb-8 text-[14px] font-medium bg-slate-50 p-6 rounded-3xl border border-dashed border-slate-200" style="text-align: right;">
+                        ${q[2].replace(/\[Blank \d+\]/g, '<span class="inline-block w-12 border-b-2 border-blue-400 mx-1"></span>')}
+                    </div>
+
+                    <!-- دکمه نمایش پاسخ در متن -->
+                    <div class="mb-8 flex justify-center">
+                        <button onclick="toggleReadingAnswer(${idx})" id="readBtn_${idx}" class="bg-green-600 text-white px-8 py-3 rounded-2xl font-black text-xs shadow-lg hover:bg-green-700 transition-all">نمایش پاسخ در متن</button>
+                    </div>
+
+                    <!-- آپشن‌ها: تراز از چپ و انگلیسی -->
+                    <div class="mb-8">
+                        <p class="text-[9px] font-black text-slate-400 mb-2 uppercase italic text-right">Options Available:</p>
+                        <div class="english-text text-[11px] text-slate-500 bg-slate-50 p-5 rounded-2xl leading-loose border border-slate-100" style="text-align: left; direction: ltr;">
+                            ${formattedOptions}
+                        </div>
+                    </div>
+
                     <details class="group bg-slate-900 rounded-[2rem] overflow-hidden transition-all shadow-xl">
                         <summary class="p-5 text-[10px] font-black text-blue-400 cursor-pointer text-center list-none uppercase tracking-widest italic flex items-center justify-center gap-2"><span>Analysis & Translation</span><span class="group-open:rotate-180 transition-transform">▼</span></summary>
                         <div class="p-6 space-y-6 bg-slate-800 animate-pop">
-                            <div class="persian-text"><p class="text-[10px] text-blue-300 font-black mb-3 border-b border-blue-900 pb-1 italic">📚 ترجمه متن:</p><p class="text-[12px] text-slate-300 leading-7 font-medium">${q[12]}</p></div>
-                            <div class="persian-text"><p class="text-[10px] text-yellow-400 font-black mb-3 border-b border-yellow-900 pb-1 italic">💡 نکات گرامری:</p><p class="text-[11px] text-slate-300 leading-6">${q[14] || 'نکته‌ای ثبت نشده است.'}</p></div>
-                            <div class="persian-text"><p class="text-[10px] text-green-400 font-black mb-3 border-b border-green-900 pb-1 italic">🔗 کالوکیشن‌های مهم:</p><p class="text-[11px] text-slate-300 leading-6">${q[15] || 'کالوکیشنی ثبت نشده است.'}</p></div>
+                            <div class="persian-text"><p class="text-[10px] text-blue-300 font-black mb-3 border-b border-blue-900 pb-1 italic text-right">📚 ترجمه متن:</p><p class="text-[12px] text-slate-300 leading-7 font-medium text-right">${q[12]}</p></div>
+                            <div class="persian-text"><p class="text-[10px] text-yellow-400 font-black mb-3 border-b border-yellow-900 pb-1 italic text-right">💡 نکات گرامری:</p><div class="text-[11px] text-slate-300 leading-7 text-right">${formattedGrammar}</div></div>
+                            <div class="persian-text"><p class="text-[10px] text-green-400 font-black mb-3 border-b border-green-900 pb-1 italic text-right">🔗 کالوکیشن‌های مهم:</p><div class="text-[11px] text-slate-300 leading-7 text-right">${formattedCollocations}</div></div>
                         </div>
                     </details>
                 </div>`;
             }).join('');
+        }
+
+        // تابع هندل کردن نمایش پاسخ در متن ریدینگ
+        function toggleReadingAnswer(idx) {
+            const q = readingQuestions[idx];
+            const textDiv = document.getElementById(`readText_${idx}`);
+            const btn = document.getElementById(`readBtn_${idx}`);
+            
+            if (btn.innerText === "نمایش پاسخ در متن") {
+                let currentText = q[2];
+                for(let i=1; i<=8; i++) {
+                    const ans = q[i+2]; // ستون ۳ به بعد جواب‌ها هستند
+                    if(ans && ans !== "-") {
+                        currentText = currentText.replace(`[Blank ${i}]`, `<b class="text-green-600 underline px-1 mx-1 decoration-2 underline-offset-4 font-black">${ans}</b>`);
+                    }
+                }
+                textDiv.innerHTML = currentText;
+                btn.innerText = "مخفی کردن پاسخ";
+                btn.classList.replace('bg-green-600', 'bg-slate-700');
+            } else {
+                textDiv.innerHTML = q[2].replace(/\[Blank \d+\]/g, '<span class="inline-block w-12 border-b-2 border-blue-400 mx-1"></span>');
+                btn.innerText = "نمایش پاسخ در متن";
+                btn.classList.replace('bg-slate-700', 'bg-green-600');
+            }
         }
 
         function showTab(t) {
@@ -294,7 +341,7 @@
             const isC = quizState.currentSelection.trim().toLowerCase() === q[5].toString().trim().toLowerCase();
             if(isC) quizState.score++;
             const sentence = q[0].replace('_______', '<b class="text-blue-600 underline">' + q[5] + '</b>');
-            document.getElementById('quizContent').innerHTML = `<div class="py-6 text-center animate-pop"><div class="text-7xl mb-4">${isC ? '✅' : '❌'}</div><div class="english-text bg-white p-5 rounded-3xl mb-4 text-[13px] border italic text-slate-700 leading-relaxed shadow-sm">${sentence}</div><div class="space-y-3 mb-8"><div class="bg-blue-50 p-4 rounded-2xl text-right border-r-4 border-blue-500"><p class="text-[10px] font-black text-blue-600 mb-1 italic">📚 ترجمه:</p><p class="text-[11px] text-slate-600 font-medium">${q[6] || 'بدون ترجمه'}</p></div><div class="bg-amber-50 p-4 rounded-2xl text-right border-r-4 border-amber-400"><p class="text-[10px] font-black text-amber-600 mb-1 italic">💡 تحلیل گرامری:</p><p class="text-[11px] text-slate-600 font-medium">${q[7] || 'بدون تحلیل'}</p></div></div><button onclick="if(quizState.currentIdx<24){quizState.currentIdx++;quizState.currentSelection=null;showQuestion()}else{renderQuizResult()}" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg">NEXT QUESTION</button></div>`;
+            document.getElementById('quizContent').innerHTML = `<div class="py-6 text-center animate-pop"><div class="text-7xl mb-4">${isC ? '✅' : '❌'}</div><div class="english-text bg-white p-5 rounded-3xl mb-4 text-[13px] border italic text-slate-700 leading-relaxed shadow-sm">${sentence}</div><div class="space-y-3 mb-8"><div class="bg-blue-50 p-4 rounded-2xl text-right border-r-4 border-blue-500"><p class="text-[10px] font-black text-blue-600 mb-1 italic text-right">📚 ترجمه:</p><p class="text-[11px] text-slate-600 font-medium text-right">${q[6] || 'بدون ترجمه'}</p></div><div class="bg-amber-50 p-4 rounded-2xl text-right border-r-4 border-amber-400"><p class="text-[10px] font-black text-amber-600 mb-1 italic text-right">💡 تحلیل گرامری:</p><p class="text-[11px] text-slate-600 font-medium text-right">${q[7] || 'بدون تحلیل'}</p></div></div><button onclick="if(quizState.currentIdx<24){quizState.currentIdx++;quizState.currentSelection=null;showQuestion()}else{renderQuizResult()}" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg">NEXT QUESTION</button></div>`;
         }
         function renderQuizResult() { const p = Math.round((quizState.score/25)*100); quizHistory.push({ date: new Date().toLocaleDateString('fa-IR'), score: quizState.score }); saveProgress(); document.getElementById('quizContent').innerHTML = `<div class="text-center p-4 animate-pop"><h2 class="text-4xl font-black text-blue-600 mb-2 underline tracking-tighter">${p}% SCORE</h2><p class="mb-8 font-bold text-slate-500">${quizState.score} از 25 پاسخ صحیح</p><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">تلاش دوباره</button></div>`; }
 
