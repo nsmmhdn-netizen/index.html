@@ -351,16 +351,6 @@
                 </div>`;
         }
 
-        function showWotd() {
-            if (academicWords.length === 0 || localStorage.getItem('lastWotdDate') === new Date().toDateString()) return;
-            currentWotdObj = academicWords[Math.floor(Math.random() * academicWords.length)];
-            document.getElementById('wotdWord').innerText = currentWotdObj[0];
-            document.getElementById('wotdTrans').innerText = currentWotdObj[1];
-            document.getElementById('wotdExample').innerText = currentWotdObj[3];
-            document.getElementById('wotdModal').style.display = 'flex';
-            localStorage.setItem('lastWotdDate', new Date().toDateString());
-        }
-
         function initQuiz() { quizState = { currentIdx: 0, score: 0, questions: [...quizData].sort(()=>0.5-Math.random()).slice(0, 25), currentSelection: null }; showQuestion(); }
         function showQuestion() {
             const q = quizState.questions[quizState.currentIdx];
