@@ -121,18 +121,22 @@
     </div>
 
     <script>
-        const PUB_ID = '2PACX-1vRLfGnlIoQoX8NtHa99PvWeZIIcHh1s6Asc0jOIKewDKHq7fjiQ-KsZ0B7PVNANcjXtid63Wqih-zjC';
+        // آیدی اصلی شیت (استخراج شده از لینک ارسالی شما)
         const SHEET_ID = '1GOqwBlOym9WIVKLjHmR9xTJBgkICWj7bC92XAJoxuYg';
-        // ۱. لینک Web App گوگل اسکریپت خود را اینجا بگذارید:
+        // آیدی انتشار وب (برای اطمینان بیشتر)
+        const PUB_ID = '2PACX-1vRLfGnlIoQoX8NtHa99PvWeZIIcHh1s6Asc0jOIKewDKHq7fjiQ-KsZ0B7PVNANcjXtid63Wqih-zjC';
+        // لینک اسکریپت خود را اینجا بگذارید
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVfkhE8Cc5L2htsTO4WNvPTQykTYMtNTG7wsceftJEXF6Yjc4UVXIPvpGbVufkwPIw/exec'; 
 
         let academicWords = [], examWords = [], quizData = [], usersData = [], learnedWords = [], hardWords = [], quizHistory = [], filteredWords = [];
         let currentPage = 1, itemsPerPage = 25, currentUser = null, currentStatusFilter = 'new', activeTabName = 'academic', currentWotdObj = null;
+        
         const deviceId = localStorage.getItem('pte_device_id') || Math.random().toString(36).substr(2, 9);
         localStorage.setItem('pte_device_id', deviceId);
 
-        async function fetchCSV(sheetName) {
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(sheetName)}`;
+        // تابع دریافت اطلاعات - بهینه شده برای آیدی انتشار
+        async function fetchCSV(gid) {
+            const url = `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?output=csv&gid=${gid}`;
             const res = await fetch(url);
             const text = await res.text();
             const rows = []; let row = []; let col = ''; let inQuotes = false;
@@ -146,7 +150,7 @@
             }
             row.push(col); rows.push(row);
             return rows.slice(1).filter(r => r.length > 1);
-        }
+        }       }
 
         async function attemptLogin() {
             const u = document.getElementById('userInp').value.toLowerCase().trim();
@@ -156,37 +160,70 @@
             document.getElementById('loginError').classList.add('hidden');
 
             try {
-                usersData = await fetchCSV('Users');
-                const match = usersData.find(r => r[0].toString().toLowerCase().trim() === u && r[1].toString().trim() === p);
+                // ۱. ابتدا لیست کاربران را می‌گیریم
+                const uData = await fetchCSV('1914745392');
+                const match = uData.find(r => r[0].toString().toLowerCase().trim() === u && r[1].toString().trim() === p);
+                
                 if (match) {
+                    // ۲. چک کردن محدودیت دستگاه
                     const checkRes = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'checkDevice', username: u, deviceId: deviceId }) });
-                    if ((await checkRes.text()) === "LimitReached") { alert("خطا: حد ۳ دستگاه پر شده است!"); return; }
+                    if ((await checkRes.text()) === "LimitReached") { 
+                        alert("خطا: حد مجاز ۳ دستگاه پر شده است!"); 
+                        document.getElementById('loader').classList.add('hidden');
+                        return; 
+                    }
 
                     currentUser = u;
-                    academicWords = (await fetchCSV('Words')).sort(() => 0.5 - Math.random());
-                    examWords = (await fetchCSV('Collocations')).sort(() => 0.5 - Math.random());
-                    quizData = (await fetchCSV('Quizzes')).sort(() => 0.5 - Math.random());
+                    // ۳. دریافت تمام لغات و تست‌ها
+                    academicWords = (await fetchCSV('0')).sort(() => 0.5 - Math.random());
+                    examWords = (await fetchCSV('1436328967')).sort(() => 0.5 - Math.random());
+                    quizData = await fetchCSV('1776379547');
                     
-                    try {
-                        const syncRes = await fetch(APPS_SCRIPT_URL);
-                        const myP = (await syncRes.json()).find(x => x.username.toLowerCase() === currentUser);
-                        if (myP) {
-                            learnedWords = myP.learned ? myP.learned.split('|') : [];
-                            hardWords = myP.hard ? myP.hard.split('|') : [];
-                            quizHistory = myP.quizHistory ? JSON.parse(myP.quizHistory) : [];
-                        }
-                    } catch(e) {}
+                    // ۴. سینک کردن پیشرفت
+                    const syncRes = await fetch(APPS_SCRIPT_URL);
+                    const allP = await syncRes.json();
+                    const myP = allP.find(x => x.username.toLowerCase() === currentUser);
+                    if (myP) {
+                        learnedWords = myP.learned ? myP.learned.split('|') : [];
+                        hardWords = myP.hard ? myP.hard.split('|') : [];
+                        quizHistory = myP.quizHistory ? JSON.parse(myP.quizHistory) : [];
+                    }
 
+                    // ۵. نمایش اپلیکیشن
                     document.getElementById('loginPage').classList.add('hidden');
                     document.getElementById('mainApp').classList.remove('hidden');
                     document.getElementById('userNameDisplay').innerText = `${u.toUpperCase()} 😊🌻`;
-                    applyFilters(); updateProgress(); showQuizHome();
-                    setTimeout(showWotd, 4000);
-                } else { document.getElementById('loginError').classList.remove('hidden'); }
-            } catch (e) { alert("خطا در بارگذاری. Publish to Web را چک کنید."); }
-            finally { document.getElementById('loader').classList.add('hidden'); }
+                    
+                    applyFilters(); 
+                    updateProgress(); 
+                    showQuizHome();
+
+                    // ۶. باز کردن پاپ‌آپ (Word of the Day) با اطمینان از وجود دیتا
+                    setTimeout(() => {
+                        if (academicWords.length > 0) showWotd();
+                    }, 2000);
+
+                } else { 
+                    document.getElementById('loginError').classList.remove('hidden'); 
+                }
+            } catch (e) { 
+                alert("خطا در بارگذاری. اینترنت و وضعیت Publish شیت را چک کنید."); 
+            } finally { 
+                document.getElementById('loader').classList.add('hidden'); 
+            }
         }
 
+        function showWotd() {
+            if (academicWords.length === 0 || localStorage.getItem('lastWotdDate') === new Date().toDateString()) return;
+            currentWotdObj = academicWords[Math.floor(Math.random() * academicWords.length)];
+            
+            document.getElementById('wotdWord').innerText = currentWotdObj[0];
+            document.getElementById('wotdTrans').innerText = currentWotdObj[1];
+            document.getElementById('wotdExample').innerText = `"${currentWotdObj[3]}"`;
+            
+            document.getElementById('wotdModal').style.display = 'flex';
+            localStorage.setItem('lastWotdDate', new Date().toDateString());
+        }
         function highlightWord(s, w) {
             if (!w) return s;
             const regex = new RegExp(`(${w})`, 'gi');
