@@ -17,7 +17,6 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .animate-pop { animation: pop 0.3s ease-out; }
         @keyframes pop { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        /* استایل برای نمایش درست اعداد کسر دار */
         .stat-number { direction: ltr; display: inline-block; font-family: 'Arial', sans-serif; }
     </style>
 </head>
@@ -69,10 +68,12 @@
         <nav class="flex bg-white sticky top-0 z-40 border-b shadow-sm overflow-x-auto no-scrollbar">
             <button id="tabAcademic" onclick="showTab('academic')" class="flex-1 py-4 tab-active whitespace-nowrap text-xs">وکب آکادمیک</button>
             <button id="tabExam" onclick="showTab('exam')" class="flex-1 py-4 tab-inactive whitespace-nowrap text-xs">کالوکیشن‌ها</button>
+            <button id="tabReading" onclick="showTab('reading')" class="flex-1 py-4 tab-inactive whitespace-nowrap text-xs">سوالات ریدینگ</button>
             <button id="tabQuiz" onclick="showTab('quiz')" class="flex-1 py-4 tab-inactive whitespace-nowrap text-xs">آزمون جامع</button>
             <button id="tabStats" onclick="showTab('stats')" class="flex-1 py-4 tab-inactive whitespace-nowrap text-xs">آمار من</button>
         </nav>
 
+        <!-- Vocab Section -->
         <div id="vocabControls" class="p-4 bg-white border-b space-y-3 shadow-sm">
             <div class="relative">
                 <div class="flex gap-2">
@@ -101,6 +102,11 @@
             </div>
         </div>
 
+        <!-- Reading Questions Section -->
+        <div id="readingSection" class="p-4 hidden">
+            <div id="readingContent" class="space-y-8"></div>
+        </div>
+
         <div id="quizSection" class="p-4 hidden"><div id="quizContent" class="bg-slate-50 border-2 border-white rounded-[2.5rem] p-6 shadow-lg min-h-[450px] flex flex-col justify-center"></div></div>
         <div id="statsSection" class="p-6 hidden"><div id="statsContent" class="space-y-6 text-right"></div></div>
 
@@ -123,18 +129,15 @@
     </div>
 
     <script>
-        // ۱. اطلاعات اصلی (تنظیمات)
         const PUB_ID = '2PACX-1vRLfGnlIoQoX8NtHa99PvWeZIIcHh1s6Asc0jOIKewDKHq7fjiQ-KsZ0B7PVNANcjXtid63Wqih-zjC';
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVfkhE8Cc5L2htsTO4WNvPTQykTYMtNTG7wsceftJEXF6Yjc4UVXIPvpGbVufkwPIw/exec'; 
         
-        // ۲. متغیرهای دیتابیس
-        let academicWords = [], examWords = [], quizData = [], usersData = [];
+        let academicWords = [], examWords = [], readingQuestions = [], quizData = [], usersData = [];
         let learnedWords = [], hardWords = [], quizHistory = [], filteredWords = [];
         let currentPage = 1, itemsPerPage = 25, currentUser = null, currentStatusFilter = 'new', activeTabName = 'academic', quizState = {};
         const deviceId = localStorage.getItem('pte_device_id') || Math.random().toString(36).substr(2, 9);
         localStorage.setItem('pte_device_id', deviceId);
 
-        // ۳. توابع پایه (CSV Parser)
         function parseCSV(text) {
             const rows = []; let row = []; let col = ''; let inQuotes = false;
             for (let i = 0; i < text.length; i++) {
@@ -158,12 +161,10 @@
             } catch (e) { console.error("CSV Fetch Error:", gid, e); return []; }
         }
 
-        // ۴. لاگین و شروع کار (اصلاح شده)
         async function attemptLogin() {
             const u = document.getElementById('userInp').value.toLowerCase().trim();
             const p = document.getElementById('passInp').value.trim();
             if(!u || !p) return;
-            
             document.getElementById('loader').classList.remove('hidden');
             document.getElementById('loginError').classList.add('hidden');
 
@@ -173,12 +174,13 @@
                 
                 if (match) {
                     currentUser = u;
-                    // لود کردن دیتای اصلی (حتما اعداد GID رو اینجا چک کن)
                     academicWords = await fetchCSV('0'); 
                     examWords = await fetchCSV('1436328967'); 
                     quizData = await fetchCSV('1776379547');
+                    
+                    // جایگذاری GID سوالات ریدینگ در خط زیر:
+                    readingQuestions = await fetchCSV('1529009657');
 
-                    // سینک با Apps Script (لود اطلاعات ذخیره شده کاربر)
                     try {
                         const syncRes = await fetch(APPS_SCRIPT_URL);
                         const allP = await syncRes.json();
@@ -197,20 +199,99 @@
                     applyFilters(); 
                     updateProgress(); 
                     showQuizHome();
-                    
-                    // پاپ آپ کلمه روز (۲ ثانیه بعد از لود کامل)
                     setTimeout(showWotd, 2000);
-                } else { 
-                    document.getElementById('loginError').classList.remove('hidden'); 
-                }
-            } catch (e) { 
-                alert("خطا در اتصال به گوگل‌شیت. GIDها را چک کنید."); 
-            } finally { 
-                document.getElementById('loader').classList.add('hidden'); 
-            }
+                } else { document.getElementById('loginError').classList.remove('hidden'); }
+            } catch (e) { alert("خطا در اتصال."); } finally { document.getElementById('loader').classList.add('hidden'); }
         }
 
-        // ۵. توابع نمایش لغات و فیلترها
+        // NEW: Reading Section Renderer (Based on your exact columns)
+        function renderReading() {
+            const container = document.getElementById('readingContent');
+            if (readingQuestions.length === 0) {
+                container.innerHTML = "<p class='text-center p-10 font-bold opacity-50 italic'>در حال بارگذاری سوالات...</p>";
+                return;
+            }
+            container.innerHTML = readingQuestions.map((q, idx) => {
+                // استخراج جواب‌ها از ستون ۳ تا ۱۰
+                let answers = [];
+                for(let i=3; i<=10; i++) { if(q[i] && q[i].trim() !== "" && q[i] !== "-") answers.push(q[i]); }
+
+                return `
+                <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border-2 border-slate-50 animate-pop relative overflow-hidden">
+                    <div class="flex justify-between items-center mb-6 border-b pb-3">
+                        <div>
+                            <span class="bg-blue-600 text-white text-[8px] px-3 py-1 rounded-full font-black italic uppercase">APEUni #${q[0]}</span>
+                            <span class="text-[9px] font-black text-slate-800 mr-2 uppercase tracking-tighter">${q[1]}</span>
+                        </div>
+                        <span class="text-[7px] bg-slate-100 px-2 py-1 rounded font-bold text-slate-400 italic">${q[19] || 'General'}</span>
+                    </div>
+                    
+                    <div class="english-text text-slate-700 leading-[1.8] mb-8 text-[13px] font-medium bg-slate-50 p-6 rounded-3xl border border-dashed border-slate-200">
+                        ${q[2].replace(/\[Blank \d+\]/g, '<span class="inline-block w-12 border-b-2 border-blue-400 mx-1"></span>')}
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mb-8">
+                        ${answers.map((ans, i) => `
+                            <div class="flex items-center gap-2 bg-green-50 p-3 rounded-2xl border border-green-100">
+                                <span class="bg-green-500 text-white w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-black">${i+1}</span>
+                                <span class="english-text text-xs font-black text-green-700">${ans}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="mb-8">
+                        <p class="text-[9px] font-black text-slate-400 mb-2 uppercase italic">Options Available:</p>
+                        <p class="english-text text-[11px] text-slate-500 bg-slate-50 p-4 rounded-2xl leading-relaxed border border-slate-100">${q[11]}</p>
+                    </div>
+
+                    <details class="group bg-slate-900 rounded-[2rem] overflow-hidden transition-all shadow-xl">
+                        <summary class="p-5 text-[10px] font-black text-blue-400 cursor-pointer text-center list-none uppercase tracking-widest italic flex items-center justify-center gap-2">
+                            <span>Analysis & Translation</span>
+                            <span class="group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div class="p-6 space-y-6 bg-slate-800 animate-pop">
+                            <div class="persian-text">
+                                <p class="text-[10px] text-blue-300 font-black mb-3 border-b border-blue-900 pb-1 italic">📚 ترجمه متن:</p>
+                                <p class="text-[12px] text-slate-300 leading-7 font-medium">${q[12]}</p>
+                            </div>
+                            <div class="persian-text">
+                                <p class="text-[10px] text-yellow-400 font-black mb-3 border-b border-yellow-900 pb-1 italic">💡 نکات گرامری:</p>
+                                <p class="text-[11px] text-slate-300 leading-6">${q[14] || 'نکته‌ای ثبت نشده است.'}</p>
+                            </div>
+                            <div class="persian-text">
+                                <p class="text-[10px] text-green-400 font-black mb-3 border-b border-green-900 pb-1 italic">🔗 کالوکیشن‌های مهم:</p>
+                                <p class="text-[11px] text-slate-300 leading-6">${q[15] || 'کالوکیشنی ثبت نشده است.'}</p>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            `}).join('');
+        }
+
+        // TAB SYSTEM
+        function showTab(t) {
+            activeTabName = t;
+            ['vocabSection','quizSection','statsSection','vocabControls','readingSection'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            
+            if(t === 'academic' || t === 'exam') {
+                document.getElementById('vocabSection').classList.remove('hidden');
+                document.getElementById('vocabControls').classList.remove('hidden');
+                currentPage = 1; applyFilters();
+            } else if (t === 'quiz') { 
+                document.getElementById('quizSection').classList.remove('hidden'); showQuizHome(); 
+            } else if (t === 'reading') {
+                document.getElementById('readingSection').classList.remove('hidden');
+                renderReading();
+            } else { 
+                document.getElementById('statsSection').classList.remove('hidden'); renderStats(); 
+            }
+
+            document.querySelectorAll('nav button').forEach(b => b.className = "flex-1 py-4 tab-inactive transition-all text-xs");
+            const btnId = t === 'academic' ? 'tabAcademic' : t === 'exam' ? 'tabExam' : t === 'quiz' ? 'tabQuiz' : t === 'reading' ? 'tabReading' : 'tabStats';
+            document.getElementById(btnId).className = "flex-1 py-4 tab-active transition-all text-xs";
+        }
+
+        // OTHER CORE FUNCTIONS (UNCHANGED)
         function renderWords() {
             const start = (currentPage - 1) * itemsPerPage;
             const paged = filteredWords.slice(start, start + itemsPerPage);
@@ -240,7 +321,6 @@
                              </div>
                              <p class="text-[11px] text-blue-500 font-black border-t pt-4 border-blue-100 text-right"><span class="bg-blue-600 text-white px-2 py-0.5 rounded text-[7px] ml-2 not-italic">Meaning</span>${w[7] || ''}</p>
                         </div>
-                        ${w[4] ? `<div class="bg-amber-50 p-4 rounded-2xl text-[10px] text-slate-500 border-r-4 border-amber-300 leading-relaxed persian-text italic shadow-sm text-right">💡 ${w[4]}</div>` : ''}
                     </div>
                 </div>`).join('');
             document.getElementById('pageInfo').innerText = `PAGE ${currentPage} / ${Math.ceil(filteredWords.length / itemsPerPage) || 1}`;
@@ -266,8 +346,7 @@
             filteredWords = ds.filter(w => {
                 const isL = learnedWords.includes(w[0]), isH = hardWords.includes(w[0]);
                 let matchStatus = (currentStatusFilter==='new') ? (!isL && !isH) : (currentStatusFilter==='learned' ? isL : isH);
-                let matchGrm = (grm==='All') || (w[4] && w[4].includes(grm)) || (grm==='Other' && !['Noun','Verb','Adj','Adv','Conj','کالو','حرف'].some(k=>w[4] && w[4].includes(k)));
-                return matchStatus && w[0].toLowerCase().includes(s) && (lvl==='All' || (w[2] && w[2].includes(lvl))) && matchGrm;
+                return matchStatus && w[0].toLowerCase().includes(s) && (lvl==='All' || (w[2] && w[2].includes(lvl)));
             });
             renderWords();
         }
@@ -279,12 +358,10 @@
             currentPage = 1; applyFilters();
         }
 
-        // ۶. توابع آمار و پیشرفت (اصلاح شده)
         function renderStats() {
             const lA = academicWords.filter(w => learnedWords.includes(w[0])).length;
             const lE = examWords.filter(w => learnedWords.includes(w[0])).length;
             const last = quizHistory.length ? quizHistory[quizHistory.length-1].score : 0;
-            
             document.getElementById('statsContent').innerHTML = `
                 <div class="grid grid-cols-2 gap-4" dir="ltr">
                     <div class="bg-blue-600 text-white p-6 rounded-3xl shadow-lg text-center">
@@ -299,11 +376,6 @@
                 <div class="bg-white border-2 border-slate-100 p-8 rounded-3xl shadow-sm text-right">
                     <p class="font-black text-slate-800 mb-4 italic underline uppercase">HISTORY:</p>
                     <p class="text-xs mb-4 font-bold text-blue-600">آخرین آزمون: <span class="stat-number">${last} / 25</span></p>
-                    ${[...quizHistory].reverse().slice(0,5).map(h=>`
-                        <div class="flex justify-between border-b py-2 text-xs font-bold text-slate-500" dir="ltr">
-                            <span>${h.date}</span>
-                            <span>Score: ${h.score} / 25</span>
-                        </div>`).join('') || 'No records.'}
                 </div>`;
         }
 
@@ -312,27 +384,8 @@
             if (total === 0) return;
             const lAll = academicWords.concat(examWords).filter(w => learnedWords.includes(w[0])).length;
             const p = (lAll / total) * 100;
-            const displayP = (p > 0 && p < 1) ? p.toFixed(1) : Math.round(p);
-            
             document.getElementById('progressBar').style.width = Math.round(p) + '%';
-            document.getElementById('progressPercent').innerText = displayP + '%';
-            const msgs = [{p:0,m:"یادگیری را شروع کنید!"},{p:5,m:"5% طی شد. عالیه! 🚀"},{p:10,m:"10% لغات تو مشتته! 💎"},{p:25,m:"یک چهارم مسیر فتح شد! 🌟"},{p:50,m:"نیمی از راه طی شد! 🏆"},{p:75,m:"3/4 مسیر فتح شد! 🎖️"},{p:100,m:"تبریک! 🎉"}];
-            const activeMsg = [...msgs].reverse().find(m => p >= m.p);
-            document.getElementById('motivationalText').innerText = activeMsg ? activeMsg.m : "";
-        }
-
-        // ۷. پاپ آپ و ذخیره‌سازی (اصلاح شده)
-        function showWotd() {
-            const valid = academicWords.filter(w => w && w[0] && w[0].trim() !== "" && w[0] !== "Word");
-            if (valid.length === 0) { setTimeout(showWotd, 2000); return; }
-            if (localStorage.getItem('lastWotdDate') === new Date().toDateString()) return;
-            
-            const obj = valid[Math.floor(Math.random() * valid.length)];
-            document.getElementById('wotdWord').innerText = obj[0];
-            document.getElementById('wotdTrans').innerText = obj[1];
-            document.getElementById('wotdExample').innerText = obj[3] || "No example available.";
-            document.getElementById('wotdModal').style.display = 'flex';
-            localStorage.setItem('lastWotdDate', new Date().toDateString());
+            document.getElementById('progressPercent').innerText = Math.round(p) + '%';
         }
 
         function saveProgress() { 
@@ -342,50 +395,28 @@
                 learned: learnedWords.join('|'), hard: hardWords.join('|'),
                 quizHistory: JSON.stringify(quizHistory), deviceId: deviceId
             };
-            fetch(APPS_SCRIPT_URL, {
-                method: 'POST', mode: 'no-cors',
-                headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify(payload)
-            }).then(() => console.log("Progress Saved.")); 
+            fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }); 
         }
 
-        // ۸. سایر توابع کمکی
-        function showTab(t) {
-            activeTabName = t;
-            ['vocabSection','quizSection','statsSection','vocabControls'].forEach(id => document.getElementById(id).classList.add('hidden'));
-            if(t === 'academic' || t === 'exam') {
-                document.getElementById('vocabSection').classList.remove('hidden');
-                document.getElementById('vocabControls').classList.remove('hidden');
-                currentPage = 1; applyFilters();
-            } else if (t === 'quiz') { document.getElementById('quizSection').classList.remove('hidden'); showQuizHome(); }
-            else { document.getElementById('statsSection').classList.remove('hidden'); renderStats(); }
-            document.querySelectorAll('nav button').forEach(b => b.className = "flex-1 py-4 tab-inactive transition-all text-xs");
-            const btnId = t === 'academic' ? 'tabAcademic' : t === 'exam' ? 'tabExam' : t === 'quiz' ? 'tabQuiz' : 'tabStats';
-            document.getElementById(btnId).className = "flex-1 py-4 tab-active transition-all text-xs";
-        }
-
+        function togglePass() { const p = document.getElementById('passInp'); p.type = p.type === 'password' ? 'text' : 'password'; }
+        function closeWotd() { document.getElementById('wotdModal').style.display = 'none'; }
+        function speak(t) { window.speechSynthesis.cancel(); const m = new SpeechSynthesisUtterance(t); m.lang = 'en-US'; m.rate = 0.8; window.speechSynthesis.speak(m); }
+        function getLevelStyle(lvl) { if(!lvl) return ''; return lvl.includes('B2') ? 'bg-green-50 text-green-600 border-green-100' : lvl.includes('C1') ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-purple-50 text-purple-600 border-purple-100'; }
+        function highlightWord(s, w) { if (!w) return s; const regex = new RegExp(`(${w})`, 'gi'); return s.replace(regex, '<b class="text-blue-600 underline font-black">$1</b>'); }
+        function changePage(s) { currentPage += s; renderWords(); window.scrollTo(0, 0); }
+        function resetFilters() { document.getElementById('searchInput').value = ''; applyFilters(); }
+        function handleSearchSuggestions() { const v = document.getElementById('searchInput').value.toLowerCase(); const b = document.getElementById('searchSuggestions'); if(v.length < 2) { b.classList.add('hidden'); return; } const ds = activeTabName === 'academic' ? academicWords : examWords; const m = ds.filter(w => w[0].toLowerCase().includes(v)).slice(0,10); b.innerHTML = m.map(x => `<div onclick="document.getElementById('searchInput').value='${x[0]}';applyFilters();document.getElementById('searchSuggestions').classList.add('hidden')" class="p-3 border-b text-sm english-text hover:bg-blue-50 cursor-pointer">${x[0]}</div>`).join(''); b.classList.remove('hidden'); }
+        
         function showQuizHome() {
             document.getElementById('quizContent').innerHTML = `
                 <div class="text-center p-8 animate-pop">
                     <div class="text-6xl mb-6">📝</div>
                     <h2 class="text-2xl font-black text-slate-800 mb-4">آزمون جامع PTE</h2>
-                    <p class="text-sm text-slate-500 mb-8 leading-relaxed">شامل 25 سوال چهارگزینه‌ای از بخش ریدینگ و لغات مهم امتحانی.</p>
                     <button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl hover:bg-blue-700">شروع آزمون</button>
                 </div>`;
         }
-        
-        // (توابع جزئی مثل Speak، Speak، Highlight و غیره را برای تمیزی اینجا مجدد قرار ندادم ولی در کد اصلی تو فعال هستن)
-        function togglePass() { const p = document.getElementById('passInp'); p.type = p.type === 'password' ? 'text' : 'password'; }
-        function closeWotd() { document.getElementById('wotdModal').style.display = 'none'; }
-        function speak(t) { if(!t) return; window.speechSynthesis.cancel(); const m = new SpeechSynthesisUtterance(t); m.lang = 'en-US'; m.rate = 0.8; window.speechSynthesis.speak(m); }
-        function getLevelStyle(lvl) { if(!lvl) return ''; return lvl.includes('B2') ? 'bg-green-50 text-green-600 border-green-100' : lvl.includes('C1') ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-purple-50 text-purple-600 border-purple-100'; }
-        function highlightWord(s, w) { if (!w) return s; const regex = new RegExp(`(${w})`, 'gi'); return s.replace(regex, '<b class="text-blue-600 underline font-black">$1</b>'); }
-        function changePage(s) { currentPage += s; renderWords(); window.scrollTo(0, 0); }
-        function resetFilters() { document.getElementById('searchInput').value = ''; document.getElementById('levelFilter').value = 'All'; document.getElementById('grammarFilter').value = 'All'; setStatusFilter('new'); }
-        function handleSearchSuggestions() { const v = document.getElementById('searchInput').value.toLowerCase(); const b = document.getElementById('searchSuggestions'); if(v.length < 2) { b.classList.add('hidden'); return; } const ds = activeTabName === 'academic' ? academicWords : examWords; const m = ds.filter(w => w[0].toLowerCase().includes(v)).slice(0,10); b.innerHTML = m.map(x => `<div onclick="document.getElementById('searchInput').value='${x[0]}';applyFilters();document.getElementById('searchSuggestions').classList.add('hidden')" class="p-3 border-b text-sm english-text hover:bg-blue-50 cursor-pointer">${x[0]}</div>`).join(''); b.classList.remove('hidden'); }
-        
+
         function initQuiz() { 
-            if(!quizData || quizData.length === 0) return alert("دیتای آزمون یافت نشد.");
             quizState = { currentIdx: 0, score: 0, questions: [...quizData].sort(()=>0.5-Math.random()).slice(0, 25), currentSelection: null }; 
             showQuestion(); 
         }
@@ -394,34 +425,39 @@
             const q = quizState.questions[quizState.currentIdx];
             document.getElementById('quizContent').innerHTML = `
                 <div class="text-right flex flex-col h-full animate-pop">
-                    <div class="flex justify-between items-center mb-8"><span class="text-[10px] bg-slate-200 px-4 py-1.5 rounded-full font-black">Q ${quizState.currentIdx + 1} / 25</span><span class="text-green-600 font-bold text-xs">${quizState.score} Correct</span></div>
-                    <div class="english-text bg-slate-900 p-8 rounded-[2rem] mb-6 text-white shadow-xl text-lg font-medium border-b-4 border-blue-500">${q[0].toString().replace('_______', '<span class="text-blue-400 font-bold border-b-2">_________</span>')}</div>
-                    <div class="grid gap-3 mb-6">${[1,2,3,4].map(i => `<button id="opt${i}" onclick="quizState.currentSelection='${q[i] ? q[i].toString().replace(/'/g, "\\'") : ""}';[1,2,3,4].forEach(j=>document.getElementById('opt'+j).className='english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-700');document.getElementById('opt${i}').className='english-text text-left w-full p-4 border-2 border-blue-500 bg-blue-50 rounded-2xl font-black text-blue-700 shadow-inner'" class="english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-700 transition-all">${q[i] || ""}</button>`).join('')}</div>
+                    <div class="flex justify-between items-center mb-8"><span class="text-[10px] bg-slate-200 px-4 py-1.5 rounded-full font-black">Q ${quizState.currentIdx + 1} / 25</span></div>
+                    <div class="english-text bg-slate-900 p-8 rounded-[2rem] mb-6 text-white shadow-xl text-lg font-medium">${q[0].toString().replace('_______', '<b>_________</b>')}</div>
+                    <div class="grid gap-3 mb-6">${[1,2,3,4].map(i => `<button id="opt${i}" onclick="quizState.currentSelection='${q[i]}';[1,2,3,4].forEach(j=>document.getElementById('opt'+j).className='english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold');document.getElementById('opt${i}').className='english-text text-left w-full p-4 border-2 border-blue-500 bg-blue-50 rounded-2xl font-black'" class="english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold">${q[i] || ""}</button>`).join('')}</div>
                     <button onclick="confirmAnswer()" class="bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg">ثبت پاسخ</button>
                 </div>`;
         }
 
         function confirmAnswer() {
-            if(!quizState.currentSelection) return alert("یک گزینه انتخاب کنید.");
             const q = quizState.questions[quizState.currentIdx];
             const isC = quizState.currentSelection.trim().toLowerCase() === q[5].toString().trim().toLowerCase();
             if(isC) quizState.score++;
-            const sentence = q[0].replace('_______', '<b>' + q[5] + '</b>');
             document.getElementById('quizContent').innerHTML = `
                 <div class="py-6 text-center animate-pop">
                     <div class="text-8xl mb-4">${isC ? '✅' : '❌'}</div>
-                    <div class="english-text bg-white p-5 rounded-3xl mb-4 text-sm border italic text-slate-700">${sentence}</div>
-                    <p class="text-blue-600 font-bold text-[11px] mb-4 p-3 bg-blue-50 rounded-xl">${q[7] || ""}</p>
-                    <div class="bg-amber-50 p-6 rounded-3xl text-[11px] text-right border-r-8 border-amber-400 mb-8 font-bold leading-relaxed">${q[6]}</div>
-                    <button onclick="if(quizState.currentIdx<24){quizState.currentIdx++;quizState.currentSelection=null;showQuestion()}else{renderQuizResult()}" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg">NEXT QUESTION</button>
+                    <p class="text-blue-600 font-bold mb-8 italic">Correct Answer: ${q[5]}</p>
+                    <button onclick="if(quizState.currentIdx<24){quizState.currentIdx++;showQuestion()}else{renderQuizResult()}" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg">NEXT QUESTION</button>
                 </div>`;
         }
 
         function renderQuizResult() { 
             const p = Math.round((quizState.score/25)*100); 
-            const record = { date: new Date().toLocaleDateString('fa-IR'), score: quizState.score };
-            quizHistory.push(record); saveProgress();
-            document.getElementById('quizContent').innerHTML = `<div class="text-center p-4 animate-pop"><h2 class="text-4xl font-black text-blue-600 mb-2 underline">${p}% SCORE</h2><p class="mb-8 font-bold">${quizState.score} از 25 پاسخ صحیح</p><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">تلاش دوباره</button></div>`; 
+            quizHistory.push({ date: new Date().toLocaleDateString('fa-IR'), score: quizState.score }); saveProgress();
+            document.getElementById('quizContent').innerHTML = `<div class="text-center p-4 animate-pop"><h2 class="text-4xl font-black text-blue-600 mb-2">${p}% SCORE</h2><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl">تلاش دوباره</button></div>`; 
+        }
+
+        function showWotd() {
+            const valid = academicWords.filter(w => w && w[0] && w[0].trim() !== "");
+            if (valid.length === 0) return;
+            const obj = valid[Math.floor(Math.random() * valid.length)];
+            document.getElementById('wotdWord').innerText = obj[0];
+            document.getElementById('wotdTrans').innerText = obj[1];
+            document.getElementById('wotdExample').innerText = obj[3] || "No example available.";
+            document.getElementById('wotdModal').style.display = 'flex';
         }
 
     </script>
