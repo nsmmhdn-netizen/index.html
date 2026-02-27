@@ -13,7 +13,7 @@
         .persian-text { direction: rtl; text-align: right; text-align: justify; text-justify: inter-word; }
         .tab-active { border-bottom: 4px solid #facc15 !important; color: #1e293b !important; font-weight: 900 !important; }
         .tab-inactive { border-bottom: 4px solid transparent; color: #94a3b8; font-weight: 600; }
-        .filter-active { background-color: #2563eb !important; color: white !important; font-weight: 900; }
+        .filter-active { background-color: #2563eb !important; color: white !important; font-weight: 900; border-color: #2563eb !important; }
         .modal-bg { background-color: rgba(0,0,0,0.85); display: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .animate-pop { animation: pop 0.3s ease-out; }
@@ -76,19 +76,20 @@
             <button id="tabStats" onclick="showTab('stats')" class="flex-1 py-5 tab-inactive whitespace-nowrap text-sm">آمار من</button>
         </nav>
 
+        <!-- VOCAB SECTION -->
         <div id="vocabControls" class="p-4 bg-white border-b space-y-4 shadow-sm">
             <div class="relative">
                 <div class="flex gap-2">
                     <input id="searchInput" oninput="handleSearchSuggestions()" type="text" placeholder="Search..." class="flex-1 p-3 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-400 text-base english-text">
-                    <button onclick="applyFilters()" class="bg-blue-600 text-white px-6 rounded-2xl font-bold text-sm shadow-md">جستجو</button>
+                    <button onclick="applyFilters()" class="bg-blue-600 text-white px-5 rounded-2xl font-bold text-sm shadow-md">جستجو</button>
                     <button onclick="resetFilters()" class="bg-slate-100 text-slate-600 px-3 rounded-2xl font-bold text-base border">🔄</button>
                 </div>
                 <div id="searchSuggestions" class="absolute left-0 right-12 bg-white border-2 border-slate-100 rounded-2xl mt-1 shadow-xl z-50 max-h-48 overflow-y-auto hidden no-scrollbar"></div>
             </div>
             <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar items-center">
                 <button onclick="setStatusFilter('new')" id="btnNew" class="px-3 py-2.5 rounded-xl text-xs font-black filter-active whitespace-nowrap transition-all border">🌟 جدید</button>
-                <button onclick="setStatusFilter('learned')" id="btnLearned" class="px-3 py-2.5 rounded-xl text-xs font-black border bg-white text-slate-400 whitespace-nowrap transition-all">✅ آشنا</button>
-                <button onclick="setStatusFilter('hard')" id="btnHard" class="px-3 py-2.5 rounded-xl text-xs font-black border bg-white text-slate-400 whitespace-nowrap transition-all">🔥 سخت</button>
+                <button onclick="setStatusFilter('learned')" id="btnLearned" class="px-4 py-2.5 rounded-xl text-xs font-black border bg-white text-slate-400 whitespace-nowrap transition-all">✅ آشنا</button>
+                <button onclick="setStatusFilter('hard')" id="btnHard" class="px-4 py-2.5 rounded-xl text-xs font-black border bg-white text-slate-400 whitespace-nowrap transition-all">🔥 سخت</button>
                 <select id="levelFilter" onchange="applyFilters()" class="px-3 py-2.5 rounded-xl text-xs font-black border bg-slate-50 outline-none"><option value="All">سطح</option><option value="A1">A1</option><option value="A2">A2</option><option value="B1">B1</option><option value="B2">B2</option><option value="C1">C1</option><option value="C2">C2</option><option value="Academic">Academic</option></select>
             </div>
             <p id="itemsCount" class="text-xs text-slate-400 font-bold mr-1"></p>
@@ -108,31 +109,21 @@
             <div id="readingControls" class="p-3 bg-white space-y-4 mb-2 border-b">
                 <div class="relative">
                     <input id="readingSearch" oninput="handleReadingSuggestions()" type="text" placeholder="جستجو در تایتل، شماره یا متن..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm persian-text outline-none focus:border-blue-400">
-                    <div id="rSearchSuggestions" class="absolute left-0 right-0 bg-white border rounded-xl mt-1 shadow-xl z-50 max-h-48 overflow-y-auto hidden no-scrollbar"></div>
+                    <div id="rSearchSuggestions" class="absolute left-0 right-0 bg-white border-2 rounded-xl mt-1 shadow-2xl z-[60] max-h-56 overflow-y-auto hidden no-scrollbar"></div>
                 </div>
                 <div class="flex gap-1 overflow-x-auto no-scrollbar pb-1">
-                    <button onclick="setRFilter('solved', 'all')" id="rBtnAll" class="px-4 py-2.5 rounded-xl text-xs font-black border bg-blue-600 text-white whitespace-nowrap transition-all">📚 ALL</button>
-                    <button onclick="setRFilter('solved', 'new')" id="rBtnNew" class="px-4 py-2.5 rounded-xl text-xs font-black border bg-white text-slate-400 whitespace-nowrap transition-all">🌟 جدید</button>
-                    <button onclick="setRFilter('solved', 'yes')" id="rBtnSolved" class="px-4 py-2.5 rounded-xl text-xs font-black border bg-white text-slate-400 whitespace-nowrap transition-all">✅ انجام شده</button>
-                    <button onclick="setRFilter('pred', 'yes')" id="rBtnPred" class="px-4 py-2.5 rounded-xl text-xs font-black border bg-slate-50 text-slate-600 whitespace-nowrap transition-all">Predicted Qs</button>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <select id="rDiffFilter" onchange="applyReadingFilters()" class="px-2 py-2 rounded-xl text-xs font-black border bg-slate-50 outline-none"><option value="all">سطح دشواری</option><option value="hard">فقط سخت 🔥</option><option value="normal">فقط معمولی ✅</option></select>
-                    <select id="rSubjectFilter" onchange="applyReadingFilters()" class="px-2 py-2 rounded-xl text-xs font-black border bg-slate-50 outline-none"><option value="All">فیلتر موضوعی</option></select>
+                    <button onclick="setRFilter('pred', 'all')" id="rBtnAll" class="px-4 py-2.5 rounded-xl text-xs font-black border bg-blue-600 text-white transition-all">📚 ALL</button>
+                    <button onclick="setRFilter('pred', 'yes')" id="rBtnPred" class="px-4 py-2.5 rounded-xl text-xs font-black border bg-white text-slate-400 transition-all">Predicted Qs</button>
+                    <button onclick="setRFilter('type', 'Drop Down')" id="rBtnDrop" class="px-3 py-2.5 rounded-xl text-[10px] font-black border bg-white text-slate-400 whitespace-nowrap transition-all italic">Drop Down FIB</button>
+                    <button onclick="setRFilter('type', 'Drag and Drop')" id="rBtnDrag" class="px-3 py-2.5 rounded-xl text-[10px] font-black border bg-white text-slate-400 whitespace-nowrap transition-all italic">Drag & Drop FIB</button>
                 </div>
                 <div class="flex justify-between items-center px-1">
-                    <select id="rGrammarFilter" onchange="applyReadingFilters()" class="px-2 py-2 rounded-xl text-xs font-black border bg-slate-50 outline-none w-36"><option value="All">فیلتر گرامر</option></select>
-                    <select id="rSortSelect" onchange="applyReadingFilters()" class="px-3 py-2 rounded-lg text-xs font-black border bg-white text-slate-600 outline-none"><option value="Number">شماره سوال</option><option value="Tested">بیشترین تکرار</option></select>
+                    <select id="rSortSelect" onchange="applyReadingFilters()" class="px-3 py-2.5 rounded-lg text-xs font-black border bg-white text-slate-600 outline-none w-full">
+                        <option value="Number">مرتب‌سازی: شماره سوال</option>
+                        <option value="Tested">مرتب‌سازی: بیشترین تکرار</option>
+                    </select>
                 </div>
             </div>
-            
-            <div class="px-4 mb-4">
-                <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                    <div id="rProgressBar" class="bg-blue-500 h-full transition-all duration-500" style="width: 0%"></div>
-                </div>
-                <p class="text-[10px] text-slate-400 mt-1 font-black uppercase text-center tracking-widest">Reading Progress</p>
-            </div>
-
             <div id="readingContent" class="space-y-4 px-1"></div>
             <div class="flex justify-between items-center mt-6 px-4 pb-10">
                 <button onclick="changeReadingPage(-1)" class="bg-white border-2 border-slate-100 px-10 py-4 rounded-2xl font-black text-sm shadow-sm active:scale-95 transition-all text-slate-500">قبلی</button>
@@ -153,7 +144,7 @@
         let learnedWords = [], hardWords = [], quizHistory = [], filteredWords = [];
         let solvedReading = [], hardReading = [], readingScores = {}; 
         let currentPage = 1, readingCurrentIdx = 0, itemsPerPage = 25, currentUser = null, activeTabName = 'academic', currentStatusFilter = 'new', quizState = {}, readingSelections = {};
-        let curRStatus = 'all', curRPred = 'all';
+        let curRStatus = 'all', curRPred = 'all', curRType = 'all';
 
         const deviceId = localStorage.getItem('pte_device_id') || Math.random().toString(36).substr(2, 9);
         localStorage.setItem('pte_device_id', deviceId);
@@ -204,11 +195,6 @@
                     academicWords = v1; examWords = v2; quizData = qz; readingQuestions = rd;
                     filteredReading = [...readingQuestions];
 
-                    const subjects = [...new Set(readingQuestions.map(q => q[19]))].filter(s => s && s.trim() !== "");
-                    document.getElementById('rSubjectFilter').innerHTML = '<option value="All">فیلتر موضوعی</option>' + subjects.map(s => `<option value="${s}">${s}</option>`).join('');
-                    const grammars = [...new Set(readingQuestions.map(q => q[14]))].filter(g => g && g.trim() !== "").map(g => g.split('.')[0].trim()).slice(0,10);
-                    document.getElementById('rGrammarFilter').innerHTML = '<option value="All">فیلتر گرامر</option>' + [...new Set(grammars)].map(g => `<option value="${g}">${g}</option>`).join('');
-
                     try {
                         const syncRes = await fetch(APPS_SCRIPT_URL);
                         const allP = await syncRes.json();
@@ -227,11 +213,16 @@
                     document.getElementById('userNameDisplay').innerText = `${u.toUpperCase()} 😊🌻`;
                     applyFilters(); updateProgress(); showQuizHome();
                 } else { document.getElementById('loginError').classList.remove('hidden'); }
-            } catch (e) { alert("Error connecting."); } finally { document.getElementById('loader').classList.add('hidden'); }
+            } catch (e) { alert("خطا در اتصال به شیت."); } finally { document.getElementById('loader').classList.add('hidden'); }
+        }
+
+        function highlightMatch(text, term) {
+            if(!term) return text;
+            const regex = new RegExp(`(${term})`, 'gi');
+            return text.replace(regex, '<mark>$1</mark>');
         }
 
         function highlightWord(s, w) { if (!w) return s; const regex = new RegExp(`(${w})`, 'gi'); return s.replace(regex, '<b class="text-blue-600 underline font-black">$1</b>'); }
-        function highlightMatch(text, term) { if(!term) return text; const regex = new RegExp(`(${term})`, 'gi'); return text.replace(regex, '<mark>$1</mark>'); }
 
         function renderWords() {
             const start = (currentPage - 1) * itemsPerPage;
@@ -240,28 +231,27 @@
                 <div class="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm animate-pop">
                     <div class="flex justify-between items-start mb-3">
                         <div class="flex gap-2">
-                            <button onclick="toggleStatus('${w[0]}','hard')" class="w-10 h-10 rounded-xl border flex items-center justify-center ${hardWords.includes(w[0]) ? 'bg-red-500 text-white border-red-500' : 'bg-slate-50 text-slate-300'} transition-all text-2xl shadow-sm">🔥</button>
-                            <button onclick="toggleStatus('${w[0]}','learned')" class="w-10 h-10 rounded-xl border flex items-center justify-center ${learnedWords.includes(w[0]) ? 'bg-green-500 text-white border-green-500' : 'bg-slate-50 text-slate-300'} transition-all text-2xl shadow-sm">✓</button>
+                            <button onclick="toggleStatus('${w[0]}','hard')" class="w-9 h-9 rounded-xl border flex items-center justify-center ${hardWords.includes(w[0]) ? 'bg-red-500 text-white border-red-500' : 'bg-slate-50 text-slate-300'} transition-all text-xl shadow-sm">🔥</button>
+                            <button onclick="toggleStatus('${w[0]}','learned')" class="w-10 h-10 rounded-xl border flex items-center justify-center ${learnedWords.includes(w[0]) ? 'bg-green-500 text-white border-green-500' : 'bg-slate-50 text-slate-300'} transition-all text-xl shadow-sm">✓</button>
                         </div>
                         <span class="text-[10px] px-2 py-0.5 rounded-full font-black border uppercase ${getLevelStyle(w[2])}">${w[2] || 'Any'}</span>
                     </div>
-                    <div class="flex items-center gap-3 justify-end mb-2">
+                    <div class="flex items-center gap-3 justify-end mb-1">
                          <p class="english-text text-slate-400 text-xs font-mono italic">${w[6] || ''}</p>
                          <h3 class="english-text text-2xl font-black text-slate-800">${w[0]}</h3>
                          <button onclick="speak('${w[0]}')" class="text-2xl">🔊</button>
                     </div>
                     <p class="text-blue-700 font-black text-lg mb-2 text-right">${w[1]}</p>
-                    <div class="bg-slate-50 p-4 rounded-2xl border-r-4 border-blue-400 text-left mb-2">
-                         <p class="text-[14px] text-slate-600 italic leading-relaxed text-left">${highlightWord(w[3] || '', w[0])}</p>
-                         <p class="text-xs text-blue-500 font-black border-t pt-2 border-blue-100 text-right mt-1"><span class="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] ml-1 not-italic uppercase">Meaning</span>${w[7] || ''}</p>
+                    <div class="bg-slate-50 p-3 rounded-2xl border-r-4 border-blue-400 text-left">
+                         <p class="text-sm text-slate-600 italic leading-relaxed text-left english-text">${highlightWord(w[3] || '', w[0])}</p>
+                         <p class="text-xs text-blue-500 font-black border-t pt-2 border-blue-100 text-right mt-1">${w[7] || ''}</p>
                     </div>
-                    ${w[4] ? `<div class="bg-amber-50 p-3 rounded-xl text-[13px] text-slate-500 border-r-2 border-amber-300 text-right italic leading-relaxed">💡 ${w[4]}</div>` : ''}
                 </div>`).join('');
             document.getElementById('pageInfo').innerText = `PAGE ${currentPage} / ${Math.ceil(filteredWords.length / itemsPerPage) || 1}`;
             document.getElementById('itemsCount').innerText = `${filteredWords.length} مورد یافت شد`;
         }
 
-        // --- READING TAB UPDATED LOGIC ---
+        // --- READING TAB LOGIC ---
         function handleReadingSuggestions() {
             const v = document.getElementById('readingSearch').value.toLowerCase();
             const b = document.getElementById('rSearchSuggestions');
@@ -273,56 +263,49 @@
 
         function applyReadingFilters() {
             const search = document.getElementById('readingSearch').value.toLowerCase();
-            const grm = document.getElementById('rGrammarFilter').value;
-            const sub = document.getElementById('rSubjectFilter').value;
-            const diff = document.getElementById('rDiffFilter').value;
             const sort = document.getElementById('rSortSelect').value;
 
             filteredReading = readingQuestions.filter(q => {
                 const matchSearch = q[0].toLowerCase().includes(search) || q[1].toLowerCase().includes(search) || q[2].toLowerCase().includes(search);
-                const matchSolved = (curRStatus === 'all') ? true : (curRStatus === 'new' ? !solvedReading.includes(q[0]) : solvedReading.includes(q[0]));
-                const matchDiff = (diff === 'all') ? true : (diff === 'hard' ? hardReading.includes(q[0]) : !hardReading.includes(q[0]));
                 const matchPred = (curRPred === 'all') ? true : (q[16] && q[16].trim().toLowerCase() === 'yes');
-                const matchGrm = (grm === 'All') || (q[14] && q[14].includes(grm));
-                const matchSub = (sub === 'All') || (q[19] && q[19] === sub);
-                return matchSearch && matchSolved && matchDiff && matchPred && matchGrm && matchSub;
+                const matchType = (curRType === 'all') ? true : (q[18] && q[18].trim() === curRType);
+                return matchSearch && matchPred && matchType;
             });
+
             if(sort === 'Tested') filteredReading.sort((a, b) => (parseInt(b[17]) || 0) - (parseInt(a[17]) || 0));
             else filteredReading.sort((a, b) => (parseInt(a[0].replace('#','')) || 0) - (parseInt(b[0].replace('#','')) || 0));
 
-            document.getElementById('rItemsCount').innerText = `${filteredReading.length} مورد یافت شد`;
-            const p = readingQuestions.length > 0 ? (solvedReading.length / readingQuestions.length) * 100 : 0;
-            document.getElementById('rProgressBar').style.width = p + '%';
             readingCurrentIdx = 0; renderReading();
         }
 
         function setRFilter(type, val) {
-            if(type === 'solved') curRStatus = val;
-            if(type === 'pred') curRPred = (curRPred === val) ? 'all' : val;
-            ['rBtnAll', 'rBtnNew', 'rBtnSolved', 'rBtnPred'].forEach(id => document.getElementById(id).className = "px-4 py-2.5 rounded-xl text-xs font-black border bg-white text-slate-400 whitespace-nowrap transition-all");
-            if(curRStatus === 'all') document.getElementById('rBtnAll').className = "px-4 py-2.5 rounded-xl text-xs font-black border bg-blue-600 text-white transition-all shadow-md";
-            else if(curRStatus === 'new') document.getElementById('rBtnNew').className = "px-4 py-2.5 rounded-xl text-xs font-black border bg-blue-600 text-white transition-all shadow-md";
-            else document.getElementById('rBtnSolved').className = "px-4 py-2.5 rounded-xl text-xs font-black border bg-blue-600 text-white transition-all shadow-md";
-            if(curRPred === 'yes') document.getElementById('rBtnPred').className = "px-4 py-2.5 rounded-xl text-xs font-black border bg-blue-800 text-white transition-all shadow-md";
+            if(type === 'pred') curRPred = val;
+            if(type === 'type') curRType = (curRType === val) ? 'all' : val;
+
+            // UI Toggle for Predicted
+            document.getElementById('rBtnAll').className = (curRPred === 'all') ? "px-4 py-2.5 rounded-xl text-xs font-black border bg-blue-600 text-white transition-all shadow-md" : "px-4 py-2.5 rounded-xl text-xs font-black border bg-white text-slate-400 transition-all";
+            document.getElementById('rBtnPred').className = (curRPred === 'yes') ? "px-4 py-2.5 rounded-xl text-xs font-black border bg-blue-600 text-white transition-all shadow-md" : "px-4 py-2.5 rounded-xl text-xs font-black border bg-white text-slate-400 transition-all";
+            
+            // UI Toggle for Question Type
+            document.getElementById('rBtnDrop').className = (curRType === 'Drop Down') ? "px-3 py-2.5 rounded-xl text-[10px] font-black border bg-blue-500 text-white transition-all shadow-md italic" : "px-3 py-2.5 rounded-xl text-[10px] font-black border bg-white text-slate-400 transition-all italic";
+            document.getElementById('rBtnDrag').className = (curRType === 'Drag and Drop') ? "px-3 py-2.5 rounded-xl text-[10px] font-black border bg-blue-500 text-white transition-all shadow-md italic" : "px-3 py-2.5 rounded-xl text-[10px] font-black border bg-white text-slate-400 transition-all italic";
+
             applyReadingFilters();
         }
 
         function resetReadingFilters() {
             document.getElementById('readingSearch').value = '';
-            document.getElementById('rGrammarFilter').value = 'All';
-            document.getElementById('rSubjectFilter').value = 'All';
-            document.getElementById('rDiffFilter').value = 'all';
             document.getElementById('rSortSelect').value = 'Number';
-            curRStatus = 'all'; curRPred = 'all'; setRFilter('solved', 'all');
+            curRPred = 'all'; curRType = 'all';
+            setRFilter('pred', 'all');
         }
 
         function renderReading() {
             const container = document.getElementById('readingContent');
-            if (filteredReading.length === 0) { container.innerHTML = "<p class='text-center p-10 font-bold opacity-50 italic'>سوالی با این مشخصات یافت نشد.</p>"; return; }
+            if (filteredReading.length === 0) { container.innerHTML = "<p class='text-center p-10 font-bold opacity-50 italic'>سوالی یافت نشد.</p>"; return; }
             const q = filteredReading[readingCurrentIdx];
             const term = document.getElementById('readingSearch').value.toLowerCase();
             const scoreData = readingScores[q[0]];
-            const isHard = hardReading.includes(q[0]);
             const statusIcon = scoreData ? ((scoreData.score/scoreData.total)*100 >= 60 ? '✅' : '❌') : '';
             const optionGroups = q[11].split('/').map(group => {
                 const parts = group.trim().match(/(\d+)\.\s*(.*)/);
@@ -333,15 +316,9 @@
                 <div class="bg-white p-3 rounded-[2.5rem] shadow-sm border-2 border-slate-50 animate-pop relative overflow-hidden text-right">
                     <div class="flex justify-between items-start mb-2 px-2 border-b pb-2 text-left">
                         <span class="text-[10px] bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-black uppercase">${q[19]}</span>
-                        <div class="flex items-center gap-2">
-                            <div class="flex gap-1">
-                                <button onclick="markReadingStatus('${q[0]}', 'hard')" class="w-10 h-10 rounded-xl border flex items-center justify-center ${isHard ? 'bg-red-500 text-white border-red-500' : 'bg-slate-50 text-slate-300'} transition-all text-xl shadow-sm">🔥</button>
-                                <button onclick="markReadingStatus('${q[0]}', 'normal')" class="w-10 h-10 rounded-xl border flex items-center justify-center ${!isHard ? 'bg-green-500 text-white border-green-500' : 'bg-slate-50 text-slate-300'} transition-all text-xl shadow-sm">✓</button>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-2xl font-black text-slate-800 uppercase tracking-tighter leading-none mb-1 text-left">${statusIcon}${highlightMatch(q[1], term)}</p>
-                                <p class="text-[10px] text-slate-400 font-bold italic text-left">APEUni #${highlightMatch(q[0], term)} <span class="opacity-40">(${q[17]} repeats)</span></p>
-                            </div>
+                        <div class="text-right">
+                            <p class="text-2xl font-black text-slate-800 uppercase tracking-tighter leading-none mb-1 text-left">${statusIcon}${highlightMatch(q[1], term)}</p>
+                            <p class="text-[10px] text-slate-400 font-bold italic text-left">APEUni #${highlightMatch(q[0], term)} <span class="opacity-40">(${q[17]} repeats)</span></p>
                         </div>
                     </div>
                     <div id="readText" class="english-text text-base leading-[2.5] mb-2 bg-slate-50 p-5 rounded-2xl border border-dashed border-slate-200" style="direction: ltr; text-align: justify;">
@@ -351,7 +328,7 @@
                             return `<select data-blank="${n}" class="reading-select mx-1 p-1 bg-white border-2 border-blue-100 rounded-lg text-xs font-black text-blue-700 outline-none shadow-sm"><option value="">Select...</option>${group.choices.map(c => `<option value="${c}">${c}</option>`).join('')}</select>`;
                         })}
                     </div>
-                    <div id="transText" class="persian-text text-sm leading-[2.2] bg-blue-50/40 p-5 rounded-3xl mb-4 border border-blue-100 hidden animate-pop text-right">
+                    <div id="transText" class="persian-text text-sm leading-[2.2] bg-blue-50/40 p-5 rounded-3xl mb-4 border border-blue-100 hidden animate-pop text-right" style="text-align: justify;">
                         <div class="flex justify-between mb-3 border-b border-blue-100 pb-2"><button onclick="speak(\`${q[2].replace(/'/g,"")}\`)" class="text-2xl">🔊</button><b class="text-blue-600 underline text-xs">ترجمه فارسی:</b></div>${q[12].replace(/\((.*?)\)/g, '<b>($1)</b>')}
                     </div>
                     <div class="mb-4 flex justify-center items-center gap-6">
@@ -359,7 +336,7 @@
                         <div id="scoreDisplay" class="hidden animate-pop bg-slate-900 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase">SCORE: <span id="readingScoreVal" class="text-yellow-400">0 / 0</span></div>
                     </div>
                     <div class="space-y-3">
-                        <details class="group bg-slate-900 rounded-2xl overflow-hidden shadow-md"><summary class="p-4 text-xs font-black text-blue-400 cursor-pointer text-center list-none uppercase italic">💡 نکات گرامری</summary><div class="p-5 text-sm text-slate-300 bg-slate-800 leading-8 persian-text font-medium text-right">${q[14] ? q[14].replace(/(\d+\.)/g, '<br><b>$1</b>') : 'ثبت نشده'}</div></details>
+                        <details class="group bg-slate-900 rounded-2xl overflow-hidden shadow-md"><summary class="p-4 text-xs font-black text-blue-400 cursor-pointer text-center list-none uppercase italic">💡 نکات گرامری</summary><div class="p-5 text-sm text-slate-300 bg-slate-800 leading-8 persian-text font-medium text-right" style="text-align: justify;">${q[14] ? q[14].replace(/(\d+\.)/g, '<br><b>$1</b>') : 'ثبت نشده'}</div></details>
                         <details class="group bg-slate-900 rounded-2xl overflow-hidden shadow-md"><summary class="p-4 text-xs font-black text-green-400 cursor-pointer text-center list-none uppercase italic">🔗 کالوکیشن‌ها</summary><div class="p-5 text-sm text-slate-300 bg-slate-800 leading-8 english-text font-medium" style="direction: ltr;">${q[15] ? q[15].split('/').map(c => `<b>• ${c.trim()}</b>`).join('<br>') : 'ثبت نشده'}</div></details>
                     </div>
                 </div>`;
@@ -389,14 +366,13 @@
                 }
                 readingScores[q[0]] = { score: correctCount, total: totalBlanks, isHard: hardReading.includes(q[0]) };
                 textDiv.innerHTML = currentText; transDiv.classList.remove('hidden'); scoreDiv.classList.remove('hidden');
-                document.getElementById('readingScoreVal').innerText = `${correctCount}/${totalBlanks}`;
+                document.getElementById('readingScoreVal').innerText = `${correctCount} / ${totalBlanks}`;
                 btn.innerText = "مخفی کردن پاسخ"; btn.classList.replace('bg-green-600', 'bg-slate-700');
                 saveProgress();
             } else { renderReading(); }
         }
 
         function changeReadingPage(step) { readingCurrentIdx += step; if (readingCurrentIdx < 0) readingCurrentIdx = 0; if (readingCurrentIdx >= filteredReading.length) readingCurrentIdx = filteredReading.length - 1; renderReading(); window.scrollTo(0, 0); }
-        function markReadingStatus(qid, status) { if(status === 'hard') { if(!hardReading.includes(qid)) hardReading.push(qid); } else { hardReading = hardReading.filter(i => i !== qid); } if(readingScores[qid]) readingScores[qid].isHard = (status === 'hard'); renderReading(); saveProgress(); }
 
         function renderStats() {
             const lA = academicWords.filter(w => learnedWords.includes(w[0])).length;
@@ -432,6 +408,7 @@
                 </div>`;
         }
 
+        // --- BASE LOGIC ---
         function showTab(t) {
             activeTabName = t;
             ['vocabSection','quizSection','statsSection','vocabControls','readingSection'].forEach(id => document.getElementById(id).classList.add('hidden'));
@@ -447,38 +424,21 @@
             document.getElementById(btnId).className = "flex-1 py-5 tab-active transition-all text-sm";
         }
         function applyFilters() { const s = document.getElementById('searchInput').value.toLowerCase(); const lvl = document.getElementById('levelFilter').value; const ds = activeTabName === 'academic' ? academicWords : examWords; filteredWords = ds.filter(w => { const isL = learnedWords.includes(w[0]), isH = hardWords.includes(w[0]); let matchStatus = (currentStatusFilter==='new') ? (!isL && !isH) : (currentStatusFilter==='learned' ? isL : isH); return matchStatus && w[0].toLowerCase().includes(s) && (lvl==='All' || (w[2] && w[2].includes(lvl))); }); renderWords(); }
-        function setStatusFilter(f) { 
-            currentStatusFilter = f;
-            ['btnNew', 'btnLearned', 'btnHard'].forEach(id => document.getElementById(id).classList.remove('filter-active'));
-            const activeId = f === 'new' ? 'btnNew' : f === 'learned' ? 'btnLearned' : 'btnHard';
-            document.getElementById(activeId).classList.add('filter-active');
-            applyFilters(); 
-        }
+        function setStatusFilter(f) { currentStatusFilter = f; ['btnNew', 'btnLearned', 'btnHard'].forEach(id => document.getElementById(id).classList.remove('filter-active')); const activeId = f === 'new' ? 'btnNew' : f === 'learned' ? 'btnLearned' : 'btnHard'; document.getElementById(activeId).classList.add('filter-active'); applyFilters(); }
         function toggleStatus(word, type) { if (type === 'learned') { if (learnedWords.includes(word)) learnedWords = learnedWords.filter(w => w !== word); else { learnedWords.push(word); hardWords = hardWords.filter(w => w !== word); } } else if (type === 'hard') { if (hardWords.includes(word)) hardWords = hardWords.filter(w => w !== word); else { hardWords.push(word); learnedWords = learnedWords.filter(w => w !== word); } } applyFilters(); updateProgress(); renderStats(); saveProgress(); }
-        function showQuizHome() { document.getElementById('quizContent').innerHTML = `<div class="text-center p-8 animate-pop"><div class="text-7xl mb-6">📝</div><h2 class="text-3xl font-black text-slate-800 mb-4">آزمون جامع PTE</h2><p class="text-sm text-slate-400 mb-8 italic">آماده‌ای؟</p><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl hover:bg-blue-700 transition-all text-xl">شروع آزمون</button></div>`; }
+        function showQuizHome() { document.getElementById('quizContent').innerHTML = `<div class="text-center p-8 animate-pop"><div class="text-7xl mb-6">📝</div><h2 class="text-3xl font-black text-slate-800 mb-4">آزمون جامع PTE</h2><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl hover:bg-blue-700 transition-all text-xl">شروع آزمون</button></div>`; }
         function initQuiz() { quizState = { currentIdx: 0, score: 0, questions: [...quizData].sort(()=>0.5-Math.random()).slice(0, 25), currentSelection: null }; showQuestion(); }
         function showQuestion() { const q = quizState.questions[quizState.currentIdx]; document.getElementById('quizContent').innerHTML = `<div class="text-right flex flex-col h-full animate-pop"><div class="flex justify-between items-center mb-8"><span class="text-xs bg-slate-200 px-4 py-2 rounded-full font-black">Q ${quizState.currentIdx + 1} / 25</span><span class="text-green-600 font-bold text-sm">${quizState.score} Correct</span></div><div class="english-text bg-slate-900 p-8 rounded-[2rem] mb-6 text-white shadow-xl text-xl leading-relaxed border-b-4 border-blue-500">${q[0].toString().replace('_______', '<span class="text-blue-400 font-bold border-b-2">_________</span>')}</div><div class="grid gap-3 mb-6">${[1,2,3,4].map(i => `<button id="opt${i}" onclick="quizState.currentSelection='${q[i] ? q[i].toString().replace(/'/g, "\\'") : ""}';[1,2,3,4].forEach(j=>document.getElementById('opt'+j).className='english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-700 text-base');document.getElementById('opt${i}').className='english-text text-left w-full p-4 border-2 border-blue-500 bg-blue-50 rounded-2xl font-black text-blue-700 shadow-inner text-base'" class="english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-700 transition-all text-base">${q[i] || ""}</button>`).join('')}</div><button onclick="confirmAnswer()" class="bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg text-lg">ثبت پاسخ</button></div>`; }
         function confirmAnswer() { if(!quizState.currentSelection) return alert("Select one."); const q = quizState.questions[quizState.currentIdx]; const isC = quizState.currentSelection.trim().toLowerCase() === q[5].toString().trim().toLowerCase(); if(isC) quizState.score++; const sentence = q[0].replace('_______', '<b class="text-blue-600 underline">' + q[5] + '</b>'); document.getElementById('quizContent').innerHTML = `<div class="py-6 text-center animate-pop"><div class="text-8xl mb-4">${isC ? '✅' : '❌'}</div><div class="english-text bg-white p-6 rounded-3xl mb-4 text-base border italic text-slate-700 leading-relaxed shadow-sm">${sentence}</div><div class="space-y-4 mb-8"><div class="bg-blue-50 p-5 rounded-2xl text-right border-r-4 border-blue-500"><p class="text-xs font-black text-blue-600 mb-1 italic text-right uppercase">Translation</p><p class="text-sm text-slate-600 font-medium text-right">${q[6] || ''}</p></div><div class="bg-amber-50 p-5 rounded-2xl text-right border-r-4 border-amber-400"><p class="text-xs font-black text-amber-600 mb-1 italic text-right uppercase">Grammar Tip</p><p class="text-sm text-slate-600 font-medium text-right">${q[7] || ''}</p></div></div><button onclick="if(quizState.currentIdx<24){quizState.currentIdx++;quizState.currentSelection=null;showQuestion()}else{renderQuizResult()}" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg text-lg uppercase">Next Question</button></div>`; }
-        function renderQuizResult() { const p = Math.round((quizState.score/25)*100); quizHistory.push({ date: new Date().toLocaleDateString('fa-IR'), score: quizState.score }); saveProgress(); document.getElementById('quizContent').innerHTML = `<div class="text-center p-4 animate-pop"><h2 class="text-5xl font-black text-blue-600 mb-2 underline tracking-tighter">${p}% SCORE</h2><p class="mb-8 font-bold text-slate-500 text-lg">${quizState.score} از 25 صحیح</p><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl text-xl">Try Again</button></div>`; }
+        function renderQuizResult() { const p = Math.round((quizState.score/25)*100); quizHistory.push({ date: new Date().toLocaleDateString('fa-IR'), score: quizState.score }); saveProgress(); document.getElementById('quizContent').innerHTML = `<div class="text-center p-4 animate-pop"><h2 class="text-5xl font-black text-blue-600 mb-2 underline tracking-tighter">${p}% SCORE</h2><p class="mb-8 font-bold text-slate-500 text-lg">${quizState.score} Correct answers</p><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl text-xl">Try Again</button></div>`; }
         function saveProgress() { if(!currentUser) return; const payload = { action: 'saveProgress', username: currentUser, learned: learnedWords.join('|'), hard: hardWords.join('|'), quizHistory: JSON.stringify(quizHistory), solvedReading: solvedReading.join('|'), hardReading: hardReading.join('|'), readingScores: JSON.stringify(readingScores), deviceId: deviceId }; fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }); }
-        function updateProgress() {
-            const total = academicWords.length + examWords.length;
-            if (total === 0) return;
-            const lAll = academicWords.concat(examWords).filter(w => learnedWords.includes(w[0])).length;
-            const p = (lAll / total) * 100;
-            document.getElementById('progressBar').style.width = Math.round(p) + '%';
-            document.getElementById('progressPercent').innerText = Math.round(p) + '%';
-            const msgs = [{p:0,m:"یادگیری را شروع کنید! 😊"},{p:5,m:"5% عالیه! 🚀"},{p:10,m:"10% لغات تو مشتته! 💎"},{p:25,m:"1/4 مسیر فتح شد! 🌟"},{p:50,m:"نیمی از راه طی شد! 🏆"},{p:75,m:"3/4 مسیر فتح شد! 🎖️"},{p:100,m:"تبریک! 🎉"}];
-            const activeMsg = [...msgs].reverse().find(m => p >= m.p);
-            document.getElementById('motivationalText').innerText = activeMsg ? activeMsg.m : "";
-        }
+        function updateProgress() { const total = academicWords.length + examWords.length; if (total === 0) return; const lAll = academicWords.concat(examWords).filter(w => learnedWords.includes(w[0])).length; const p = (lAll / total) * 100; document.getElementById('progressBar').style.width = Math.round(p) + '%'; document.getElementById('progressPercent').innerText = Math.round(p) + '%'; const msgs = [{p:0,m:"یادگیری را شروع کنید! 😊"},{p:5,m:"5% عالیه! 🚀"},{p:10,m:"10% لغات تو مشتته! 💎"},{p:25,m:"1/4 مسیر فتح شد! 🌟"},{p:50,m:"نیمی از راه طی شد! 🏆"},{p:75,m:"3/4 مسیر فتح شد! 🎖️"},{p:100,m:"تبریک! 🎉"}]; const activeMsg = [...msgs].reverse().find(m => p >= m.p); document.getElementById('motivationalText').innerText = activeMsg ? activeMsg.m : ""; }
         function togglePass() { const p = document.getElementById('passInp'); p.type = p.type === 'password' ? 'text' : 'password'; }
         function closeWotd() { document.getElementById('wotdModal').style.display = 'none'; }
         function speak(t) { if(!t) return; window.speechSynthesis.cancel(); const m = new SpeechSynthesisUtterance(t); m.lang = 'en-US'; m.rate = 0.8; window.speechSynthesis.speak(m); }
         function getLevelStyle(lvl) { if(!lvl) return ''; return lvl.includes('B2') ? 'bg-green-50 text-green-600 border-green-100' : lvl.includes('C1') ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-purple-50 text-purple-600 border-purple-100'; }
         function changePage(s) { currentPage += s; renderWords(); window.scrollTo(0, 0); }
         function resetFilters() { document.getElementById('searchInput').value = ''; applyFilters(); }
-        function handleSearchSuggestions() { const v = document.getElementById('searchInput').value.toLowerCase(); const b = document.getElementById('searchSuggestions'); if(v.length < 2) { b.classList.add('hidden'); return; } const ds = activeTabName === 'academic' ? academicWords : examWords; const m = ds.filter(w => w[0].toLowerCase().includes(v)).slice(0,10); b.innerHTML = m.map(x => `<div onclick="document.getElementById('searchInput').value='${x[0]}';applyFilters();document.getElementById('searchSuggestions').classList.add('hidden')" class="p-3 border-b text-sm english-text hover:bg-blue-50 cursor-pointer">${x[0]}</div>`).join(''); b.classList.remove('hidden'); }
         function showWotd() { const valid = academicWords.filter(w => w && w[0] && w[0].trim() !== ""); if (valid.length === 0) return; const obj = valid[Math.floor(Math.random() * valid.length)]; document.getElementById('wotdWord').innerText = obj[0]; document.getElementById('wotdTrans').innerText = obj[1]; document.getElementById('wotdExample').innerText = obj[3] || "No example available."; document.getElementById('wotdModal').style.display = 'flex'; }
     </script>
 </body>
