@@ -1,26 +1,27 @@
-DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PTEinsider - Reading Studio</title>
-    <!-- Favicon (Logo in address bar) -->
+    <!-- Favicon -->
     <link rel="icon" type="image/png" href="logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @font-face { font-family: 'Vazir'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2'); }
-        body { font-family: 'Vazir', sans-serif; background-color: #f1f5f9; user-select: none; touch-action: manipulation; font-size: 15px; }
+        body { font-family: 'Vazir', sans-serif; background-color: #f1f5f9; user-select: none; touch-action: manipulation; font-size: 16px; }
         .english-text { font-family: 'Arial', sans-serif; direction: ltr; text-align: left; }
         .persian-text { direction: rtl; text-align: right; text-align: justify; text-justify: inter-word; }
         .tab-active { border-bottom: 4px solid #facc15 !important; color: #1e293b !important; font-weight: 900 !important; }
         .tab-inactive { border-bottom: 4px solid transparent; color: #94a3b8; font-weight: 600; }
-        .filter-active { background-color: #2563eb !important; color: white !important; font-weight: 900; }
+        .filter-active { background-color: #2563eb !important; color: white !important; font-weight: 900; border-color: #2563eb !important; }
         .modal-bg { background-color: rgba(0,0,0,0.85); display: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .animate-pop { animation: pop 0.3s ease-out; }
         @keyframes pop { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .stat-number { direction: ltr; display: inline-block; font-family: 'Arial', sans-serif; }
         mark { background-color: #fef08a; color: #1e293b; padding: 0 2px; border-radius: 2px; font-weight: bold; }
+        details summary::-webkit-details-marker { display:none; }
     </style>
 </head>
 <body>
@@ -39,9 +40,9 @@ DOCTYPE html>
                 </div>
                 <button id="loginBtn" onclick="attemptLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-blue-700 transition-all text-xl">LOGIN</button>
             </div>
-            <p id="loginError" class="text-red-500 text-sm mt-4 hidden font-bold italic">خطا در ورود!</p>
+            <p id="loginError" class="text-red-500 text-sm mt-4 hidden font-bold italic">نام کاربری یا رمز عبور اشتباه است!</p>
             <div id="loader" class="mt-6 hidden text-center w-full">
-                <span class="english-text text-blue-600 text-sm font-black animate-pulse italic inline-block text-left" style="direction: ltr;">Connecting to PTEinsider...</span>
+                <span class="english-text text-blue-600 text-base font-black animate-pulse italic inline-block text-left" style="direction: ltr;">Connecting to PTEinsider...</span>
             </div>
         </div>
     </div>
@@ -49,7 +50,7 @@ DOCTYPE html>
     <!-- MAIN APP -->
     <div id="mainApp" class="max-w-md mx-auto bg-white min-h-screen shadow-2xl pb-24 relative hidden overflow-hidden">
         <header class="bg-slate-900 text-white p-6 text-center shadow-lg border-b border-blue-900">
-            <h1 class="text-base font-black text-blue-400 uppercase tracking-widest italic leading-relaxed">PTEinsider - Reading Studio</h1>
+            <h1 class="text-lg font-black text-blue-400 uppercase tracking-widest italic leading-relaxed">PTEinsider - Reading Studio</h1>
             <p class="text-xs mt-1 opacity-70 italic font-sans text-white">by Nasim Mohammmadian (<a href="https://t.me/nsmmhdn" target="_blank" class="text-blue-300 underline font-bold">t.me/nsmmhdn</a>)</p>
         </header>
 
@@ -77,11 +78,12 @@ DOCTYPE html>
             <button id="tabStats" onclick="showTab('stats')" class="flex-1 py-5 tab-inactive whitespace-nowrap text-sm">آمار من</button>
         </nav>
 
+        <!-- VOCAB SECTION -->
         <div id="vocabControls" class="p-4 bg-white border-b space-y-4 shadow-sm">
             <div class="relative">
                 <div class="flex gap-2">
                     <input id="searchInput" oninput="handleSearchSuggestions()" type="text" placeholder="Search..." class="flex-1 p-3 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-400 text-base english-text">
-                    <button onclick="applyFilters()" class="bg-blue-600 text-white px-6 rounded-2xl font-bold text-sm shadow-md">جستجو</button>
+                    <button onclick="applyFilters()" class="bg-blue-600 text-white px-5 rounded-2xl font-bold text-sm shadow-md">جستجو</button>
                     <button onclick="resetFilters()" class="bg-slate-100 text-slate-600 px-3 rounded-2xl font-bold text-base border">🔄</button>
                 </div>
                 <div id="searchSuggestions" class="absolute left-0 right-12 bg-white border-2 border-slate-100 rounded-2xl mt-1 shadow-xl z-50 max-h-48 overflow-y-auto hidden no-scrollbar"></div>
@@ -98,12 +100,13 @@ DOCTYPE html>
         <div id="vocabSection" class="p-4">
             <div id="wordsContainer" class="space-y-4"></div>
             <div id="pagination" class="flex justify-center items-center gap-8 mt-10 pb-10">
-                <button onclick="changePage(-1)" id="prevBtn" class="bg-slate-100 p-3 rounded-full shadow-sm disabled:opacity-20 text-xl">◀️</button>
+                <button onclick="changePage(-1)" id="prevBtn" class="bg-slate-100 p-4 rounded-full shadow-sm disabled:opacity-20 text-xl">◀️</button>
                 <span id="pageInfo" class="text-sm font-black text-slate-500 tracking-widest uppercase">Page 1</span>
                 <button onclick="changePage(1)" id="nextBtn" class="bg-slate-100 p-4 rounded-full shadow-sm disabled:opacity-20 text-xl">▶️</button>
             </div>
         </div>
 
+        <!-- READING SECTION -->
         <div id="readingSection" class="p-2 hidden">
             <div id="readingControls" class="p-3 bg-white space-y-4 mb-2 border-b">
                 <div class="relative flex gap-2">
@@ -120,6 +123,10 @@ DOCTYPE html>
                     <button onclick="setRFilter('type', 'Drop Down')" id="rBtnDrop" class="px-3 py-2.5 rounded-xl text-[10px] font-black border bg-white text-slate-400 whitespace-nowrap transition-all italic">Drop Down FIB</button>
                     <button onclick="setRFilter('type', 'Drag and Drop')" id="rBtnDrag" class="px-3 py-2.5 rounded-xl text-[10px] font-black border bg-white text-slate-400 whitespace-nowrap transition-all italic">Drag & Drop FIB</button>
                 </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <select id="rDiffFilter" onchange="applyReadingFilters()" class="px-2 py-2 rounded-xl text-xs font-black border bg-slate-50 outline-none"><option value="all">سطح دشواری</option><option value="hard">فقط سخت 🔥</option><option value="normal">فقط معمولی ✅</option></select>
+                    <select id="rSubjectFilter" onchange="applyReadingFilters()" class="px-2 py-2 rounded-xl text-xs font-black border bg-slate-50 outline-none"><option value="All">فیلتر موضوعی</option></select>
+                </div>
                 <div class="flex justify-between items-center px-1">
                     <select id="rSortSelect" onchange="applyReadingFilters()" class="px-3 py-2 rounded-lg text-xs font-black border bg-white text-slate-600 outline-none w-1/2">
                         <option value="Number">مرتب‌سازی: شماره</option>
@@ -128,12 +135,14 @@ DOCTYPE html>
                     <p id="rItemsCount" class="text-[10px] text-slate-400 font-bold italic"></p>
                 </div>
             </div>
+            
             <div class="px-4 mb-4 text-center">
                 <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                     <div id="rProgressBar" class="bg-blue-500 h-full transition-all duration-500" style="width: 0%"></div>
                 </div>
                 <p class="text-[10px] text-slate-400 mt-1 font-black uppercase tracking-widest">Reading Progress</p>
             </div>
+
             <div id="readingContent" class="space-y-4 px-1"></div>
             <div class="flex justify-between items-center mt-6 px-4 pb-10">
                 <button onclick="changeReadingPage(-1)" class="bg-white border-2 border-slate-100 px-10 py-4 rounded-2xl font-black text-sm shadow-sm active:scale-95 transition-all text-slate-500">قبلی</button>
@@ -159,6 +168,7 @@ DOCTYPE html>
         const deviceId = localStorage.getItem('pte_device_id') || Math.random().toString(36).substr(2, 9);
         localStorage.setItem('pte_device_id', deviceId);
 
+        // Improved CSV Parser to handle newlines and commas in text
         function parseCSV(text) {
             const rows = []; let row = []; let col = ''; let inQuotes = false;
             for (let i = 0; i < text.length; i++) {
@@ -180,6 +190,7 @@ DOCTYPE html>
             const url = `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?output=csv&gid=${gid}`;
             try {
                 const res = await fetch(url);
+                if (!res.ok) return [];
                 const text = await res.text();
                 return parseCSV(text);
             } catch (e) { return []; }
@@ -192,34 +203,10 @@ DOCTYPE html>
             document.getElementById('loader').classList.remove('hidden');
             document.getElementById('loginError').classList.add('hidden');
             try {
-                // १. دریافت دیتای کاربران برای احراز هویت
                 usersData = await fetchCSV('1914745392'); 
                 const match = usersData.find(r => r[0].toString().toLowerCase().trim() === u && r[1].toString().trim() === p);
                 
                 if (match) {
-                    // ۲. چک کردن محدودیت دستگاه از طریق Apps Script
-                    // استفاده از fetch استاندارد برای خواندن پاسخ متن
-                    const syncCheck = await fetch(APPS_SCRIPT_URL);
-                    const allData = await syncCheck.json();
-                    const userData = allData.find(x => x.username.toLowerCase() === u);
-
-                    if (userData) {
-                        const devices = userData.devices ? userData.devices.split('|') : [];
-                        if (devices.indexOf(deviceId) === -1 && devices.length >= 3) {
-                            alert("خطا: شما از حداکثر ۳ دستگاه مجاز استفاده کرده‌اید. امکان ورود با دستگاه جدید وجود ندارد.");
-                            document.getElementById('loader').classList.add('hidden');
-                            return;
-                        }
-                    }
-
-                    // ۳. ثبت/بروزرسانی دستگاه در سرور
-                    fetch(APPS_SCRIPT_URL, { 
-                        method: 'POST', mode: 'no-cors', 
-                        body: JSON.stringify({ action: 'checkDevice', username: u, deviceId: deviceId }) 
-                    });
-
-                    // ۴. لود کردن بقیه اطلاعات برنامه
-                    currentUser = u;
                     const [v1, v2, qz, rd] = await Promise.all([
                         fetchCSV('0'),
                         fetchCSV('1436328967'),
@@ -227,17 +214,35 @@ DOCTYPE html>
                         fetchCSV('1529009657')
                     ]);
                     academicWords = v1; examWords = v2; quizData = qz; readingQuestions = rd;
+                    currentUser = u;
                     filteredReading = [...readingQuestions];
 
-                    if (userData) {
-                        learnedWords = userData.learned ? userData.learned.split('|') : [];
-                        hardWords = userData.hard ? userData.hard.split('|') : [];
-                        quizHistory = userData.quizHistory ? JSON.parse(userData.quizHistory) : [];
-                        solvedReading = userData.solvedReading ? userData.solvedReading.split('|') : [];
-                        hardReading = userData.hardReading ? userData.hardReading.split('|') : [];
-                        readingScores = userData.readingScores ? JSON.parse(userData.readingScores) : {};
-                    }
+                    const subjects = [...new Set(readingQuestions.map(q => q[19]))].filter(s => s && s.trim() !== "");
+                    document.getElementById('rSubjectFilter').innerHTML = '<option value="All">فیلتر موضوعی</option>' + subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+                    const grammars = [...new Set(readingQuestions.map(q => q[14]))].filter(g => g && g.trim() !== "").map(g => g.split('.')[0].trim()).slice(0,12);
+                    document.getElementById('rGrammarFilter').innerHTML = '<option value="All">فیلتر گرامر</option>' + [...new Set(grammars)].map(g => `<option value="${g}">${g}</option>`).join('');
 
+                    try {
+                        const syncRes = await fetch(APPS_SCRIPT_URL);
+                        const allP = await syncRes.json();
+                        const myP = allP.find(x => x.username.toLowerCase() === currentUser);
+                        if (myP) {
+                            const devices = myP.devices ? myP.devices.split('|') : [];
+                            if (devices.indexOf(deviceId) === -1 && devices.length >= 3) {
+                                alert("خطا: شما از حداکثر ۳ دستگاه مجاز استفاده کرده‌اید.");
+                                document.getElementById('loader').classList.add('hidden');
+                                return;
+                            }
+                            learnedWords = myP.learned ? myP.learned.split('|') : [];
+                            hardWords = myP.hard ? myP.hard.split('|') : [];
+                            quizHistory = myP.quizHistory ? JSON.parse(myP.quizHistory) : [];
+                            solvedReading = myP.solvedReading ? myP.solvedReading.split('|') : [];
+                            hardReading = myP.hardReading ? myP.hardReading.split('|') : [];
+                            readingScores = myP.readingScores ? JSON.parse(myP.readingScores) : {};
+                        }
+                        fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'checkDevice', username: u, deviceId: deviceId }) });
+                    } catch(e) {}
+                    
                     document.getElementById('loginPage').classList.add('hidden');
                     document.getElementById('mainApp').classList.remove('hidden');
                     document.getElementById('userNameDisplay').innerText = `${u.toUpperCase()} 😊🌻`;
@@ -246,7 +251,7 @@ DOCTYPE html>
                     document.getElementById('loginError').classList.remove('hidden'); 
                 }
             } catch (e) { 
-                alert("خطا در اتصال به دیتابیس."); 
+                alert("Error connecting."); 
             } finally { 
                 document.getElementById('loader').classList.add('hidden'); 
             }
@@ -258,7 +263,12 @@ DOCTYPE html>
         function renderWords() {
             const start = (currentPage - 1) * itemsPerPage;
             const paged = filteredWords.slice(start, start + itemsPerPage);
-            document.getElementById('wordsContainer').innerHTML = paged.map(w => `
+            document.getElementById('wordsContainer').innerHTML = paged.map(w => {
+                const wordTrans = w[1].split('/')[0].trim();
+                const exampleTrans = w[7] || "";
+                const boldedExampleTrans = exampleTrans.replace(new RegExp(`(${wordTrans})`, 'gi'), '<b>$1</b>');
+
+                return `
                 <div class="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm animate-pop">
                     <div class="flex justify-between items-start mb-3">
                         <div class="flex gap-2">
@@ -275,9 +285,9 @@ DOCTYPE html>
                     <p class="text-blue-700 font-black text-lg mb-2 text-right">${w[1]}</p>
                     <div class="bg-slate-50 p-3 rounded-2xl border-r-4 border-blue-400 text-left">
                          <p class="text-sm text-slate-600 italic leading-relaxed text-left english-text">${highlightWord(w[3] || '', w[0])}</p>
-                         <p class="text-[13px] text-blue-500 font-black border-t pt-2 border-blue-100 text-right mt-1">${w[7] || ''}</p>
+                         <p class="text-xs text-blue-500 font-black border-t pt-2 border-blue-100 text-right mt-1">${boldedExampleTrans}</p>
                     </div>
-                </div>`).join('');
+                </div>`}).join('');
             document.getElementById('pageInfo').innerText = `PAGE ${currentPage} / ${Math.ceil(filteredWords.length / itemsPerPage) || 1}`;
             document.getElementById('itemsCount').innerText = `${filteredWords.length} مورد یافت شد`;
         }
@@ -286,7 +296,7 @@ DOCTYPE html>
             const v = document.getElementById('readingSearch').value.toLowerCase();
             const b = document.getElementById('rSearchSuggestions');
             if(v.length < 2) { b.classList.add('hidden'); return; }
-            const matches = readingQuestions.filter(q => q[0].toLowerCase().includes(v) || q[1].toLowerCase().includes(v)).slice(0, 8);
+            const matches = readingQuestions.filter(q => q[0].toLowerCase().includes(v) || q[1].toLowerCase().includes(v) || q[2].toLowerCase().includes(v)).slice(0, 8);
             b.innerHTML = matches.map(q => `<div onclick="document.getElementById('readingSearch').value='${q[1]}';applyReadingFilters();document.getElementById('rSearchSuggestions').classList.add('hidden')" class="p-3 border-b text-sm english-text hover:bg-blue-50 cursor-pointer">#${q[0]} - ${q[1]}</div>`).join('');
             b.classList.remove('hidden');
         }
@@ -294,14 +304,23 @@ DOCTYPE html>
         function applyReadingFilters() {
             const search = document.getElementById('readingSearch').value.toLowerCase();
             const sort = document.getElementById('rSortSelect').value;
+            const diff = document.getElementById('rDiffFilter').value;
+            const sub = document.getElementById('rSubjectFilter').value;
+            const grm = document.getElementById('rGrammarFilter').value;
+
             filteredReading = readingQuestions.filter(q => {
                 const matchSearch = q[0].toLowerCase().includes(search) || q[1].toLowerCase().includes(search) || q[2].toLowerCase().includes(search);
                 const matchPred = (curRPred === 'all') ? true : (q[16] && q[16].trim().toLowerCase() === 'yes');
                 const matchType = (curRType === 'all') ? true : (q[18] && q[18].trim() === curRType);
-                return matchSearch && matchPred && matchType;
+                const matchDiff = (diff === 'all') ? true : (diff === 'hard' ? hardReading.includes(q[0]) : !hardReading.includes(q[0]));
+                const matchSub = (sub === 'All') || (q[19] && q[19] === sub);
+                const matchGrm = (grm === 'All') || (q[14] && q[14].includes(grm));
+                return matchSearch && matchPred && matchType && matchDiff && matchSub && matchGrm;
             });
             if(sort === 'Tested') filteredReading.sort((a, b) => (parseInt(b[17]) || 0) - (parseInt(a[17]) || 0));
             else filteredReading.sort((a, b) => (parseInt(a[0].replace('#','')) || 0) - (parseInt(b[0].replace('#','')) || 0));
+
+            document.getElementById('rItemsCount').innerText = `${filteredReading.length} مورد یافت شد`;
             readingCurrentIdx = 0; renderReading();
         }
 
@@ -310,12 +329,17 @@ DOCTYPE html>
             if(type === 'type') curRType = (curRType === val) ? 'all' : val;
             document.getElementById('rBtnAll').className = (curRPred === 'all') ? "px-4 py-2.5 rounded-xl text-xs font-black border bg-blue-600 text-white transition-all shadow-md" : "px-4 py-2.5 rounded-xl text-xs font-black border bg-white text-slate-400 transition-all";
             document.getElementById('rBtnPred').className = (curRPred === 'yes') ? "px-4 py-2.5 rounded-xl text-xs font-black border bg-blue-600 text-white transition-all shadow-md" : "px-4 py-2.5 rounded-xl text-xs font-black border bg-white text-slate-400 transition-all";
+            document.getElementById('rBtnDrop').className = (curRType === 'Drop Down') ? "px-3 py-2.5 rounded-xl text-[10px] font-black border bg-blue-500 text-white transition-all shadow-md italic" : "px-3 py-2.5 rounded-xl text-[10px] font-black border bg-white text-slate-400 transition-all italic";
+            document.getElementById('rBtnDrag').className = (curRType === 'Drag and Drop') ? "px-3 py-2.5 rounded-xl text-[10px] font-black border bg-blue-500 text-white transition-all shadow-md italic" : "px-3 py-2.5 rounded-xl text-[10px] font-black border bg-white text-slate-400 transition-all italic";
             applyReadingFilters();
         }
 
         function resetReadingFilters() {
             document.getElementById('readingSearch').value = '';
             document.getElementById('rSortSelect').value = 'Number';
+            document.getElementById('rDiffFilter').value = 'all';
+            document.getElementById('rSubjectFilter').value = 'All';
+            document.getElementById('rGrammarFilter').value = 'All';
             curRPred = 'all'; curRType = 'all'; applyReadingFilters();
         }
 
@@ -324,9 +348,10 @@ DOCTYPE html>
             if (filteredReading.length === 0) { container.innerHTML = "<p class='text-center p-10 font-bold opacity-50 italic'>سوالی یافت نشد.</p>"; return; }
             const q = filteredReading[readingCurrentIdx];
             const term = document.getElementById('readingSearch').value.toLowerCase();
-            const isHard = hardReading.includes(q[0]);
             const scoreData = readingScores[q[0]];
+            const isHard = hardReading.includes(q[0]);
             const statusIcon = scoreData ? ((scoreData.score/scoreData.total)*100 >= 60 ? '✅' : '❌') : '';
+            
             const optionGroups = q[11].split('/').map(group => {
                 const parts = group.trim().match(/(\d+)\.\s*(.*)/);
                 return parts ? { num: parts[1], choices: parts[2].split(',').map(c => c.trim()) } : null;
@@ -343,7 +368,7 @@ DOCTYPE html>
                     </div>
                     <div class="text-left mb-4 px-2">
                         <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">${statusIcon}${highlightMatch(q[1], term)}</h3>
-                        <p class="text-[10px] text-slate-400 font-bold italic">APEUni #${highlightMatch(q[0], term)} <span class="opacity-40 ml-1">(${q[17]} repeats)</span></p>
+                        <p class="text-[10px] text-slate-400 font-bold italic text-left">APEUni #${highlightMatch(q[0], term)} <span class="opacity-40 ml-1">(${q[17]} repeats)</span></p>
                     </div>
                     <div id="readText" class="english-text text-base leading-[2.5] mb-2 bg-slate-50 p-5 rounded-2xl border border-dashed border-slate-200" style="direction: ltr; text-align: justify;">
                         ${highlightMatch(q[2], term).replace(/\[Blank (\d+)\]/g, (match, n) => {
@@ -386,7 +411,7 @@ DOCTYPE html>
                         currentText = currentText.replace(`[Blank ${i}]`, `<b class="${userSel.trim().toLowerCase() === ans.trim().toLowerCase() ? 'text-green-600' : 'text-red-500'} underline decoration-2 font-black">${ans}</b>`);
                     }
                 }
-                readingScores[q[0]] = { score: correctCount, total: totalBlanks, isHard: hardReading.includes(q[0]) };
+                readingScores[q[0]] = { score: correctCount, total: totalBlanks, isHard: hardReading.includes(q[0]), isPred: (q[16] && q[16].trim().toLowerCase() === 'yes') };
                 textDiv.innerHTML = currentText; transDiv.classList.remove('hidden'); scoreDiv.classList.remove('hidden');
                 document.getElementById('readingScoreVal').innerText = `${correctCount} / ${totalBlanks}`;
                 btn.innerText = "مخفی کردن پاسخ"; btn.classList.replace('bg-green-600', 'bg-slate-700');
@@ -400,8 +425,8 @@ DOCTYPE html>
         function renderStats() {
             const lA = academicWords.filter(w => learnedWords.includes(w[0])).length;
             const lE = examWords.filter(w => learnedWords.includes(w[0])).length;
-            let tc = 0, tb = 0;
-            Object.values(readingScores).forEach(s => { tc += s.score; tb += s.total; });
+            let tc = 0, tb = 0, pc = 0, pb = 0;
+            Object.values(readingScores).forEach(s => { tc += s.score; tb += s.total; if(s.isPred) { pc += s.score; pb += s.total; } });
             const rp = tb > 0 ? Math.round((tc/tb)*100) : 0;
             const lastQuiz = quizHistory.length ? quizHistory[quizHistory.length-1].score : 0;
 
@@ -411,26 +436,30 @@ DOCTYPE html>
                     <div class="bg-yellow-400 text-slate-900 p-5 rounded-3xl text-center shadow-lg"><p class="text-xs font-bold opacity-70 uppercase">Collocations</p><div class="text-2xl font-black stat-number">${lE}/${examWords.length}</div></div>
                 </div>
                 <div class="bg-slate-900 text-white p-6 rounded-3xl shadow-xl text-center flex flex-col items-center" dir="ltr">
-                    <p class="text-sm font-black mb-1 text-blue-400 uppercase tracking-widest text-center">Total Reading Performance</p>
+                    <p class="text-sm font-black mb-1 text-blue-400 uppercase tracking-widest text-center">Total Reading Accuracy</p>
                     <div class="text-4xl font-black text-green-400 stat-number my-2">${rp}%</div>
                     <div class="text-base font-bold text-slate-400">${tc} Correct from ${tb} Total Blanks</div>
-                    <div class="text-xs opacity-70 mt-1">${solvedReading.length} / ${readingQuestions.length} Items Solved</div>
+                    <div class="text-[10px] text-yellow-400 uppercase mt-2 font-black">Prediction Stats: ${pc} / ${pb} (${pb > 0 ? Math.round((pc/pb)*100) : 0}%)</div>
                 </div>
-                <div class="bg-white border-2 border-slate-100 p-6 rounded-3xl shadow-sm text-right">
-                    <p class="font-black text-slate-800 mb-4 italic underline uppercase text-sm">Questions Report:</p>
-                    <div class="space-y-2 max-h-80 overflow-y-auto no-scrollbar">
+                <details class="group bg-white border-2 border-slate-100 rounded-3xl shadow-sm overflow-hidden">
+                    <summary class="p-5 font-black text-slate-800 text-sm cursor-pointer list-none flex justify-between items-center italic uppercase"><span>Questions Report</span><span>▼</span></summary>
+                    <div class="p-4 space-y-2 max-h-80 overflow-y-auto no-scrollbar border-t">
                         ${Object.keys(readingScores).reverse().map(qid => {
                             const d = readingScores[qid];
                             const st = (d.score/d.total)*100 >= 60 ? '✅ خوب' : '❌ ضعیف';
                             return `<div class="flex justify-between items-center border-b pb-2 text-sm font-bold" dir="ltr"><span class="text-slate-400 text-xs">#${qid}</span><span>${st}</span><span class="stat-number">${d.score}/${d.total}</span></div>`;
                         }).join('') || '<p class="text-center text-xs italic">دیتایی یافت نشد.</p>'}
                     </div>
-                </div>
-                <div class="bg-white border-2 border-slate-100 p-6 rounded-3xl shadow-sm text-right">
-                    <p class="text-xs mb-1 font-bold text-blue-600">آخرین آزمون جامع: <span class="stat-number">${lastQuiz} / 25 (${Math.round((lastQuiz/25)*100)}%)</span></p>
-                </div>`;
+                </details>
+                <details class="group bg-white border-2 border-slate-100 rounded-3xl shadow-sm overflow-hidden">
+                    <summary class="p-5 font-black text-slate-800 text-sm cursor-pointer list-none flex justify-between items-center italic uppercase"><span>Quiz History</span><span>▼</span></summary>
+                    <div class="p-4 space-y-2 border-t">
+                        <p class="text-xs font-bold text-blue-600">آخرین آزمون جامع: <span class="stat-number">${lastQuiz} / 25 (${Math.round((lastQuiz/25)*100)}%)</span></p>
+                    </div>
+                </details>`;
         }
 
+        // --- BASE LOGIC ---
         function showTab(t) {
             activeTabName = t;
             ['vocabSection','quizSection','statsSection','vocabControls','readingSection'].forEach(id => document.getElementById(id).classList.add('hidden'));
@@ -445,19 +474,31 @@ DOCTYPE html>
             const btnId = t === 'academic' ? 'tabAcademic' : t === 'exam' ? 'tabExam' : t === 'quiz' ? 'tabQuiz' : t === 'reading' ? 'tabReading' : 'tabStats';
             document.getElementById(btnId).className = "flex-1 py-5 tab-active transition-all text-sm";
         }
-        function applyFilters() { const s = document.getElementById('searchInput').value.toLowerCase(); const lvl = document.getElementById('levelFilter').value; const ds = activeTabName === 'academic' ? academicWords : examWords; filteredWords = ds.filter(w => { const isL = learnedWords.includes(w[0]), isH = hardWords.includes(w[0]); let matchStatus = (currentStatusFilter==='new') ? (!isL && !isH) : (currentStatusFilter==='learned' ? isL : isH); return matchStatus && w[0].toLowerCase().includes(s) && (lvl==='All' || (w[2] && w[2].includes(lvl))); }); renderWords(); }
-        function setStatusFilter(f) { 
-            currentStatusFilter = f;
-            ['btnNew', 'btnLearned', 'btnHard'].forEach(id => document.getElementById(id).classList.remove('filter-active'));
-            const activeId = f === 'new' ? 'btnNew' : f === 'learned' ? 'btnLearned' : 'btnHard';
-            document.getElementById(activeId).classList.add('filter-active');
-            applyFilters(); 
+        function applyFilters() { 
+            const s = document.getElementById('searchInput').value.toLowerCase(); 
+            const lvl = document.getElementById('levelFilter').value; 
+            const ds = activeTabName === 'academic' ? academicWords : examWords; 
+            let result = ds.filter(w => { 
+                const isL = learnedWords.includes(w[0]), isH = hardWords.includes(w[0]); 
+                let matchStatus = (currentStatusFilter==='new') ? (!isL && !isH) : (currentStatusFilter==='learned' ? isL : isH); 
+                return matchStatus && w[0].toLowerCase().includes(s) && (lvl==='All' || (w[2] && w[2].includes(lvl))); 
+            }); 
+            filteredWords = result.sort(() => Math.random() - 0.5);
+            renderWords(); 
         }
+        function setStatusFilter(f) { currentStatusFilter = f; ['btnNew', 'btnLearned', 'btnHard'].forEach(id => document.getElementById(id).classList.remove('filter-active')); const activeId = f === 'new' ? 'btnNew' : f === 'learned' ? 'btnLearned' : 'btnHard'; document.getElementById(activeId).classList.add('filter-active'); applyFilters(); }
         function toggleStatus(word, type) { if (type === 'learned') { if (learnedWords.includes(word)) learnedWords = learnedWords.filter(w => w !== word); else { learnedWords.push(word); hardWords = hardWords.filter(w => w !== word); } } else if (type === 'hard') { if (hardWords.includes(word)) hardWords = hardWords.filter(w => w !== word); else { hardWords.push(word); learnedWords = learnedWords.filter(w => w !== word); } } applyFilters(); updateProgress(); renderStats(); saveProgress(); }
         function showQuizHome() { document.getElementById('quizContent').innerHTML = `<div class="text-center p-8 animate-pop"><div class="text-7xl mb-6">📝</div><h2 class="text-3xl font-black text-slate-800 mb-4">آزمون جامع PTE</h2><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl hover:bg-blue-700 transition-all text-xl">شروع آزمون</button></div>`; }
         function initQuiz() { quizState = { currentIdx: 0, score: 0, questions: [...quizData].sort(()=>0.5-Math.random()).slice(0, 25), currentSelection: null }; showQuestion(); }
         function showQuestion() { const q = quizState.questions[quizState.currentIdx]; document.getElementById('quizContent').innerHTML = `<div class="text-right flex flex-col h-full animate-pop"><div class="flex justify-between items-center mb-8"><span class="text-xs bg-slate-200 px-4 py-2 rounded-full font-black">Q ${quizState.currentIdx + 1} / 25</span><span class="text-green-600 font-bold text-sm">${quizState.score} Correct</span></div><div class="english-text bg-slate-900 p-8 rounded-[2rem] mb-6 text-white shadow-xl text-xl leading-relaxed border-b-4 border-blue-500">${q[0].toString().replace('_______', '<span class="text-blue-400 font-bold border-b-2">_________</span>')}</div><div class="grid gap-3 mb-6">${[1,2,3,4].map(i => `<button id="opt${i}" onclick="quizState.currentSelection='${q[i] ? q[i].toString().replace(/'/g, "\\'") : ""}';[1,2,3,4].forEach(j=>document.getElementById('opt'+j).className='english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-700 text-base');document.getElementById('opt${i}').className='english-text text-left w-full p-4 border-2 border-blue-500 bg-blue-50 rounded-2xl font-black text-blue-700 shadow-inner text-base'" class="english-text text-left w-full p-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-700 transition-all text-base">${q[i] || ""}</button>`).join('')}</div><button onclick="confirmAnswer()" class="bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg text-lg">ثبت پاسخ</button></div>`; }
-        function confirmAnswer() { if(!quizState.currentSelection) return alert("Select one."); const q = quizState.questions[quizState.currentIdx]; const isC = quizState.currentSelection.trim().toLowerCase() === q[5].toString().trim().toLowerCase(); if(isC) quizState.score++; const sentence = q[0].replace('_______', '<b class="text-blue-600 underline">' + q[5] + '</b>'); document.getElementById('quizContent').innerHTML = `<div class="py-6 text-center animate-pop"><div class="text-8xl mb-4">${isC ? '✅' : '❌'}</div><div class="english-text bg-white p-6 rounded-3xl mb-4 text-base border italic text-slate-700 leading-relaxed shadow-sm">${sentence}</div><div class="space-y-4 mb-8"><div class="bg-blue-50 p-5 rounded-2xl text-right border-r-4 border-blue-500"><p class="text-xs font-black text-blue-600 mb-1 italic text-right uppercase">Translation</p><p class="text-sm text-slate-600 font-medium text-right">${q[6] || ''}</p></div><div class="bg-amber-50 p-5 rounded-2xl text-right border-r-4 border-amber-400"><p class="text-xs font-black text-amber-600 mb-1 italic text-right uppercase">Grammar Tip</p><p class="text-sm text-slate-600 font-medium text-right">${q[7] || ''}</p></div></div><button onclick="if(quizState.currentIdx<24){quizState.currentIdx++;quizState.currentSelection=null;showQuestion()}else{renderQuizResult()}" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg text-lg uppercase">Next Question</button></div>`; }
+        function confirmAnswer() { 
+            if(!quizState.currentSelection) return alert("Select one."); 
+            const q = quizState.questions[quizState.currentIdx]; 
+            const isC = quizState.currentSelection.trim().toLowerCase() === q[5].toString().trim().toLowerCase(); 
+            if(isC) quizState.score++; 
+            const sentence = q[0].replace('_______', '<b class="text-blue-600 underline">' + q[5] + '</b>'); 
+            document.getElementById('quizContent').innerHTML = `<div class="py-6 text-center animate-pop"><div class="text-8xl mb-4">${isC ? '✅' : '❌'}</div><div class="english-text bg-white p-6 rounded-3xl mb-4 text-base border italic text-slate-700 leading-relaxed shadow-sm">${sentence}</div><div class="space-y-4 mb-8"><div class="bg-blue-50 p-5 rounded-2xl text-right border-r-4 border-blue-500"><p class="text-xs font-black text-blue-600 mb-1 italic text-right uppercase">Translation</p><p class="text-sm text-slate-600 font-medium text-right">${q[6] || ''}</p></div><div class="bg-amber-50 p-5 rounded-2xl text-right border-r-4 border-amber-400"><p class="text-xs font-black text-amber-600 mb-1 italic text-right uppercase">Grammar Tip</p><p class="text-sm text-slate-600 font-medium text-right">${q[7] || ''}</p></div></div><button onclick="if(quizState.currentIdx<24){quizState.currentIdx++;quizState.currentSelection=null;showQuestion()}else{renderQuizResult()}" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg text-lg uppercase">Next Question</button></div>`; 
+        }
         function renderQuizResult() { const p = Math.round((quizState.score/25)*100); quizHistory.push({ date: new Date().toLocaleDateString('fa-IR'), score: quizState.score }); saveProgress(); document.getElementById('quizContent').innerHTML = `<div class="text-center p-4 animate-pop"><h2 class="text-5xl font-black text-blue-600 mb-2 underline tracking-tighter">${p}% SCORE</h2><p class="mb-8 font-bold text-slate-500 text-lg">${quizState.score} از 25 صحیح</p><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl text-xl">Try Again</button></div>`; }
         function saveProgress() { if(!currentUser) return; const payload = { action: 'saveProgress', username: currentUser, learned: learnedWords.join('|'), hard: hardWords.join('|'), quizHistory: JSON.stringify(quizHistory), solvedReading: solvedReading.join('|'), hardReading: hardReading.join('|'), readingScores: JSON.stringify(readingScores), deviceId: deviceId }; fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }); }
         function updateProgress() {
@@ -477,8 +518,8 @@ DOCTYPE html>
         function getLevelStyle(lvl) { if(!lvl) return ''; return lvl.includes('B2') ? 'bg-green-50 text-green-600 border-green-100' : lvl.includes('C1') ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-purple-50 text-purple-600 border-purple-100'; }
         function changePage(s) { currentPage += s; renderWords(); window.scrollTo(0, 0); }
         function resetFilters() { document.getElementById('searchInput').value = ''; applyFilters(); }
+        function handleSearchSuggestions() { const v = document.getElementById('searchInput').value.toLowerCase(); const b = document.getElementById('searchSuggestions'); if(v.length < 2) { b.classList.add('hidden'); return; } const ds = activeTabName === 'academic' ? academicWords : examWords; const m = ds.filter(w => w[0].toLowerCase().includes(v)).slice(0,10); b.innerHTML = m.map(x => `<div onclick="document.getElementById('searchInput').value='${x[0]}';applyFilters();document.getElementById('searchSuggestions').classList.add('hidden')" class="p-3 border-b text-sm english-text hover:bg-blue-50 cursor-pointer">${x[0]}</div>`).join(''); b.classList.remove('hidden'); }
         function showWotd() { const valid = academicWords.filter(w => w && w[0] && w[0].trim() !== ""); if (valid.length === 0) return; const obj = valid[Math.floor(Math.random() * valid.length)]; document.getElementById('wotdWord').innerText = obj[0]; document.getElementById('wotdTrans').innerText = obj[1]; document.getElementById('wotdExample').innerText = obj[3] || "No example available."; document.getElementById('wotdModal').style.display = 'flex'; }
     </script>
 </body>
 </html>
-
