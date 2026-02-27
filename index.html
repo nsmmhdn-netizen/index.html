@@ -155,7 +155,7 @@
 
     <script>
         const PUB_ID = '2PACX-1vRLfGnlIoQoX8NtHa99PvWeZIIcHh1s6Asc0jOIKewDKHq7fjiQ-KsZ0B7PVNANcjXtid63Wqih-zjC';
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyLBSK9-o2mJvlKTLZlSHGaAg--ozzEFaKXQDk4wH5SH55r1KwUR_LOKrcrOLXhYvKl/exec'; 
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzz9f6dFcv16XM0tg4u_OWdNgu-YzlDbPjw4N1sJQ_dk43euluF4mJ6a2MaBYqGceGL/exec'; 
         
         let academicWords = [], examWords = [], readingQuestions = [], filteredReading = [], quizData = [], usersData = [];
         let learnedWords = [], hardWords = [], quizHistory = [], filteredWords = [];
@@ -206,6 +206,7 @@
                 if (match) {
                     // ۲. دریافت دیتای پیشرفت کاربر و دستگاه‌ها
                     const syncRes = await fetch(APPS_SCRIPT_URL);
+                    if (!syncRes.ok) throw new Error("Server error"); // این خط کمک میکنه بفهمیم مشکل از سروره
                     const allData = await syncRes.json();
                     const userData = allData.find(x => x.username.toLowerCase() === u);
 
