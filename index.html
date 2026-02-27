@@ -1,3 +1,5 @@
+code
+Html
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -76,7 +78,6 @@
             <button id="tabStats" onclick="showTab('stats')" class="flex-1 py-5 tab-inactive whitespace-nowrap text-sm">آمار من</button>
         </nav>
 
-        <!-- VOCAB TAB CONTROLS -->
         <div id="vocabControls" class="p-4 bg-white border-b space-y-4 shadow-sm">
             <div class="relative">
                 <div class="flex gap-2">
@@ -104,7 +105,6 @@
             </div>
         </div>
 
-        <!-- READING SECTION -->
         <div id="readingSection" class="p-2 hidden">
             <div id="readingControls" class="p-3 bg-white space-y-4 mb-2 border-b">
                 <div class="relative">
@@ -126,14 +126,12 @@
                     <select id="rSortSelect" onchange="applyReadingFilters()" class="px-3 py-2 rounded-lg text-xs font-black border bg-white text-slate-600 outline-none"><option value="Number">شماره سوال</option><option value="Tested">بیشترین تکرار</option></select>
                 </div>
             </div>
-            
             <div class="px-4 mb-4">
                 <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
                     <div id="rProgressBar" class="bg-blue-500 h-full transition-all duration-500" style="width: 0%"></div>
                 </div>
                 <p class="text-[10px] text-slate-400 mt-1 font-black uppercase text-center">Reading Progress</p>
             </div>
-
             <div id="readingContent" class="space-y-4 px-1"></div>
             <div class="flex justify-between items-center mt-6 px-4 pb-10">
                 <button onclick="changeReadingPage(-1)" class="bg-white border-2 border-slate-100 px-10 py-3.5 rounded-2xl font-black text-sm shadow-sm active:scale-95 transition-all text-slate-500">قبلی</button>
@@ -148,7 +146,7 @@
 
     <script>
         const PUB_ID = '2PACX-1vRLfGnlIoQoX8NtHa99PvWeZIIcHh1s6Asc0jOIKewDKHq7fjiQ-KsZ0B7PVNANcjXtid63Wqih-zjC';
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVfkhE8Cc5L2htsTO4WNvPTQykTYMtNTG7wsceftJEXF6Yjc4UVXIPvpGbVufkwPIw/exec'; 
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyLBSK9-o2mJvlKTLZlSHGaAg--ozzEFaKXQDk4wH5SH55r1KwUR_LOKrcrOLXhYvKl/exec'; 
         
         let academicWords = [], examWords = [], readingQuestions = [], filteredReading = [], quizData = [], usersData = [];
         let learnedWords = [], hardWords = [], quizHistory = [], filteredWords = [];
@@ -256,12 +254,10 @@
                          <p class="text-sm text-slate-600 italic leading-relaxed text-left">${highlightWord(w[3] || '', w[0])}</p>
                          <p class="text-xs text-blue-500 font-black border-t pt-2 border-blue-100 text-right mt-1"><span class="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[8px] ml-1 not-italic">Meaning</span>${w[7] || ''}</p>
                     </div>
-                    ${w[4] ? `<div class="bg-amber-50 p-2 rounded-xl text-xs text-slate-500 border-r-2 border-amber-300 text-right italic leading-relaxed">💡 ${w[4]}</div>` : ''}
                 </div>`).join('');
             document.getElementById('pageInfo').innerText = `PAGE ${currentPage} / ${Math.ceil(filteredWords.length / itemsPerPage) || 1}`;
         }
 
-        // --- READING TAB LOGIC (FLASHCARD) ---
         function handleReadingSuggestions() {
             const v = document.getElementById('readingSearch').value.toLowerCase();
             const b = document.getElementById('rSearchSuggestions');
@@ -345,7 +341,7 @@
                     </div>
                     <div class="mb-4 flex justify-center items-center gap-6">
                         <button onclick="toggleReadingAnswer()" id="readBtn" class="bg-green-600 text-white px-10 py-3.5 rounded-2xl font-black text-sm shadow-lg transition-all">ثبت پاسخ</button>
-                        <div id="scoreDisplay" class="hidden animate-pop bg-slate-900 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase">SCORE: <span id="readingScoreVal" class="text-yellow-400">0/0</span></div>
+                        <div id="scoreDisplay" class="hidden animate-pop bg-slate-900 text-white px-4 py-3 rounded-2xl font-black text-xs uppercase">SCORE: <span id="readingScoreVal" class="text-yellow-400">0/0</span></div>
                     </div>
                     <div class="space-y-3">
                         <details class="group bg-slate-900 rounded-2xl overflow-hidden shadow-md"><summary class="p-4 text-xs font-black text-blue-400 cursor-pointer text-center list-none uppercase italic">💡 نکات گرامری</summary><div class="p-5 text-sm text-slate-300 bg-slate-800 leading-8 persian-text font-medium">${q[14] ? q[14].replace(/(\d+\.)/g, '<br><b>$1</b>') : 'ثبت نشده'}</div></details>
@@ -456,6 +452,7 @@
         function getLevelStyle(lvl) { if(!lvl) return ''; return lvl.includes('B2') ? 'bg-green-50 text-green-600 border-green-100' : lvl.includes('C1') ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-purple-50 text-purple-600 border-purple-100'; }
         function changePage(s) { currentPage += s; renderWords(); window.scrollTo(0, 0); }
         function resetFilters() { document.getElementById('searchInput').value = ''; applyFilters(); }
+        function handleSearchSuggestions() { const v = document.getElementById('searchInput').value.toLowerCase(); const b = document.getElementById('searchSuggestions'); if(v.length < 2) { b.classList.add('hidden'); return; } const ds = activeTabName === 'academic' ? academicWords : examWords; const m = ds.filter(w => w[0].toLowerCase().includes(v)).slice(0,10); b.innerHTML = m.map(x => `<div onclick="document.getElementById('searchInput').value='${x[0]}';applyFilters();document.getElementById('searchSuggestions').classList.add('hidden')" class="p-3 border-b text-sm english-text hover:bg-blue-50 cursor-pointer">${x[0]}</div>`).join(''); b.classList.remove('hidden'); }
         function showWotd() { const valid = academicWords.filter(w => w && w[0] && w[0].trim() !== ""); if (valid.length === 0) return; const obj = valid[Math.floor(Math.random() * valid.length)]; document.getElementById('wotdWord').innerText = obj[0]; document.getElementById('wotdTrans').innerText = obj[1]; document.getElementById('wotdExample').innerText = obj[3] || "No example available."; document.getElementById('wotdModal').style.display = 'flex'; }
     </script>
 </body>
