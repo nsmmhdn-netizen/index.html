@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PTEinsider - Reading Studio</title>
-    <!-- Favicon -->
     <link rel="icon" type="image/png" href="logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -78,7 +77,6 @@
             <button id="tabStats" onclick="showTab('stats')" class="flex-1 py-5 tab-inactive whitespace-nowrap text-sm">آمار من</button>
         </nav>
 
-        <!-- VOCAB SECTION -->
         <div id="vocabControls" class="p-4 bg-white border-b space-y-4 shadow-sm">
             <div class="relative">
                 <div class="flex gap-2">
@@ -106,7 +104,6 @@
             </div>
         </div>
 
-        <!-- READING SECTION -->
         <div id="readingSection" class="p-2 hidden">
             <div id="readingControls" class="p-3 bg-white space-y-4 mb-2 border-b">
                 <div class="relative flex gap-2">
@@ -168,7 +165,6 @@
         const deviceId = localStorage.getItem('pte_device_id') || Math.random().toString(36).substr(2, 9);
         localStorage.setItem('pte_device_id', deviceId);
 
-        // Improved CSV Parser to handle newlines and commas in text
         function parseCSV(text) {
             const rows = []; let row = []; let col = ''; let inQuotes = false;
             for (let i = 0; i < text.length; i++) {
@@ -190,7 +186,6 @@
             const url = `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?output=csv&gid=${gid}`;
             try {
                 const res = await fetch(url);
-                if (!res.ok) return [];
                 const text = await res.text();
                 return parseCSV(text);
             } catch (e) { return []; }
@@ -203,46 +198,50 @@
             document.getElementById('loader').classList.remove('hidden');
             document.getElementById('loginError').classList.add('hidden');
             try {
+                // १. دریافت دیتای کاربران
                 usersData = await fetchCSV('1914745392'); 
                 const match = usersData.find(r => r[0].toString().toLowerCase().trim() === u && r[1].toString().trim() === p);
                 
                 if (match) {
-                    const [v1, v2, qz, rd] = await Promise.all([
-                        fetchCSV('0'),
-                        fetchCSV('1436328967'),
-                        fetchCSV('1776379547'),
-                        fetchCSV('1529009657')
-                    ]);
-                    academicWords = v1; examWords = v2; quizData = qz; readingQuestions = rd;
+                    // ۲. دریافت دیتای پیشرفت کاربر و دستگاه‌ها
+                    const syncRes = await fetch(APPS_SCRIPT_URL);
+                    const allData = await syncRes.json();
+                    const userData = allData.find(x => x.username.toLowerCase() === u);
+
+                    if (userData) {
+                        const devices = userData.devices ? userData.devices.split('|') : [];
+                        if (devices.indexOf(deviceId) === -1 && devices.length >= 3) {
+                            alert("خطا: شما از حداکثر ۳ دستگاه مجاز استفاده کرده‌اید.");
+                            document.getElementById('loader').classList.add('hidden');
+                            return;
+                        }
+                        
+                        learnedWords = userData.learned ? userData.learned.split('|') : [];
+                        hardWords = userData.hard ? userData.hard.split('|') : [];
+                        quizHistory = userData.quizHistory ? JSON.parse(userData.quizHistory) : [];
+                        solvedReading = userData.solvedReading ? userData.solvedReading.split('|') : [];
+                        hardReading = userData.hardReading ? userData.hardReading.split('|') : [];
+                        readingScores = userData.readingScores ? JSON.parse(userData.readingScores) : {};
+                    }
+
+                    // ۳. لود بقیه دیتاها بصورت مجزا برای پایداری بیشتر
+                    academicWords = await fetchCSV('0');
+                    examWords = await fetchCSV('1436328967');
+                    quizData = await fetchCSV('1776379547');
+                    readingQuestions = await fetchCSV('1529009657');
+                    
                     currentUser = u;
                     filteredReading = [...readingQuestions];
 
+                    // ۴. راه اندازی فیلترها
                     const subjects = [...new Set(readingQuestions.map(q => q[19]))].filter(s => s && s.trim() !== "");
                     document.getElementById('rSubjectFilter').innerHTML = '<option value="All">فیلتر موضوعی</option>' + subjects.map(s => `<option value="${s}">${s}</option>`).join('');
                     const grammars = [...new Set(readingQuestions.map(q => q[14]))].filter(g => g && g.trim() !== "").map(g => g.split('.')[0].trim()).slice(0,12);
                     document.getElementById('rGrammarFilter').innerHTML = '<option value="All">فیلتر گرامر</option>' + [...new Set(grammars)].map(g => `<option value="${g}">${g}</option>`).join('');
 
-                    try {
-                        const syncRes = await fetch(APPS_SCRIPT_URL);
-                        const allP = await syncRes.json();
-                        const myP = allP.find(x => x.username.toLowerCase() === currentUser);
-                        if (myP) {
-                            const devices = myP.devices ? myP.devices.split('|') : [];
-                            if (devices.indexOf(deviceId) === -1 && devices.length >= 3) {
-                                alert("خطا: شما از حداکثر ۳ دستگاه مجاز استفاده کرده‌اید.");
-                                document.getElementById('loader').classList.add('hidden');
-                                return;
-                            }
-                            learnedWords = myP.learned ? myP.learned.split('|') : [];
-                            hardWords = myP.hard ? myP.hard.split('|') : [];
-                            quizHistory = myP.quizHistory ? JSON.parse(myP.quizHistory) : [];
-                            solvedReading = myP.solvedReading ? myP.solvedReading.split('|') : [];
-                            hardReading = myP.hardReading ? myP.hardReading.split('|') : [];
-                            readingScores = myP.readingScores ? JSON.parse(myP.readingScores) : {};
-                        }
-                        fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'checkDevice', username: u, deviceId: deviceId }) });
-                    } catch(e) {}
-                    
+                    // ۵. ثبت دستگاه در سرور
+                    fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'checkDevice', username: u, deviceId: deviceId }) });
+
                     document.getElementById('loginPage').classList.add('hidden');
                     document.getElementById('mainApp').classList.remove('hidden');
                     document.getElementById('userNameDisplay').innerText = `${u.toUpperCase()} 😊🌻`;
@@ -251,7 +250,7 @@
                     document.getElementById('loginError').classList.remove('hidden'); 
                 }
             } catch (e) { 
-                alert("Error connecting."); 
+                alert("خطا در اتصال به سرور."); 
             } finally { 
                 document.getElementById('loader').classList.add('hidden'); 
             }
@@ -317,20 +316,26 @@
                 const matchGrm = (grm === 'All') || (q[14] && q[14].includes(grm));
                 return matchSearch && matchPred && matchType && matchDiff && matchSub && matchGrm;
             });
+
             if(sort === 'Tested') filteredReading.sort((a, b) => (parseInt(b[17]) || 0) - (parseInt(a[17]) || 0));
             else filteredReading.sort((a, b) => (parseInt(a[0].replace('#','')) || 0) - (parseInt(b[0].replace('#','')) || 0));
 
             document.getElementById('rItemsCount').innerText = `${filteredReading.length} مورد یافت شد`;
+            const p = readingQuestions.length > 0 ? (solvedReading.length / readingQuestions.length) * 100 : 0;
+            document.getElementById('rProgressBar').style.width = p + '%';
             readingCurrentIdx = 0; renderReading();
         }
 
         function setRFilter(type, val) {
             if(type === 'pred') curRPred = val;
             if(type === 'type') curRType = (curRType === val) ? 'all' : val;
+
             document.getElementById('rBtnAll').className = (curRPred === 'all') ? "px-4 py-2.5 rounded-xl text-xs font-black border bg-blue-600 text-white transition-all shadow-md" : "px-4 py-2.5 rounded-xl text-xs font-black border bg-white text-slate-400 transition-all";
             document.getElementById('rBtnPred').className = (curRPred === 'yes') ? "px-4 py-2.5 rounded-xl text-xs font-black border bg-blue-600 text-white transition-all shadow-md" : "px-4 py-2.5 rounded-xl text-xs font-black border bg-white text-slate-400 transition-all";
+            
             document.getElementById('rBtnDrop').className = (curRType === 'Drop Down') ? "px-3 py-2.5 rounded-xl text-[10px] font-black border bg-blue-500 text-white transition-all shadow-md italic" : "px-3 py-2.5 rounded-xl text-[10px] font-black border bg-white text-slate-400 transition-all italic";
             document.getElementById('rBtnDrag').className = (curRType === 'Drag and Drop') ? "px-3 py-2.5 rounded-xl text-[10px] font-black border bg-blue-500 text-white transition-all shadow-md italic" : "px-3 py-2.5 rounded-xl text-[10px] font-black border bg-white text-slate-400 transition-all italic";
+
             applyReadingFilters();
         }
 
@@ -340,7 +345,7 @@
             document.getElementById('rDiffFilter').value = 'all';
             document.getElementById('rSubjectFilter').value = 'All';
             document.getElementById('rGrammarFilter').value = 'All';
-            curRPred = 'all'; curRType = 'all'; applyReadingFilters();
+            curRPred = 'all'; curRType = 'all'; setRFilter('pred', 'all');
         }
 
         function renderReading() {
@@ -351,7 +356,6 @@
             const scoreData = readingScores[q[0]];
             const isHard = hardReading.includes(q[0]);
             const statusIcon = scoreData ? ((scoreData.score/scoreData.total)*100 >= 60 ? '✅' : '❌') : '';
-            
             const optionGroups = q[11].split('/').map(group => {
                 const parts = group.trim().match(/(\d+)\.\s*(.*)/);
                 return parts ? { num: parts[1], choices: parts[2].split(',').map(c => c.trim()) } : null;
@@ -368,7 +372,7 @@
                     </div>
                     <div class="text-left mb-4 px-2">
                         <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">${statusIcon}${highlightMatch(q[1], term)}</h3>
-                        <p class="text-[10px] text-slate-400 font-bold italic text-left">APEUni #${highlightMatch(q[0], term)} <span class="opacity-40 ml-1">(${q[17]} repeats)</span></p>
+                        <p class="text-[10px] text-slate-400 font-bold italic">APEUni #${highlightMatch(q[0], term)} <span class="opacity-40 ml-1">(${q[17]} repeats)</span></p>
                     </div>
                     <div id="readText" class="english-text text-base leading-[2.5] mb-2 bg-slate-50 p-5 rounded-2xl border border-dashed border-slate-200" style="direction: ltr; text-align: justify;">
                         ${highlightMatch(q[2], term).replace(/\[Blank (\d+)\]/g, (match, n) => {
@@ -459,7 +463,6 @@
                 </details>`;
         }
 
-        // --- BASE LOGIC ---
         function showTab(t) {
             activeTabName = t;
             ['vocabSection','quizSection','statsSection','vocabControls','readingSection'].forEach(id => document.getElementById(id).classList.add('hidden'));
@@ -486,7 +489,13 @@
             filteredWords = result.sort(() => Math.random() - 0.5);
             renderWords(); 
         }
-        function setStatusFilter(f) { currentStatusFilter = f; ['btnNew', 'btnLearned', 'btnHard'].forEach(id => document.getElementById(id).classList.remove('filter-active')); const activeId = f === 'new' ? 'btnNew' : f === 'learned' ? 'btnLearned' : 'btnHard'; document.getElementById(activeId).classList.add('filter-active'); applyFilters(); }
+        function setStatusFilter(f) { 
+            currentStatusFilter = f;
+            ['btnNew', 'btnLearned', 'btnHard'].forEach(id => document.getElementById(id).classList.remove('filter-active'));
+            const activeId = f === 'new' ? 'btnNew' : f === 'learned' ? 'btnLearned' : 'btnHard';
+            document.getElementById(activeId).classList.add('filter-active');
+            applyFilters(); 
+        }
         function toggleStatus(word, type) { if (type === 'learned') { if (learnedWords.includes(word)) learnedWords = learnedWords.filter(w => w !== word); else { learnedWords.push(word); hardWords = hardWords.filter(w => w !== word); } } else if (type === 'hard') { if (hardWords.includes(word)) hardWords = hardWords.filter(w => w !== word); else { hardWords.push(word); learnedWords = learnedWords.filter(w => w !== word); } } applyFilters(); updateProgress(); renderStats(); saveProgress(); }
         function showQuizHome() { document.getElementById('quizContent').innerHTML = `<div class="text-center p-8 animate-pop"><div class="text-7xl mb-6">📝</div><h2 class="text-3xl font-black text-slate-800 mb-4">آزمون جامع PTE</h2><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl hover:bg-blue-700 transition-all text-xl">شروع آزمون</button></div>`; }
         function initQuiz() { quizState = { currentIdx: 0, score: 0, questions: [...quizData].sort(()=>0.5-Math.random()).slice(0, 25), currentSelection: null }; showQuestion(); }
@@ -497,7 +506,7 @@
             const isC = quizState.currentSelection.trim().toLowerCase() === q[5].toString().trim().toLowerCase(); 
             if(isC) quizState.score++; 
             const sentence = q[0].replace('_______', '<b class="text-blue-600 underline">' + q[5] + '</b>'); 
-            document.getElementById('quizContent').innerHTML = `<div class="py-6 text-center animate-pop"><div class="text-8xl mb-4">${isC ? '✅' : '❌'}</div><div class="english-text bg-white p-6 rounded-3xl mb-4 text-base border italic text-slate-700 leading-relaxed shadow-sm">${sentence}</div><div class="space-y-4 mb-8"><div class="bg-blue-50 p-5 rounded-2xl text-right border-r-4 border-blue-500"><p class="text-xs font-black text-blue-600 mb-1 italic text-right uppercase">Translation</p><p class="text-sm text-slate-600 font-medium text-right">${q[6] || ''}</p></div><div class="bg-amber-50 p-5 rounded-2xl text-right border-r-4 border-amber-400"><p class="text-xs font-black text-amber-600 mb-1 italic text-right uppercase">Grammar Tip</p><p class="text-sm text-slate-600 font-medium text-right">${q[7] || ''}</p></div></div><button onclick="if(quizState.currentIdx<24){quizState.currentIdx++;quizState.currentSelection=null;showQuestion()}else{renderQuizResult()}" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg text-lg uppercase">Next Question</button></div>`; 
+            document.getElementById('quizContent').innerHTML = `<div class="py-6 text-center animate-pop"><div class="text-8xl mb-4">${isC ? '✅' : '❌'}</div><div class="english-text bg-white p-6 rounded-3xl mb-4 text-base border italic text-slate-700 leading-relaxed shadow-sm">${sentence}</div><div class="space-y-4 mb-8"><div class="bg-blue-50 p-5 rounded-2xl text-right border-r-4 border-blue-500"><p class="text-xs font-black text-blue-600 mb-1 italic text-right uppercase">Translation</p><p class="text-sm text-slate-600 font-medium text-right">${q[12] || ''}</p></div><div class="bg-amber-50 p-5 rounded-2xl text-right border-r-4 border-amber-400"><p class="text-xs font-black text-amber-600 mb-1 italic text-right uppercase">Grammar Tip</p><p class="text-sm text-slate-600 font-medium text-right">${q[14] || ''}</p></div></div><button onclick="if(quizState.currentIdx<24){quizState.currentIdx++;quizState.currentSelection=null;showQuestion()}else{renderQuizResult()}" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black shadow-lg text-lg uppercase">Next Question</button></div>`; 
         }
         function renderQuizResult() { const p = Math.round((quizState.score/25)*100); quizHistory.push({ date: new Date().toLocaleDateString('fa-IR'), score: quizState.score }); saveProgress(); document.getElementById('quizContent').innerHTML = `<div class="text-center p-4 animate-pop"><h2 class="text-5xl font-black text-blue-600 mb-2 underline tracking-tighter">${p}% SCORE</h2><p class="mb-8 font-bold text-slate-500 text-lg">${quizState.score} از 25 صحیح</p><button onclick="initQuiz()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl text-xl">Try Again</button></div>`; }
         function saveProgress() { if(!currentUser) return; const payload = { action: 'saveProgress', username: currentUser, learned: learnedWords.join('|'), hard: hardWords.join('|'), quizHistory: JSON.stringify(quizHistory), solvedReading: solvedReading.join('|'), hardReading: hardReading.join('|'), readingScores: JSON.stringify(readingScores), deviceId: deviceId }; fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }); }
