@@ -1,5 +1,3 @@
-code
-Html
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -10,12 +8,12 @@ Html
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @font-face { font-family: 'Vazir'; src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir.woff2'); }
-        body { font-family: 'Vazir', sans-serif; background-color: #f1f5f9; user-select: none; touch-action: manipulation; font-size: 14px; }
+        body { font-family: 'Vazir', sans-serif; background-color: #f1f5f9; user-select: none; touch-action: manipulation; font-size: 15px; }
         .english-text { font-family: 'Arial', sans-serif; direction: ltr; text-align: left; }
         .persian-text { direction: rtl; text-align: right; text-align: justify; text-justify: inter-word; }
         .tab-active { border-bottom: 4px solid #facc15 !important; color: #1e293b !important; font-weight: 900 !important; }
         .tab-inactive { border-bottom: 4px solid transparent; color: #94a3b8; font-weight: 600; }
-        .filter-active { background-color: #2563eb !important; color: white !important; font-weight: 900; border-color: #2563eb !important; }
+        .filter-active { background-color: #2563eb !important; color: white !important; font-weight: 900; }
         .modal-bg { background-color: rgba(0,0,0,0.85); display: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .animate-pop { animation: pop 0.3s ease-out; }
@@ -31,7 +29,7 @@ Html
         <div class="bg-white w-full max-w-[400px] rounded-[2.5rem] p-8 shadow-2xl text-center animate-pop mx-auto">
             <img src="logo.png" alt="Logo" class="w-24 h-24 mx-auto mb-4 object-contain">
             <h2 class="text-4xl font-black text-blue-700 mb-1 italic tracking-tighter">PTEinsider</h2>
-            <p class="text-slate-400 text-xs mb-8 font-bold tracking-[0.2em] uppercase">Reading Studio V.01</p>
+            <p class="text-slate-400 text-sm mb-8 font-bold tracking-[0.2em] uppercase">Reading Studio V.01</p>
             <div class="space-y-4">
                 <input id="userInp" type="text" placeholder="Username" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500 text-center english-text font-bold text-lg">
                 <div class="relative">
@@ -40,9 +38,9 @@ Html
                 </div>
                 <button id="loginBtn" onclick="attemptLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-blue-700 transition-all text-xl">LOGIN</button>
             </div>
-            <p id="loginError" class="text-red-500 text-xs mt-4 hidden font-bold italic">نام کاربری یا رمز عبور اشتباه است!</p>
+            <p id="loginError" class="text-red-500 text-sm mt-4 hidden font-bold italic">نام کاربری یا رمز عبور اشتباه است!</p>
             <div id="loader" class="mt-6 hidden text-center w-full">
-                <span class="english-text text-blue-600 text-sm font-black animate-pulse italic inline-block text-left" style="direction: ltr;">Connecting to PTEinsider...</span>
+                <span class="english-text text-blue-600 text-base font-black animate-pulse italic inline-block text-left" style="direction: ltr;">Connecting to PTEinsider...</span>
             </div>
         </div>
     </div>
@@ -54,6 +52,7 @@ Html
             <p class="text-xs mt-1 opacity-70 italic font-sans text-white">by Nasim Mohammmadian (<a href="https://t.me/nsmmhdn" target="_blank" class="text-blue-300 underline font-bold">t.me/nsmmhdn</a>)</p>
         </header>
 
+        <!-- Main Progress -->
         <div class="p-6 bg-white border-b shadow-sm">
             <div class="flex justify-between items-center mb-4">
                 <div class="flex items-center gap-4">
@@ -62,7 +61,7 @@ Html
                 </div>
                 <div class="text-right">
                     <p id="userNameDisplay" class="text-2xl font-black text-slate-800 uppercase tracking-tight">... 😊🌻</p>
-                    <p id="motivationalText" class="text-xs text-blue-500 font-black mt-1 italic"></p>
+                    <p id="motivationalText" class="text-sm text-blue-500 font-black mt-1 italic"></p>
                 </div>
             </div>
             <div class="w-full bg-slate-100 h-3.5 rounded-full overflow-hidden shadow-inner border border-slate-200">
@@ -78,19 +77,20 @@ Html
             <button id="tabStats" onclick="showTab('stats')" class="flex-1 py-5 tab-inactive whitespace-nowrap text-sm">آمار من</button>
         </nav>
 
+        <!-- VOCAB TAB -->
         <div id="vocabControls" class="p-4 bg-white border-b space-y-4 shadow-sm">
             <div class="relative">
                 <div class="flex gap-2">
                     <input id="searchInput" oninput="handleSearchSuggestions()" type="text" placeholder="Search..." class="flex-1 p-3 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-400 text-base english-text">
-                    <button onclick="applyFilters()" class="bg-blue-600 text-white px-5 rounded-2xl font-bold text-sm shadow-md">جستجو</button>
+                    <button onclick="applyFilters()" class="bg-blue-600 text-white px-6 rounded-2xl font-bold text-sm shadow-md">جستجو</button>
                     <button onclick="resetFilters()" class="bg-slate-100 text-slate-600 px-3 rounded-2xl font-bold text-base border">🔄</button>
                 </div>
                 <div id="searchSuggestions" class="absolute left-0 right-12 bg-white border-2 border-slate-100 rounded-2xl mt-1 shadow-xl z-50 max-h-48 overflow-y-auto hidden no-scrollbar"></div>
             </div>
             <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar items-center">
-                <button onclick="setStatusFilter('new')" id="btnNew" class="px-3 py-2.5 rounded-xl text-xs font-black filter-active whitespace-nowrap transition-all">🌟 جدید</button>
-                <button onclick="setStatusFilter('learned')" id="btnLearned" class="px-3 py-2.5 rounded-xl text-xs font-black border bg-white text-slate-400 whitespace-nowrap transition-all">✅ آشنا</button>
-                <button onclick="setStatusFilter('hard')" id="btnHard" class="px-3 py-2.5 rounded-xl text-xs font-black border bg-white text-slate-400 whitespace-nowrap transition-all">🔥 سخت</button>
+                <button onclick="setStatusFilter('new')" id="btnNew" class="px-4 py-2.5 rounded-xl text-xs font-black filter-active whitespace-nowrap transition-all border">🌟 جدید</button>
+                <button onclick="setStatusFilter('learned')" id="btnLearned" class="px-4 py-2.5 rounded-xl text-xs font-black border bg-white text-slate-400 whitespace-nowrap transition-all">✅ آشنا</button>
+                <button onclick="setStatusFilter('hard')" id="btnHard" class="px-4 py-2.5 rounded-xl text-xs font-black border bg-white text-slate-400 whitespace-nowrap transition-all">🔥 سخت</button>
                 <select id="levelFilter" onchange="applyFilters()" class="px-3 py-2.5 rounded-xl text-xs font-black border bg-slate-50 outline-none"><option value="All">سطح</option><option value="A1">A1</option><option value="A2">A2</option><option value="B1">B1</option><option value="B2">B2</option><option value="C1">C1</option><option value="C2">C2</option><option value="Academic">Academic</option></select>
             </div>
             <p id="itemsCount" class="text-xs text-slate-400 font-bold mr-1"></p>
@@ -98,18 +98,19 @@ Html
 
         <div id="vocabSection" class="p-4">
             <div id="wordsContainer" class="space-y-4"></div>
-            <div id="pagination" class="flex justify-center items-center gap-6 mt-10 pb-10">
-                <button onclick="changePage(-1)" id="prevBtn" class="bg-slate-100 p-3 rounded-full shadow-sm disabled:opacity-20 text-xl">◀️</button>
-                <span id="pageInfo" class="text-xs font-black text-slate-500 tracking-widest uppercase">Page 1</span>
-                <button onclick="changePage(1)" id="nextBtn" class="bg-slate-100 p-3 rounded-full shadow-sm disabled:opacity-20 text-xl">▶️</button>
+            <div id="pagination" class="flex justify-center items-center gap-8 mt-10 pb-10">
+                <button onclick="changePage(-1)" id="prevBtn" class="bg-slate-100 p-4 rounded-full shadow-sm disabled:opacity-20 text-xl">◀️</button>
+                <span id="pageInfo" class="text-sm font-black text-slate-500 tracking-widest uppercase">Page 1</span>
+                <button onclick="changePage(1)" id="nextBtn" class="bg-slate-100 p-4 rounded-full shadow-sm disabled:opacity-20 text-xl">▶️</button>
             </div>
         </div>
 
+        <!-- READING SECTION -->
         <div id="readingSection" class="p-2 hidden">
             <div id="readingControls" class="p-3 bg-white space-y-4 mb-2 border-b">
                 <div class="relative">
-                    <input id="readingSearch" oninput="handleReadingSuggestions()" type="text" placeholder="جستجو در تایتل، شماره یا متن..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs persian-text outline-none focus:border-blue-400">
-                    <div id="rSearchSuggestions" class="absolute left-0 right-0 bg-white border rounded-xl mt-1 shadow-xl z-50 max-h-40 overflow-y-auto hidden no-scrollbar"></div>
+                    <input id="readingSearch" oninput="handleReadingSuggestions()" type="text" placeholder="جستجو در تایتل، شماره یا متن..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm persian-text outline-none focus:border-blue-400">
+                    <div id="rSearchSuggestions" class="absolute left-0 right-0 bg-white border rounded-xl mt-1 shadow-xl z-50 max-h-48 overflow-y-auto hidden no-scrollbar"></div>
                 </div>
                 <div class="flex gap-1 overflow-x-auto no-scrollbar pb-1">
                     <button onclick="setRFilter('solved', 'all')" id="rBtnAll" class="px-4 py-2.5 rounded-xl text-xs font-black border bg-blue-600 text-white whitespace-nowrap transition-all">📚 ALL</button>
@@ -118,35 +119,37 @@ Html
                     <button onclick="setRFilter('pred', 'yes')" id="rBtnPred" class="px-4 py-2.5 rounded-xl text-xs font-black border bg-slate-50 text-slate-600 whitespace-nowrap transition-all">Predicted Qs</button>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
-                    <select id="rDiffFilter" onchange="applyReadingFilters()" class="px-2 py-2 rounded-xl text-xs font-black border bg-slate-50 outline-none"><option value="all">سطح دشواری</option><option value="hard">فقط سخت 🔥</option><option value="normal">فقط معمولی ✅</option></select>
-                    <select id="rSubjectFilter" onchange="applyReadingFilters()" class="px-2 py-2 rounded-xl text-xs font-black border bg-slate-50 outline-none"><option value="All">فیلتر موضوعی</option></select>
+                    <select id="rDiffFilter" onchange="applyReadingFilters()" class="px-2 py-2.5 rounded-xl text-xs font-black border bg-slate-50 outline-none"><option value="all">سطح دشواری</option><option value="hard">فقط سخت 🔥</option><option value="normal">فقط معمولی ✅</option></select>
+                    <select id="rSubjectFilter" onchange="applyReadingFilters()" class="px-2 py-2.5 rounded-xl text-xs font-black border bg-slate-50 outline-none"><option value="All">فیلتر موضوعی</option></select>
                 </div>
                 <div class="flex justify-between items-center px-1">
-                    <select id="rGrammarFilter" onchange="applyReadingFilters()" class="px-2 py-2 rounded-xl text-xs font-black border bg-slate-50 outline-none w-32"><option value="All">فیلتر گرامر</option></select>
-                    <select id="rSortSelect" onchange="applyReadingFilters()" class="px-3 py-2 rounded-lg text-xs font-black border bg-white text-slate-600 outline-none"><option value="Number">شماره سوال</option><option value="Tested">بیشترین تکرار</option></select>
+                    <select id="rGrammarFilter" onchange="applyReadingFilters()" class="px-2 py-2.5 rounded-xl text-xs font-black border bg-slate-50 outline-none w-36"><option value="All">فیلتر گرامر</option></select>
+                    <select id="rSortSelect" onchange="applyReadingFilters()" class="px-3 py-2.5 rounded-lg text-xs font-black border bg-white text-slate-600 outline-none"><option value="Number">شماره سوال</option><option value="Tested">بیشترین تکرار</option></select>
                 </div>
             </div>
+            
             <div class="px-4 mb-4">
                 <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
                     <div id="rProgressBar" class="bg-blue-500 h-full transition-all duration-500" style="width: 0%"></div>
                 </div>
-                <p class="text-[10px] text-slate-400 mt-1 font-black uppercase text-center">Reading Progress</p>
+                <p class="text-[10px] text-slate-400 mt-1 font-black uppercase text-center tracking-widest">Reading Progress</p>
             </div>
+
             <div id="readingContent" class="space-y-4 px-1"></div>
             <div class="flex justify-between items-center mt-6 px-4 pb-10">
-                <button onclick="changeReadingPage(-1)" class="bg-white border-2 border-slate-100 px-10 py-3.5 rounded-2xl font-black text-sm shadow-sm active:scale-95 transition-all text-slate-500">قبلی</button>
+                <button onclick="changeReadingPage(-1)" class="bg-white border-2 border-slate-100 px-10 py-4 rounded-2xl font-black text-sm shadow-sm active:scale-95 transition-all text-slate-500">قبلی</button>
                 <span id="readingPageInfo" class="text-xs font-black text-slate-400 tracking-widest italic uppercase">Card 1 / 1</span>
-                <button onclick="changeReadingPage(1)" class="bg-white border-2 border-slate-100 px-10 py-3.5 rounded-2xl font-black text-sm shadow-sm active:scale-95 transition-all text-slate-500">بعدی</button>
+                <button onclick="changeReadingPage(1)" class="bg-white border-2 border-slate-100 px-10 py-4 rounded-2xl font-black text-sm shadow-sm active:scale-95 transition-all text-slate-500">بعدی</button>
             </div>
         </div>
 
         <div id="quizSection" class="p-4 hidden"><div id="quizContent" class="bg-slate-50 border-2 border-white rounded-[2.5rem] p-6 shadow-lg min-h-[450px] flex flex-col justify-center"></div></div>
-        <div id="statsSection" class="p-6 hidden"><div id="statsContent" class="space-y-6 text-right"></div></div>
+        <div id="statsSection" class="p-6 hidden"><div id="statsContent" class="space-y-6 text-right text-sm"></div></div>
     </div>
 
     <script>
         const PUB_ID = '2PACX-1vRLfGnlIoQoX8NtHa99PvWeZIIcHh1s6Asc0jOIKewDKHq7fjiQ-KsZ0B7PVNANcjXtid63Wqih-zjC';
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyLBSK9-o2mJvlKTLZlSHGaAg--ozzEFaKXQDk4wH5SH55r1KwUR_LOKrcrOLXhYvKl/exec'; 
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVfkhE8Cc5L2htsTO4WNvPTQykTYMtNTG7wsceftJEXF6Yjc4UVXIPvpGbVufkwPIw/exec'; 
         
         let academicWords = [], examWords = [], readingQuestions = [], filteredReading = [], quizData = [], usersData = [];
         let learnedWords = [], hardWords = [], quizHistory = [], filteredWords = [];
@@ -205,7 +208,7 @@ Html
 
                     const subjects = [...new Set(readingQuestions.map(q => q[19]))].filter(s => s && s.trim() !== "");
                     document.getElementById('rSubjectFilter').innerHTML = '<option value="All">فیلتر موضوعی</option>' + subjects.map(s => `<option value="${s}">${s}</option>`).join('');
-                    const grammars = [...new Set(readingQuestions.map(q => q[14]))].filter(g => g && g.trim() !== "").map(g => g.split('.')[0].trim()).slice(0,10);
+                    const grammars = [...new Set(readingQuestions.map(q => q[14]))].filter(g => g && g.trim() !== "").map(g => g.split('.')[0].trim()).slice(0,15);
                     document.getElementById('rGrammarFilter').innerHTML = '<option value="All">فیلتر گرامر</option>' + [...new Set(grammars)].map(g => `<option value="${g}">${g}</option>`).join('');
 
                     try {
@@ -224,9 +227,9 @@ Html
                     document.getElementById('loginPage').classList.add('hidden');
                     document.getElementById('mainApp').classList.remove('hidden');
                     document.getElementById('userNameDisplay').innerText = `${u.toUpperCase()} 😊🌻`;
-                    applyFilters(); updateProgress(); showQuizHome(); setTimeout(showWotd, 2000);
+                    applyFilters(); updateProgress(); showQuizHome();
                 } else { document.getElementById('loginError').classList.remove('hidden'); }
-            } catch (e) { alert("Error connecting."); } finally { document.getElementById('loader').classList.add('hidden'); }
+            } catch (e) { alert("خطا در اتصال به شیت."); } finally { document.getElementById('loader').classList.add('hidden'); }
         }
 
         function highlightWord(s, w) { if (!w) return s; const regex = new RegExp(`(${w})`, 'gi'); return s.replace(regex, '<b class="text-blue-600 underline font-black">$1</b>'); }
@@ -236,24 +239,25 @@ Html
             const start = (currentPage - 1) * itemsPerPage;
             const paged = filteredWords.slice(start, start + itemsPerPage);
             document.getElementById('wordsContainer').innerHTML = paged.map(w => `
-                <div class="bg-white border border-slate-100 rounded-3xl p-4 shadow-sm animate-pop">
+                <div class="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm animate-pop">
                     <div class="flex justify-between items-start mb-2">
                         <div class="flex gap-2">
-                            <button onclick="toggleStatus('${w[0]}','hard')" class="w-9 h-9 rounded-xl border flex items-center justify-center ${hardWords.includes(w[0]) ? 'bg-red-500 text-white border-red-500' : 'bg-slate-50 text-slate-300'} transition-all text-xl">🔥</button>
-                            <button onclick="toggleStatus('${w[0]}','learned')" class="w-9 h-9 rounded-xl border flex items-center justify-center ${learnedWords.includes(w[0]) ? 'bg-green-500 text-white border-green-500' : 'bg-slate-50 text-slate-300'} transition-all text-xl">✓</button>
+                            <button onclick="toggleStatus('${w[0]}','hard')" class="w-10 h-10 rounded-xl border flex items-center justify-center ${hardWords.includes(w[0]) ? 'bg-red-500 text-white border-red-500' : 'bg-slate-50 text-slate-300'} transition-all text-2xl shadow-sm">🔥</button>
+                            <button onclick="toggleStatus('${w[0]}','learned')" class="w-10 h-10 rounded-xl border flex items-center justify-center ${learnedWords.includes(w[0]) ? 'bg-green-500 text-white border-green-500' : 'bg-slate-50 text-slate-300'} transition-all text-2xl shadow-sm">✓</button>
                         </div>
                         <span class="text-[10px] px-2 py-0.5 rounded-full font-black border uppercase ${getLevelStyle(w[2])}">${w[2] || 'Any'}</span>
                     </div>
-                    <div class="flex items-center gap-3 justify-end mb-1">
+                    <div class="flex items-center gap-3 justify-end">
                          <p class="english-text text-slate-400 text-xs font-mono italic">${w[6] || ''}</p>
                          <h3 class="english-text text-2xl font-black text-slate-800">${w[0]}</h3>
                          <button onclick="speak('${w[0]}')" class="text-2xl">🔊</button>
                     </div>
                     <p class="text-blue-700 font-black text-lg mb-2 text-right">${w[1]}</p>
-                    <div class="bg-slate-50 p-3 rounded-2xl border-r-4 border-blue-400 text-left mb-2">
-                         <p class="text-sm text-slate-600 italic leading-relaxed text-left">${highlightWord(w[3] || '', w[0])}</p>
-                         <p class="text-xs text-blue-500 font-black border-t pt-2 border-blue-100 text-right mt-1"><span class="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[8px] ml-1 not-italic">Meaning</span>${w[7] || ''}</p>
+                    <div class="bg-slate-50 p-4 rounded-2xl border-r-4 border-blue-400 text-left mb-2">
+                         <p class="text-[14px] text-slate-600 italic leading-relaxed text-left">${highlightWord(w[3] || '', w[0])}</p>
+                         <p class="text-xs text-blue-500 font-black border-t pt-2 border-blue-100 text-right mt-2"><span class="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] ml-1 not-italic uppercase">Meaning</span>${w[7] || ''}</p>
                     </div>
+                    ${w[4] ? `<div class="bg-amber-50 p-3 rounded-xl text-[13px] text-slate-500 border-r-2 border-amber-300 text-right italic leading-relaxed">💡 ${w[4]}</div>` : ''}
                 </div>`).join('');
             document.getElementById('pageInfo').innerText = `PAGE ${currentPage} / ${Math.ceil(filteredWords.length / itemsPerPage) || 1}`;
         }
@@ -310,7 +314,7 @@ Html
 
         function renderReading() {
             const container = document.getElementById('readingContent');
-            if (filteredReading.length === 0) { container.innerHTML = "<p class='text-center p-10 font-bold opacity-50 italic'>سوالی با این مشخصات یافت نشد.</p>"; return; }
+            if (filteredReading.length === 0) { container.innerHTML = "<p class='text-center p-10 font-bold opacity-50 italic'>سوالی یافت نشد.</p>"; return; }
             const q = filteredReading[readingCurrentIdx];
             const term = document.getElementById('readingSearch').value.toLowerCase();
             const scoreData = readingScores[q[0]];
@@ -329,23 +333,23 @@ Html
                             <p class="text-[10px] text-slate-400 font-bold italic">APEUni #${highlightMatch(q[0], term)} <span class="opacity-40">(${q[17]} repeats)</span></p>
                         </div>
                     </div>
-                    <div id="readText" class="english-text text-base leading-[2.5] mb-2 bg-slate-50 p-5 rounded-2xl border border-dashed border-slate-200" style="direction: ltr; text-align: justify;">
+                    <div id="readText" class="english-text text-[15px] leading-[2.5] mb-2 bg-slate-50 p-5 rounded-2xl border border-dashed border-slate-200" style="direction: ltr; text-align: justify;">
                         ${highlightMatch(q[2], term).replace(/\[Blank (\d+)\]/g, (match, n) => {
                             const group = optionGroups.find(g => g.num == n);
                             if(!group) return match;
                             return `<select onchange="readingSelections[${n}] = this.value" class="mx-1 p-1 bg-white border-2 border-blue-100 rounded-lg text-xs font-black text-blue-700 outline-none shadow-sm"><option value="">Select...</option>${group.choices.map(c => `<option value="${c}">${c}</option>`).join('')}</select>`;
                         })}
                     </div>
-                    <div id="transText" class="persian-text text-sm leading-[2.2] bg-blue-50/40 p-5 rounded-3xl mb-4 border border-blue-100 hidden animate-pop">
+                    <div id="transText" class="persian-text text-base leading-[2.2] bg-blue-50/40 p-5 rounded-3xl mb-4 border border-blue-100 hidden animate-pop">
                         <div class="flex justify-between mb-3 border-b border-blue-100 pb-2"><button onclick="speak(\`${q[2].replace(/'/g,"")}\`)" class="text-2xl">🔊</button><b class="text-blue-600 underline text-xs">ترجمه فارسی:</b></div>${q[12].replace(/\((.*?)\)/g, '<b>($1)</b>')}
                     </div>
                     <div class="mb-4 flex justify-center items-center gap-6">
                         <button onclick="toggleReadingAnswer()" id="readBtn" class="bg-green-600 text-white px-10 py-3.5 rounded-2xl font-black text-sm shadow-lg transition-all">ثبت پاسخ</button>
-                        <div id="scoreDisplay" class="hidden animate-pop bg-slate-900 text-white px-4 py-3 rounded-2xl font-black text-xs uppercase">SCORE: <span id="readingScoreVal" class="text-yellow-400">0/0</span></div>
+                        <div id="scoreDisplay" class="hidden animate-pop bg-slate-900 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase">SCORE: <span id="readingScoreVal" class="text-yellow-400">0 / 0</span></div>
                     </div>
                     <div class="space-y-3">
-                        <details class="group bg-slate-900 rounded-2xl overflow-hidden shadow-md"><summary class="p-4 text-xs font-black text-blue-400 cursor-pointer text-center list-none uppercase italic">💡 نکات گرامری</summary><div class="p-5 text-sm text-slate-300 bg-slate-800 leading-8 persian-text font-medium">${q[14] ? q[14].replace(/(\d+\.)/g, '<br><b>$1</b>') : 'ثبت نشده'}</div></details>
-                        <details class="group bg-slate-900 rounded-2xl overflow-hidden shadow-md"><summary class="p-4 text-xs font-black text-green-400 cursor-pointer text-center list-none uppercase italic">🔗 کالوکیشن‌ها</summary><div class="p-5 text-sm text-slate-300 bg-slate-800 leading-8 english-text font-medium" style="direction: ltr;">${q[15] ? q[15].split('/').map(c => `<b>• ${c.trim()}</b>`).join('<br>') : 'ثبت نشده'}</div></details>
+                        <details class="group bg-slate-900 rounded-2xl overflow-hidden shadow-md"><summary class="p-4 text-xs font-black text-blue-400 cursor-pointer text-center list-none uppercase italic">💡 نکات گرامری</summary><div class="p-5 text-[15px] text-slate-300 bg-slate-800 leading-8 persian-text font-medium">${q[14] ? q[14].replace(/(\d+\.)/g, '<br><b>$1</b>') : 'ثبت نشده'}</div></details>
+                        <details class="group bg-slate-900 rounded-2xl overflow-hidden shadow-md"><summary class="p-4 text-xs font-black text-green-400 cursor-pointer text-center list-none uppercase italic">🔗 کالوکیشن‌ها</summary><div class="p-5 text-[15px] text-slate-300 bg-slate-800 leading-8 english-text font-medium" style="direction: ltr;">${q[15] ? q[15].split('/').map(c => `<b>• ${c.trim()}</b>`).join('<br>') : 'ثبت نشده'}</div></details>
                     </div>
                 </div>`;
             readingSelections = {};
@@ -370,13 +374,13 @@ Html
                 }
                 readingScores[q[0]] = { score: correctCount, total: totalBlanks, isHard: hardReading.includes(q[0]) };
                 textDiv.innerHTML = currentText; transDiv.classList.remove('hidden'); scoreDiv.classList.remove('hidden');
-                document.getElementById('readingScoreVal').innerText = `${correctCount}/${totalBlanks}`;
+                document.getElementById('readingScoreVal').innerText = `${correctCount} / ${totalBlanks}`;
                 btn.innerText = "مخفی کردن پاسخ"; btn.classList.replace('bg-green-600', 'bg-slate-700');
                 saveProgress();
             } else { renderReading(); }
         }
 
-        function changeReadingPage(s) { readingCurrentIdx += s; if (readingCurrentIdx < 0) readingCurrentIdx = 0; if (readingCurrentIdx >= filteredReading.length) readingCurrentIdx = filteredReading.length - 1; renderReading(); window.scrollTo(0, 0); }
+        function changeReadingPage(step) { readingCurrentIdx += step; if (readingCurrentIdx < 0) readingCurrentIdx = 0; if (readingCurrentIdx >= filteredReading.length) readingCurrentIdx = filteredReading.length - 1; renderReading(); window.scrollTo(0, 0); }
         function markReadingStatus(qid, status) { if(status === 'hard') { if(!hardReading.includes(qid)) hardReading.push(qid); } else { hardReading = hardReading.filter(i => i !== qid); } if(readingScores[qid]) readingScores[qid].isHard = (status === 'hard'); renderReading(); saveProgress(); }
 
         function renderStats() {
@@ -391,18 +395,22 @@ Html
                     <div class="bg-blue-600 text-white p-5 rounded-3xl text-center shadow-lg"><p class="text-xs font-bold opacity-70 uppercase">Academic</p><div class="text-2xl font-black stat-number">${lA}/${academicWords.length}</div></div>
                     <div class="bg-yellow-400 text-slate-900 p-5 rounded-3xl text-center shadow-lg"><p class="text-xs font-bold opacity-70 uppercase">Collocations</p><div class="text-2xl font-black stat-number">${lE}/${examWords.length}</div></div>
                 </div>
-                <div class="bg-slate-900 text-white p-6 rounded-3xl shadow-xl flex flex-col items-center" dir="ltr">
-                    <p class="text-base font-black mb-2 text-blue-400 uppercase tracking-widest text-center">Reading Accuracy: ${rp}%</p>
-                    <div class="text-base font-bold text-slate-400">${solvedReading.length} / ${readingQuestions.length} Items Done</div>
+                <div class="bg-slate-900 text-white p-6 rounded-3xl shadow-xl text-center flex flex-col items-center" dir="ltr">
+                    <p class="text-sm font-black mb-1 text-blue-400 uppercase tracking-widest">Total Reading Performance</p>
+                    <div class="text-4xl font-black text-green-400 stat-number my-2">${rp}%</div>
+                    <div class="text-base font-bold text-slate-400">${tc} Correct from ${tb} Total Blanks</div>
+                    <div class="text-xs opacity-70 mt-1">${solvedReading.length} / ${readingQuestions.length} Items Solved</div>
                 </div>
-                <div class="bg-white border-2 border-slate-100 p-6 rounded-3xl shadow-sm text-right"><p class="font-black text-slate-800 mb-4 italic underline uppercase text-xs">Questions Report:</p>
-                <div class="space-y-3 max-h-80 overflow-y-auto no-scrollbar">
-                    ${Object.keys(readingScores).reverse().map(qid => {
-                        const d = readingScores[qid];
-                        const st = (d.score/d.total)*100 >= 60 ? '✅ خوب' : '❌ ضعیف';
-                        return `<div class="flex justify-between items-center border-b pb-2 text-sm font-bold" dir="ltr"><span class="text-slate-400 text-xs">#${qid}</span><span>${st}</span><span class="stat-number">${d.score}/${d.total}</span></div>`;
-                    }).join('') || '<p class="text-center text-xs italic">دیتایی یافت نشد.</p>'}
-                </div></div>`;
+                <div class="bg-white border-2 border-slate-100 p-6 rounded-3xl shadow-sm text-right">
+                    <p class="font-black text-slate-800 mb-4 italic underline uppercase text-sm">Questions Report:</p>
+                    <div class="space-y-2 max-h-80 overflow-y-auto no-scrollbar">
+                        ${Object.keys(readingScores).reverse().map(qid => {
+                            const d = readingScores[qid];
+                            const st = (d.score/d.total)*100 >= 60 ? '✅ خوب' : '❌ ضعیف';
+                            return `<div class="flex justify-between items-center border-b pb-2 text-sm font-bold" dir="ltr"><span class="text-slate-400 text-xs">#${qid}</span><span>${st}</span><span class="stat-number">${d.score}/${d.total}</span></div>`;
+                        }).join('') || '<p class="text-center text-xs italic">دیتایی یافت نشد.</p>'}
+                    </div>
+                </div>`;
         }
 
         // --- CORE BASE LOGIC ---
